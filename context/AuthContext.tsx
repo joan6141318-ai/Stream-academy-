@@ -39,12 +39,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // 1. Escuchar cambios de sesión (Backup & Initial Load)
   useEffect(() => {
+    // CINTURÓN DE SEGURIDAD:
+    const safetyTimer = setTimeout(() => {
+        if (loading) {
+            console.warn("Firebase slow response - Forcing UI load");
+            setLoading(false);
+        }
+    }, 2000);
+
     if (!auth) {
         setLoading(false);
         return;
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      clearTimeout(safetyTimer);
+
       if (firebaseUser) {
         const baseUser: User = {
             id: firebaseUser.uid,
@@ -54,8 +64,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             role: "Streamer"
         };
 
-        // Si ya tenemos usuario en memoria (por login manual), no sobrescribir para evitar parpadeo
-        // Solo cargamos de DB si es la carga inicial o recarga de página
         if (!user) {
             try {
                 if (db) {
@@ -80,28 +88,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    return () => unsubscribe();
-  }, []); // Empty deps to run only on mount
+    return () => {
+        unsubscribe();
+        clearTimeout(safetyTimer);
+    };
+  }, []); 
 
-  // --- LOGIN (OPTIMIZED FOR SPEED) ---
+  // --- LOGIN ---
   const login = async (email: string, pass: string) => {
       if (!auth) throw new Error("Firebase no configurado");
       
       const credential = await signInWithEmailAndPassword(auth, email, pass);
       const fbUser = credential.user;
 
-      // FORCE STATE UPDATE IMMEDIATELY
-      // No esperamos a onAuthStateChanged ni a Firestore. Entramos YA.
+      // FORCE STATE UPDATE IMMEDIATELY (Optimistic)
       const instantUser: User = {
           id: fbUser.uid,
           name: fbUser.displayName || "Usuario",
           email: fbUser.email || "",
           avatarUrl: fbUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${fbUser.displayName || 'User'}`,
-          role: "Streamer" // Default mientras carga el real en background
+          role: "Streamer"
       };
       
       setUser(instantUser);
-      setLoading(false); // Unlock ProtectedRoute immediately
+      setLoading(false);
   };
 
   // --- REGISTRO ---
@@ -111,7 +121,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       const fbUser = userCredential.user;
 
-      // Enviar verificación
       sendEmailVerification(fbUser).catch(e => console.warn("Email verification error", e));
 
       const newUserProfile: User = {
@@ -123,11 +132,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin: false
       };
 
-      // FORCE STATE UPDATE IMMEDIATELY
       setUser(newUserProfile);
       setLoading(false);
 
-      // Async DB updates (Non-blocking)
       try {
         if (db) {
             await setDoc(doc(db, "users", fbUser.uid), newUserProfile);
@@ -148,9 +155,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!storage || !user) throw new Error("Storage no disponible");
       
       const storageRef = ref(storage, `avatars/${user.id}_profile.jpg`);
+      // Ensure we strip data:image/jpeg;base64, prefix if passing raw string is issue, 
+      // but uploadString with 'data_url' handles it automatically.
       await uploadString(storageRef, base64Image, 'data_url');
       
       const downloadURL = await getDownloadURL(storageRef);
+      // Append timestamp to force browser cache refresh
       const finalUrl = `${downloadURL}?t=${new Date().getTime()}`;
       return finalUrl;
   };
@@ -158,8 +168,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (data: Partial<User>) => {
     if (!user) return;
     
+    // 1. Optimistic Update: Update UI immediately
     setUser(prev => prev ? { ...prev, ...data } : null);
 
+    // 2. Background Sync
     try {
         if (db) {
             const userDocRef = doc(db, "users", user.id);

@@ -84,25 +84,61 @@ const UserSettings: React.FC = () => {
     navigate('/');
   };
 
+  // Función para comprimir imágenes antes de subir
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800; // Reducir a max 800px de ancho
+          let width = img.width;
+          let height = img.height;
+
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            // Convertir a JPEG con 70% de calidad
+            resolve(canvas.toDataURL('image/jpeg', 0.7)); 
+          } else {
+            reject(new Error("Canvas context failed"));
+          }
+        };
+        img.onerror = (error) => reject(error);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setIsUploading(true);
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        try {
-            // Subir foto
-            const photoUrl = await uploadPhoto(reader.result as string);
-            // Actualizar perfil con la nueva URL
-            await updateProfile({ avatarUrl: photoUrl });
-        } catch (error) {
-            console.error("Error uploading photo", error);
-            alert("Error al subir imagen. Intenta de nuevo.");
-        } finally {
-            setIsUploading(false);
-        }
-      };
-      reader.readAsDataURL(file);
+      try {
+          // 1. Comprimir imagen (Solución a 'No carga')
+          const compressedBase64 = await compressImage(file);
+          
+          // 2. Subir a Firebase
+          const photoUrl = await uploadPhoto(compressedBase64);
+          
+          // 3. Actualizar perfil
+          await updateProfile({ avatarUrl: photoUrl });
+      } catch (error) {
+          console.error("Error uploading photo", error);
+          alert("Error al subir imagen. Intenta de nuevo.");
+      } finally {
+          setIsUploading(false);
+      }
     }
   };
 
@@ -115,12 +151,15 @@ const UserSettings: React.FC = () => {
     if (!formData.name.trim()) return;
     setIsSaving(true);
     
+    // ACTUALIZACIÓN OPTIMISTA:
+    // Cerramos la edición INMEDIATAMENTE para que se sienta instantáneo.
+    setIsEditing(false); 
+
     try {
-        // Al ser una actualización optimista en el contexto, esto es casi instantáneo
         await updateProfile({ name: formData.name });
-        setIsEditing(false); // Cerramos edición inmediatamente
     } catch (error) {
         console.error("Error saving profile", error);
+        // Si falla, podrías mostrar un error, pero la UI ya respondió.
     } finally {
         setIsSaving(false);
     }
