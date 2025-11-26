@@ -1,0 +1,131 @@
+import React from 'react';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Login from './pages/Login';
+import Profile from './pages/Profile';
+import TrainingList from './pages/TrainingList';
+import TrainingDetail from './pages/TrainingDetail';
+import UserSettings from './pages/UserSettings';
+import CalculatorTool from './pages/CalculatorTool';
+import PaymentTableTool from './pages/PaymentTableTool';
+import GamerTool from './pages/GamerTool';
+import GameRunTool from './pages/GameRunTool';
+import BloqueoMotivos from './pages/BloqueoMotivos';
+import BloqueoTypes from './pages/BloqueoTypes';
+import BloqueoVip from './pages/BloqueoVip';
+import BloqueoAppeal from './pages/BloqueoAppeal';
+import { MainLayout } from './components/MainLayout';
+
+// Componente para proteger rutas privadas
+// Fix: Made children optional to prevent TypeScript error "Property 'children' is missing..."
+const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen bg-white text-brand-black">Cargando...</div>;
+  }
+
+  if (!user) {
+    // Si no hay usuario, redirigir al Login
+    return <Navigate to="/" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const AppContent: React.FC = () => {
+  return (
+    <div className="w-full h-[100dvh] bg-white text-brand-black dark:bg-black dark:text-white overflow-hidden relative flex flex-col transition-colors duration-300">
+      <Routes>
+        {/* Public Route */}
+        <Route path="/" element={<Login />} />
+
+        {/* Authenticated Routes with Bottom Nav */}
+        <Route element={<MainLayout />}>
+          <Route path="/home" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+          <Route path="/training" element={
+            <ProtectedRoute>
+              <TrainingList />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <UserSettings />
+            </ProtectedRoute>
+          } />
+        </Route>
+
+        {/* Detail View - Protected */}
+        <Route path="/training/:topicId" element={
+          <ProtectedRoute>
+            <TrainingDetail />
+          </ProtectedRoute>
+        } />
+        
+        {/* Sub-pages for Training - Protected */}
+        <Route path="/training/bloqueos/motivos" element={
+          <ProtectedRoute>
+            <BloqueoMotivos />
+          </ProtectedRoute>
+        } />
+        <Route path="/training/bloqueos/types" element={
+          <ProtectedRoute>
+            <BloqueoTypes />
+          </ProtectedRoute>
+        } />
+        <Route path="/training/bloqueos/vip" element={
+          <ProtectedRoute>
+            <BloqueoVip />
+          </ProtectedRoute>
+        } />
+        <Route path="/training/bloqueos/appeal" element={
+          <ProtectedRoute>
+            <BloqueoAppeal />
+          </ProtectedRoute>
+        } />
+
+        {/* Tools Routes - Protected */}
+        <Route path="/tools/calculator" element={
+          <ProtectedRoute>
+            <CalculatorTool />
+          </ProtectedRoute>
+        } />
+        <Route path="/tools/payment-table" element={
+          <ProtectedRoute>
+            <PaymentTableTool />
+          </ProtectedRoute>
+        } />
+        <Route path="/tools/gamer" element={
+          <ProtectedRoute>
+            <GamerTool />
+          </ProtectedRoute>
+        } />
+        <Route path="/tools/gamer/setup" element={
+          <ProtectedRoute>
+            <GameRunTool />
+          </ProtectedRoute>
+        } />
+        
+        {/* Redirect unknown routes to home or login */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </Router>
+  );
+};
+
+export default App;

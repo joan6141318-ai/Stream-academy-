@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- PWA Setup -->
+    <meta name="theme-color" content="#7c3aed" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- iOS Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="StreamAgency" />
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/65zvGzJL/IMG_20251102_060134.png" />
+    
+    <title>StreamAgency Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class', // ACTIVAR MODO MANUAL
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', '-apple-system', 'Helvetica Neue', 'sans-serif'],
+            },
+            colors: {
+              brand: {
+                black: '#0a0a0a',
+                dark: '#171717',
+                purple: '#7c3aed',
+                gray: '#FAFAFA',
+                border: '#eeeeee',
+                'dark-bg': '#000000', // Fondo negro puro para OLED
+                'dark-card': '#121212', // Fondo gris muy oscuro para tarjetas
+              }
+            },
+            borderRadius: {
+              'none': '0',
+              'sm': '2px', // Minimalist squared look
+              'DEFAULT': '4px',
+            },
+            spacing: {
+              'safe-top': 'env(safe-area-inset-top)',
+              'safe-bottom': 'env(safe-area-inset-bottom)',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* App Shell Reset */
+      html {
+        height: 100%;
+        width: 100%;
+        overflow: hidden; /* Prevent html scroll */
+        -webkit-text-size-adjust: 100%;
+      }
+      
+      body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden; /* Prevent body scroll */
+        background-color: #ffffff;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overscroll-behavior: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        transition: background-color 0.3s ease;
+      }
+
+      /* Dark mode body transition */
+      html.dark body {
+        background-color: #000000;
+        color: #ffffff;
+      }
+
+      #root {
+        height: 100%;
+        width: 100%;
+      }
+      
+      /* Hide Scrollbar but allow scroll */
+      .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+      }
+      .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+      }
+
+      /* Native Inputs */
+      input, textarea {
+        user-select: text;
+        appearance: none;
+        -webkit-appearance: none;
+        border-radius: 0;
+      }
+
+      /* Safe Area Utilities */
+      .pt-safe { padding-top: env(safe-area-inset-top); }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+      .mt-safe { margin-top: env(safe-area-inset-top); }
+      .mb-safe { margin-bottom: env(safe-area-inset-bottom); }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.6.0/"
+  }
+}
+</script>
+</head>
+  <body class="bg-white text-brand-black dark:bg-brand-dark-bg dark:text-white transition-colors duration-300">
+    <div id="root"></div>
+
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            })
+            .catch((err) => {
+              console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
