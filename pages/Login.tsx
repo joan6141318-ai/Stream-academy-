@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Zap, AlertCircle, WifiOff, Check } from 'lucide-react';
 import { Button } from '../components/Button';
@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login, register, user, loading } = useAuth();
+  const { login, register, loading } = useAuth(); // loading not strictly needed here but good for initial check
   
   // Estados para manejar el formulario
   const [isRegistering, setIsRegistering] = useState(false);
@@ -17,15 +17,6 @@ const Login: React.FC = () => {
   const [isNetworkError, setIsNetworkError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-
-  // --- NAVEGACIÓN REACTIVA ---
-  // Esta es la única fuente de verdad para la redirección.
-  // Solo navega cuando el usuario EXISTE y la carga TERMINÓ.
-  useEffect(() => {
-    if (!loading && user) {
-      navigate('/home', { replace: true });
-    }
-  }, [user, loading, navigate]);
 
   // Limpiar errores al escribir
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, value: string) => {
@@ -48,9 +39,15 @@ const Login: React.FC = () => {
         await login(email, password);
       }
       
-      // Si llegamos aquí, Firebase respondió OK.
-      // No navegamos manualmente. Dejamos que el useEffect detecte el cambio de usuario.
+      // ÉXITO CONFIRMADO
       setIsSuccess(true);
+      
+      // NAVEGACIÓN FORZADA
+      // No esperamos a useEffect. Si la línea de arriba (await login) pasó, estamos dentro.
+      // Damos un brevísimo delay solo para que el usuario vea el check verde.
+      setTimeout(() => {
+          navigate('/home', { replace: true });
+      }, 500);
       
     } catch (err: any) {
       console.error("Firebase Auth Error:", err.code, err.message);
@@ -86,9 +83,8 @@ const Login: React.FC = () => {
     }
   };
 
-  // Si está cargando la sesión inicial, mostramos null o un spinner global
-  // Pero permitimos renderizar si solo es "submitting" local
-  if (loading) return null;
+  // Si es carga inicial global, spinner (opcional)
+  // if (loading) return null; 
 
   return (
     <div className="flex flex-col h-full w-full bg-white dark:bg-black px-8 pb-safe pt-safe overflow-y-auto scrollbar-hide transition-colors duration-300">
@@ -204,7 +200,7 @@ const Login: React.FC = () => {
       
       <div className="pb-6 text-center">
          <p className="text-[9px] font-bold text-gray-200 dark:text-gray-800 uppercase tracking-widest">
-           Secure Access • v1.7
+           Secure Access • v1.8
          </p>
       </div>
     </div>

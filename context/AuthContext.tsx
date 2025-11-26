@@ -37,7 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 1. Escuchar cambios de sesión (SINGLE SOURCE OF TRUTH)
+  // 1. Escuchar cambios de sesión (Backup & Initial Load)
   useEffect(() => {
     if (!auth) {
         setLoading(false);
@@ -46,53 +46,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Perfil Base (Datos reales de Auth)
         const baseUser: User = {
             id: firebaseUser.uid,
             name: firebaseUser.displayName || "Usuario",
             email: firebaseUser.email || "",
             avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${firebaseUser.displayName || 'User'}`,
-            role: "Streamer" // Rol por defecto
+            role: "Streamer"
         };
 
-        try {
-            // Intentar enriquecer con Firestore
-            if (db) {
-                const userDocRef = doc(db, "users", firebaseUser.uid);
-                const userDoc = await getDoc(userDocRef);
-                
-                if (userDoc.exists()) {
-                    // Si existen datos extendidos, fusionarlos
-                    const dbData = userDoc.data();
-                    setUser({ ...baseUser, ...dbData } as User);
+        // Si ya tenemos usuario en memoria (por login manual), no sobrescribir para evitar parpadeo
+        // Solo cargamos de DB si es la carga inicial o recarga de página
+        if (!user) {
+            try {
+                if (db) {
+                    const userDocRef = doc(db, "users", firebaseUser.uid);
+                    const userDoc = await getDoc(userDocRef);
+                    if (userDoc.exists()) {
+                        setUser({ ...baseUser, ...userDoc.data() } as User);
+                    } else {
+                        setUser(baseUser);
+                    }
                 } else {
-                    // Si no existe doc (ej. primer login raro), usar base
                     setUser(baseUser);
                 }
-            } else {
+            } catch (error) {
+                console.error("Firestore error, using basic profile", error);
                 setUser(baseUser);
             }
-        } catch (error) {
-            console.error("Error fetching Firestore profile:", error);
-            // FALLBACK CRÍTICO: Si falla la DB, permitir acceso con datos base
-            // Esto no es una simulación, son los datos reales de la sesión activa.
-            setUser(baseUser);
         }
       } else {
         setUser(null);
       }
-      // Solo dejamos de cargar cuando hemos resuelto el usuario final
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, []); // Empty deps to run only on mount
 
-  // --- LOGIN ---
+  // --- LOGIN (OPTIMIZED FOR SPEED) ---
   const login = async (email: string, pass: string) => {
       if (!auth) throw new Error("Firebase no configurado");
-      // Solo ejecutamos la acción. El listener (useEffect) manejará el estado.
-      await signInWithEmailAndPassword(auth, email, pass);
+      
+      const credential = await signInWithEmailAndPassword(auth, email, pass);
+      const fbUser = credential.user;
+
+      // FORCE STATE UPDATE IMMEDIATELY
+      // No esperamos a onAuthStateChanged ni a Firestore. Entramos YA.
+      const instantUser: User = {
+          id: fbUser.uid,
+          name: fbUser.displayName || "Usuario",
+          email: fbUser.email || "",
+          avatarUrl: fbUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${fbUser.displayName || 'User'}`,
+          role: "Streamer" // Default mientras carga el real en background
+      };
+      
+      setUser(instantUser);
+      setLoading(false); // Unlock ProtectedRoute immediately
   };
 
   // --- REGISTRO ---
@@ -102,7 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       const fbUser = userCredential.user;
 
-      // Enviar verificación (opcional, no bloqueante)
+      // Enviar verificación
       sendEmailVerification(fbUser).catch(e => console.warn("Email verification error", e));
 
       const newUserProfile: User = {
@@ -114,29 +123,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin: false
       };
 
-      // Intentar guardar en DB
+      // FORCE STATE UPDATE IMMEDIATELY
+      setUser(newUserProfile);
+      setLoading(false);
+
+      // Async DB updates (Non-blocking)
       try {
         if (db) {
             await setDoc(doc(db, "users", fbUser.uid), newUserProfile);
         }
+        await updateAuthProfile(fbUser, { displayName: name });
       } catch (e) {
         console.error("Error creating user profile in DB", e);
       }
-      
-      // Actualizar perfil básico de Auth
-      await updateAuthProfile(fbUser, { displayName: name });
-      
-      // El listener se encargará de actualizar el estado 'user'
   };
 
-  // --- LOGOUT ---
   const logout = async () => {
       if (!auth) return;
       await signOut(auth);
-      // El listener se encargará de poner user en null
+      setUser(null);
   };
 
-  // --- SUBIR FOTO ---
   const uploadPhoto = async (base64Image: string): Promise<string> => {
       if (!storage || !user) throw new Error("Storage no disponible");
       
@@ -144,14 +151,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await uploadString(storageRef, base64Image, 'data_url');
       
       const downloadURL = await getDownloadURL(storageRef);
-      return `${downloadURL}?t=${new Date().getTime()}`; // Cache buster
+      const finalUrl = `${downloadURL}?t=${new Date().getTime()}`;
+      return finalUrl;
   };
 
-  // --- ACTUALIZAR PERFIL ---
   const updateProfile = async (data: Partial<User>) => {
     if (!user) return;
     
-    // Actualización Optimista para UI (UX Only)
     setUser(prev => prev ? { ...prev, ...data } : null);
 
     try {
