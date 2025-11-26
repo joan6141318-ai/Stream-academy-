@@ -26,28 +26,12 @@ interface AuthContextType {
   register: (email: string, pass: string, name: string) => Promise<void>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<void>;
-  uploadPhoto: (file: Blob | string) => Promise<string>;
+  uploadPhoto: (file: Blob, base64Fallback?: string) => Promise<string>;
   isAuthenticated: boolean;
   loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Helper to convert Base64 to Blob for robust upload
-const base64ToBlob = (base64: string, mimeType: string = 'image/jpeg') => {
-  try {
-    const byteString = window.atob(base64.split(',')[1]);
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
-    }
-    return new Blob([ab], { type: mimeType });
-  } catch (e) {
-    console.error("Error converting base64 to blob", e);
-    throw new Error("Error al procesar la imagen");
-  }
-};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -79,7 +63,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             role: "Streamer"
         };
 
-        // Only fetch if we don't have a user or if it's a fresh load
         try {
             if (db) {
                 const userDocRef = doc(db, "users", firebaseUser.uid);
@@ -87,20 +70,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (userDoc.exists()) {
                     setUser({ ...baseUser, ...userDoc.data() } as User);
                 } else {
-                    // If doc doesn't exist yet, use baseUser
                     setUser(baseUser);
                 }
             } else {
                 setUser(baseUser);
             }
         } catch (error: any) {
-            // Handle Offline Error Gracefully
-            if (error.message && error.message.includes("offline")) {
-                console.warn("Firestore offline: Using cached/basic profile.");
-            } else {
-                console.error("Firestore error:", error);
-            }
-            // Always fallback to baseUser so app works
+            console.warn("Firestore offline/error: Using cached/basic profile.");
             setUser(baseUser);
         }
       } else {
@@ -172,38 +148,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
   };
 
-  const uploadPhoto = async (file: Blob | string): Promise<string> => {
-      if (!storage || !user) throw new Error("Storage no disponible");
+  // HYBRID UPLOAD STRATEGY: Storage -> Fallback to Base64 string
+  const uploadPhoto = async (file: Blob, base64Fallback?: string): Promise<string> => {
+      if (!user) throw new Error("No authenticated user");
       
-      try {
-          const storageRef = ref(storage, `avatars/${user.id}_profile.jpg`);
-          
-          let blob: Blob;
-          if (typeof file === 'string') {
-             // Fallback for base64 string
-             blob = base64ToBlob(file);
-          } else {
-             // Direct blob usage (Preferred)
-             blob = file;
+      // 1. Try Firebase Storage
+      if (storage) {
+          try {
+              const storageRef = ref(storage, `avatars/${user.id}_profile.jpg`);
+              await uploadBytes(storageRef, file);
+              const downloadURL = await getDownloadURL(storageRef);
+              return `${downloadURL}?t=${new Date().getTime()}`; // Cache busting
+          } catch (error) {
+              console.warn("Storage upload failed (permissions/network). Switching to Base64 fallback.", error);
           }
-          
-          // Upload Bytes
-          await uploadBytes(storageRef, blob);
-          
-          const downloadURL = await getDownloadURL(storageRef);
-          // Append timestamp to force browser cache refresh
-          const finalUrl = `${downloadURL}?t=${new Date().getTime()}`;
-          return finalUrl;
-      } catch (error) {
-          console.error("Upload failed:", error);
-          throw error;
       }
+
+      // 2. Fallback: Return the Base64 string directly
+      // This saves the image *inside* the text profile in Firestore
+      if (base64Fallback) {
+          return base64Fallback;
+      }
+
+      throw new Error("No se pudo subir la imagen ni usar el respaldo.");
   };
 
   const updateProfile = async (data: Partial<User>) => {
     if (!user) return;
     
-    // 1. Optimistic Update: Update UI immediately
+    // 1. Optimistic Update
     setUser(prev => prev ? { ...prev, ...data } : null);
 
     // 2. Background Sync
@@ -223,7 +196,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         }
     } catch (e) {
-        // If offline, silently fail sync but keep local state
         console.warn("Profile sync warning (offline/network):", e);
     }
   };

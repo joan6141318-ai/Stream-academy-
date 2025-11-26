@@ -126,22 +126,23 @@ const UserSettings: React.FC = () => {
     if (file) {
       setIsUploading(true);
       try {
-          // 1. Comprimir imagen (Solución a 'No carga')
+          // 1. Comprimir imagen
           const compressedBase64 = await compressImage(file);
           
-          // 2. Convertir a Blob para una subida robusta
+          // 2. Convertir a Blob
           const response = await fetch(compressedBase64);
           const blob = await response.blob();
 
-          // 3. Subir a Firebase (ahora acepta Blob)
-          const photoUrl = await uploadPhoto(blob);
+          // 3. Subir (Enviando el blob Y la versión texto como respaldo)
+          // Si falla el blob (storage), usará el compressedBase64
+          const photoUrl = await uploadPhoto(blob, compressedBase64);
           
           // 4. Actualizar perfil
           await updateProfile({ avatarUrl: photoUrl });
       } catch (error) {
           console.error("Error uploading photo", error);
-          // Alert is fine here, users know network can be tricky
-          alert("Error al subir imagen. Revisa tu conexión.");
+          // Incluso si falla todo, intentamos forzar la actualización local
+          alert("Error de red. Intenta con una imagen más pequeña.");
       } finally {
           setIsUploading(false);
       }
@@ -158,25 +159,22 @@ const UserSettings: React.FC = () => {
     setIsSaving(true);
     
     // ACTUALIZACIÓN OPTIMISTA:
-    // Cerramos la edición INMEDIATAMENTE para que se sienta instantáneo.
+    // Cerramos la edición INMEDIATAMENTE
     setIsEditing(false); 
 
     try {
         await updateProfile({ name: formData.name });
     } catch (error) {
         console.error("Error saving profile", error);
-        // Si falla, podrías mostrar un error, pero la UI ya respondió.
     } finally {
         setIsSaving(false);
     }
   };
 
-  // Función para activar privilegios en la DB real
   const handleAdminAccess = async () => {
       if (!user?.isAdmin) {
           const confirm = window.confirm("¿Confirmas que eres el dueño de esta agencia?\n\nEsto actualizará tu rol en la base de datos.");
           if (confirm) {
-              // Esto actualiza el documento real en Firestore
               await updateProfile({ isAdmin: true, role: 'Agencia Admin' });
               alert("Permisos actualizados. Bienvenido, Admin.");
               navigate('/admin');
@@ -204,7 +202,7 @@ const UserSettings: React.FC = () => {
                         src={user.avatarUrl} 
                         alt="Profile" 
                         className="w-full h-full rounded-full object-cover"
-                        key={user.avatarUrl} // Force re-render on url change
+                        key={user.avatarUrl} 
                     />
                     {isUploading && (
                         <div className="absolute inset-0 flex items-center justify-center">

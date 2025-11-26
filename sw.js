@@ -1,11 +1,11 @@
-// Nombre del caché - Actualizado a v5 para forzar recarga y arreglar el error 404
-const CACHE_NAME = 'stream-agency-v5';
+// Nombre del caché - Actualizado a v6 para reactivar instalación PWA
+const CACHE_NAME = 'stream-agency-v6';
 
 // Archivos vitales para que la app arranque offline
 const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './manifest.json'
+  '/',
+  '/index.html',
+  '/manifest.json'
 ];
 
 // 1. Instalación del Service Worker
@@ -55,7 +55,7 @@ self.addEventListener('fetch', (event) => {
         return caches.match(event.request).then((response) => {
           if (response) return response;
           if (event.request.mode === 'navigate') {
-             return caches.match('./index.html');
+             return caches.match('/index.html');
           }
         });
       })
