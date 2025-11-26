@@ -1,5 +1,5 @@
-// Nombre del caché - Actualizado a v2 para forzar recarga
-const CACHE_NAME = 'stream-agency-v2';
+// Nombre del caché - Actualizado a v3 para forzar recarga
+const CACHE_NAME = 'stream-agency-v3';
 
 // Archivos vitales para que la app arranque offline
 const ASSETS_TO_CACHE = [
