@@ -4,7 +4,8 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
-  updateProfile as updateAuthProfile
+  updateProfile as updateAuthProfile,
+  sendEmailVerification
 } from "firebase/auth";
 import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
@@ -47,6 +48,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (firebaseUser) {
         // Usuario logueado, buscar datos extra en Firestore
         try {
+            if (!db) throw new Error("Firestore not initialized");
+            
             const userDocRef = doc(db, "users", firebaseUser.uid);
             const userDoc = await getDoc(userDocRef);
             
@@ -64,6 +67,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         } catch (error) {
             console.error("Error fetching user profile:", error);
+            // FALLBACK CRITICO: Si falla Firestore (offline), usar datos básicos de Auth
+            // para que el usuario pueda entrar de todos modos.
+            setUser({
+                id: firebaseUser.uid,
+                name: firebaseUser.displayName || "Usuario",
+                email: firebaseUser.email || "",
+                avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${firebaseUser.displayName || 'User'}`,
+                role: "Streamer (Modo Offline)"
+            });
         }
       } else {
         setUser(null);
@@ -78,6 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, pass: string) => {
       if (!auth) throw new Error("Firebase no configurado");
       await signInWithEmailAndPassword(auth, email, pass);
+      // El onAuthStateChanged se encargará de actualizar el estado user
   };
 
   // --- REGISTRO REAL ---
@@ -87,6 +100,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // 1. Crear en Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       const fbUser = userCredential.user;
+
+      // Enviar correo de verificación
+      try {
+        await sendEmailVerification(fbUser);
+      } catch (e) {
+        console.warn("No se pudo enviar correo de verificación", e);
+      }
 
       // 2. Crear Perfil en Firestore
       const newUserProfile: User = {
@@ -98,11 +118,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin: false
       };
 
-      await setDoc(doc(db, "users", fbUser.uid), newUserProfile);
+      try {
+        if (db) {
+            await setDoc(doc(db, "users", fbUser.uid), newUserProfile);
+        }
+      } catch (e) {
+        console.error("Error creating user profile in DB", e);
+      }
       
       // 3. Actualizar display name en Auth (opcional pero útil)
       await updateAuthProfile(fbUser, { displayName: name });
 
+      // Establecer usuario inmediatamente para evitar espera de onAuthStateChanged
       setUser(newUserProfile);
   };
 
@@ -129,13 +156,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // --- ACTUALIZAR PERFIL REAL ---
   const updateProfile = async (data: Partial<User>) => {
-    if (!user || !db) return;
+    if (!user) return;
     
-    // Actualizar en Firestore
-    const userDocRef = doc(db, "users", user.id);
-    await updateDoc(userDocRef, data);
+    try {
+        // Actualizar en Firestore si es posible
+        if (db) {
+            const userDocRef = doc(db, "users", user.id);
+            await updateDoc(userDocRef, data);
+        }
+    } catch (e) {
+        console.warn("No se pudo actualizar Firestore (Offline?), actualizando localmente", e);
+    }
 
-    // Actualizar estado local
+    // Actualizar estado local siempre
     setUser(prev => prev ? { ...prev, ...data } : null);
   };
 
