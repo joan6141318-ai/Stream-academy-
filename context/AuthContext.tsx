@@ -86,11 +86,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
-  // --- LOGIN REAL ---
+  // --- LOGIN REAL (OPTIMIZADO) ---
   const login = async (email: string, pass: string) => {
       if (!auth) throw new Error("Firebase no configurado");
-      await signInWithEmailAndPassword(auth, email, pass);
-      // El onAuthStateChanged se encargará de actualizar el estado user
+      
+      // 1. Autenticar en Firebase
+      const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+      const fbUser = userCredential.user;
+
+      // 2. INYECCIÓN MANUAL DE ESTADO (Fix Race Condition)
+      // No esperamos al onAuthStateChanged, actualizamos ya para que el router deje pasar.
+      let userProfile: User = {
+          id: fbUser.uid,
+          name: fbUser.displayName || "Cargando...",
+          email: fbUser.email || "",
+          avatarUrl: fbUser.photoURL || "https://picsum.photos/200/200",
+          role: "Streamer"
+      };
+
+      // Intentar obtener datos frescos rápido
+      try {
+          if (db) {
+            const snap = await getDoc(doc(db, "users", fbUser.uid));
+            if (snap.exists()) {
+                userProfile = { id: fbUser.uid, ...snap.data() } as User;
+            }
+          }
+      } catch (e) {
+          console.warn("Fast login profile fetch failed, using basics");
+      }
+
+      // Actualizar estado GLOBAL inmediatamente
+      setUser(userProfile);
   };
 
   // --- REGISTRO REAL ---
@@ -129,7 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // 3. Actualizar display name en Auth (opcional pero útil)
       await updateAuthProfile(fbUser, { displayName: name });
 
-      // Establecer usuario inmediatamente para evitar espera de onAuthStateChanged
+      // Establecer usuario inmediatamente
       setUser(newUserProfile);
   };
 

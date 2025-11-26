@@ -18,7 +18,8 @@ const Login: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Redireccionar si ya hay sesión iniciada
+  // Redireccionar AUTOMÁTICAMENTE si el usuario ya existe
+  // Esto funciona gracias a que el login() ahora actualiza el user al instante
   React.useEffect(() => {
     if (user && !loading) {
       navigate('/home');
@@ -46,11 +47,8 @@ const Login: React.FC = () => {
         await login(email, password);
       }
       
-      // Éxito visual
+      // Éxito visual - La redirección la maneja el useEffect
       setIsSuccess(true);
-      
-      // Forzar navegación inmediata tras éxito
-      setTimeout(() => navigate('/home'), 500);
       
     } catch (err: any) {
       console.error("Firebase Auth Error:", err.code, err.message);
@@ -61,7 +59,7 @@ const Login: React.FC = () => {
       const errorMessage = err.message || '';
 
       if (errorCode === 'auth/invalid-credential' || errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password') {
-        setError("Correo o contraseña incorrectos.");
+        setError("Credenciales inválidas o usuario no registrado. ¿Ya creaste tu cuenta?");
       } else if (errorCode === 'auth/email-already-in-use') {
         setError("Este correo ya está registrado. Cambiando a inicio de sesión...");
         setTimeout(() => {
