@@ -1,42 +1,25 @@
-// PASO 4: IMPORTANTE (VERCEL READY)
-// Este archivo está configurado para leer las claves desde Vercel (Variables de Entorno)
-// o usar valores seguros por defecto para que la app no se rompa.
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
+import { getAnalytics } from "firebase/analytics";
 
-// import { initializeApp } from "firebase/app";
-// import { getAuth } from "firebase/auth";
-// import { getFirestore } from "firebase/firestore";
-// import { getStorage } from "firebase/storage";
-
+// Configuración con tus claves reales
 const firebaseConfig = {
-  // Ahora lee de las variables de entorno de Vercel/Vite
-  apiKey: (import.meta as any).env.VITE_FIREBASE_API_KEY || "mock_key",
-  authDomain: (import.meta as any).env.VITE_FIREBASE_AUTH_DOMAIN || "mock_project.firebaseapp.com",
-  projectId: (import.meta as any).env.VITE_FIREBASE_PROJECT_ID || "mock_project",
-  storageBucket: (import.meta as any).env.VITE_FIREBASE_STORAGE_BUCKET || "mock_project.appspot.com",
-  messagingSenderId: (import.meta as any).env.VITE_FIREBASE_MESSAGING_SENDER_ID || "0000000000",
-  appId: (import.meta as any).env.VITE_FIREBASE_APP_ID || "1:0000000000:web:0000000000"
+  apiKey: "AIzaSyDjoByKIdETuYnz6K9ELoNemjzTTSyd3k8",
+  authDomain: "streamers-academy-8c01d.firebaseapp.com",
+  projectId: "streamers-academy-8c01d",
+  storageBucket: "streamers-academy-8c01d.firebasestorage.app",
+  messagingSenderId: "412239740500",
+  appId: "1:412239740500:web:9921c7cd94347b8e5fb7c1",
+  measurementId: "G-TVJ1112RVJ"
 };
 
-// Inicialización BLINDADA (Try-Catch)
-// Si no hay claves reales configuradas en Vercel, esto fallará silenciosamente
-// y la app seguirá funcionando en modo Demo/Local.
+// Inicializar la aplicación de Firebase
+const app = initializeApp(firebaseConfig);
 
-let app;
-let auth: any = null;
-let db: any = null;
-let storage: any = null;
-
-try {
-  // Descomenta las siguientes líneas cuando hayas puesto las claves en Vercel
-  // app = initializeApp(firebaseConfig);
-  // auth = getAuth(app);
-  // db = getFirestore(app);
-  // storage = getStorage(app);
-  // console.log("Firebase inicializado correctamente");
-} catch (error) {
-  // Silenciamos el error para no asustar en consola
-  // console.log("Modo Offline/Demo activo");
-}
-
-export { auth, db, storage };
-export default app;
+// Inicializar y exportar los servicios para usarlos en la app
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
+export const analytics = getAnalytics(app);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, TrendingUp, AlertCircle, ShieldCheck, DollarSign, Activity, Search, Filter, MoreHorizontal, ArrowUpRight } from 'lucide-react';
+import { Users, TrendingUp, AlertCircle, ShieldCheck, DollarSign, Activity, Search, Filter, MoreHorizontal, ArrowUpRight, Database } from 'lucide-react';
 import { Header } from '../components/Header';
 import { Button } from '../components/Button';
 
@@ -27,8 +27,16 @@ const AdminDashboard: React.FC = () => {
       
       <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] px-4 pb-24">
         
+        {/* DEMO BANNER */}
+        <div className="mt-4 mb-2 bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700/50 rounded-lg p-3 flex items-center justify-center space-x-2">
+            <Database size={14} className="text-amber-600 dark:text-amber-400" />
+            <span className="text-[10px] font-black text-amber-700 dark:text-amber-300 uppercase tracking-widest">
+                Modo Demo • Datos Simulados
+            </span>
+        </div>
+
         {/* Welcome Admin */}
-        <div className="mt-6 mb-8 px-2">
+        <div className="mt-4 mb-8 px-2">
             <span className="text-[10px] font-black text-brand-purple bg-purple-50 dark:bg-purple-900/20 px-2 py-1 rounded-sm uppercase tracking-wider mb-2 inline-block">
                 Vista de Agencia
             </span>

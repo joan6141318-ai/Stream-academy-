@@ -1,21 +1,19 @@
-// Nombre del caché - Actualizado a v3 para forzar recarga
-const CACHE_NAME = 'stream-agency-v3';
+// Nombre del caché - Actualizado a v5 para forzar recarga y arreglar el error 404
+const CACHE_NAME = 'stream-agency-v5';
 
 // Archivos vitales para que la app arranque offline
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/manifest.json'
+  './',
+  './index.html',
+  './manifest.json'
 ];
 
 // 1. Instalación del Service Worker
 self.addEventListener('install', (event) => {
-  // Forzar al nuevo service worker a tomar control inmediatamente
   self.skipWaiting();
   
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Opened cache');
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
@@ -33,18 +31,33 @@ self.addEventListener('activate', (event) => {
         })
       );
     }).then(() => {
-      // Tomar control de los clientes abiertos inmediatamente
       return self.clients.claim();
     })
   );
 });
 
-// 3. Estrategia de Red primero, luego Caché (Network First)
+// 3. Estrategia de Red primero (Network First)
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
     fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return response;
+      })
       .catch(() => {
-        return caches.match(event.request);
+        return caches.match(event.request).then((response) => {
+          if (response) return response;
+          if (event.request.mode === 'navigate') {
+             return caches.match('./index.html');
+          }
+        });
       })
   );
 });
