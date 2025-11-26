@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, AlertCircle } from 'lucide-react';
+import { Zap, AlertCircle, WifiOff, Check } from 'lucide-react';
 import { Button } from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 
@@ -14,7 +14,9 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [isNetworkError, setIsNetworkError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // Redireccionar si ya hay sesión iniciada
   React.useEffect(() => {
@@ -26,12 +28,14 @@ const Login: React.FC = () => {
   // Limpiar errores al escribir
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, value: string) => {
     setError(null);
+    setIsNetworkError(false);
     setter(value);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setIsNetworkError(false);
     setIsSubmitting(true);
 
     try {
@@ -41,33 +45,44 @@ const Login: React.FC = () => {
       } else {
         await login(email, password);
       }
-      // La navegación ocurre automáticamente por el useEffect
+      
+      // Éxito visual
+      setIsSuccess(true);
+      
+      // Forzar navegación inmediata tras éxito
+      setTimeout(() => navigate('/home'), 500);
+      
     } catch (err: any) {
       console.error("Firebase Auth Error:", err.code, err.message);
+      setIsSuccess(false);
       
       // Manejo de errores amigables en Español
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+      const errorCode = err.code || '';
+      const errorMessage = err.message || '';
+
+      if (errorCode === 'auth/invalid-credential' || errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password') {
         setError("Correo o contraseña incorrectos.");
-      } else if (err.code === 'auth/email-already-in-use') {
+      } else if (errorCode === 'auth/email-already-in-use') {
         setError("Este correo ya está registrado. Cambiando a inicio de sesión...");
         setTimeout(() => {
             setIsRegistering(false);
             setError(null);
-        }, 1500);
-      } else if (err.code === 'auth/weak-password') {
+        }, 2000);
+      } else if (errorCode === 'auth/weak-password') {
         setError("La contraseña debe tener al menos 6 caracteres.");
-      } else if (err.code === 'auth/operation-not-allowed') {
-        setError("Error: Habilita 'Correo/Contraseña' en Firebase Console.");
-      } else if (err.code === 'auth/configuration-not-found') {
-        setError("Error: Configuración incompleta. Revisa Firebase Console.");
-      } else if (err.code === 'auth/network-request-failed') {
-        setError("Error de Red: Verifica tu conexión o autoriza este dominio en Firebase Console.");
+      } else if (errorCode === 'auth/operation-not-allowed') {
+        setError("Error: Debes habilitar 'Correo/Contraseña' en la consola de Firebase.");
+      } else if (errorCode === 'auth/configuration-not-found') {
+        setError("Error: Configuración incompleta. Revisa la consola de Firebase.");
+      } else if (errorCode === 'auth/network-request-failed' || errorMessage.includes('network-request-failed')) {
+        setError("Error de conexión: Firebase bloqueó la solicitud. Revisa tu internet o los dominios autorizados.");
+        setIsNetworkError(true);
       } else if (err.message) {
         setError(err.message.replace('Firebase:', '').trim());
       } else {
         setError("Error de conexión. Intenta de nuevo.");
       }
-      setIsSubmitting(false); // Solo detenemos carga si hubo error
+      setIsSubmitting(false); 
     }
   };
 
@@ -94,9 +109,16 @@ const Login: React.FC = () => {
 
         {/* Mensaje de Error */}
         {error && (
-          <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 flex items-center animate-fade-in">
-            <AlertCircle size={16} className="text-red-500 mr-2 flex-shrink-0" />
-            <p className="text-[10px] font-bold text-red-500 uppercase tracking-wide leading-tight">{error}</p>
+          <div className={`mb-6 p-4 border-l-4 flex items-start animate-fade-in ${isNetworkError ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-500' : 'bg-red-50 dark:bg-red-900/20 border-red-500'}`}>
+            {isNetworkError ? <WifiOff size={16} className="text-orange-500 mr-2 flex-shrink-0 mt-0.5" /> : <AlertCircle size={16} className="text-red-500 mr-2 flex-shrink-0 mt-0.5" />}
+            <div>
+                <p className={`text-[10px] font-bold uppercase tracking-wide leading-tight ${isNetworkError ? 'text-orange-600 dark:text-orange-400' : 'text-red-500'}`}>{error}</p>
+                {isNetworkError && (
+                    <p className="text-[9px] text-orange-800 dark:text-orange-300 mt-1 leading-snug">
+                        El dominio actual no está autorizado en Firebase. Agrégalo en Authentication &gt; Configuración &gt; Dominios autorizados.
+                    </p>
+                )}
+            </div>
           </div>
         )}
 
@@ -144,8 +166,20 @@ const Login: React.FC = () => {
           </div>
 
           <div className="pt-6 space-y-5">
-            <Button fullWidth type="submit" variant="black" size="lg" className="shadow-xl shadow-black/20 dark:shadow-white/5 dark:bg-white dark:text-black dark:hover:bg-gray-200 text-xs relative" disabled={isSubmitting}>
-              {isSubmitting ? (
+            <Button 
+                fullWidth 
+                type="submit" 
+                variant="black" 
+                size="lg" 
+                className={`shadow-xl shadow-black/20 dark:shadow-white/5 dark:bg-white dark:text-black dark:hover:bg-gray-200 text-xs relative transition-all duration-300 ${isSuccess ? 'bg-green-500 hover:bg-green-600 dark:bg-green-500 dark:hover:bg-green-400 text-white dark:text-white border-transparent' : ''}`} 
+                disabled={isSubmitting || isSuccess}
+            >
+              {isSuccess ? (
+                  <div className="flex items-center animate-fade-in">
+                      <Check size={18} className="mr-2" />
+                      ¡CONEXIÓN EXITOSA!
+                  </div>
+              ) : isSubmitting ? (
                   <div className="flex items-center">
                       <span className="w-4 h-4 border-2 border-white/30 border-t-white dark:border-black/30 dark:border-t-black rounded-full animate-spin mr-2"></span>
                       {isRegistering ? 'CREANDO...' : 'INGRESANDO...'}
@@ -168,7 +202,7 @@ const Login: React.FC = () => {
       
       <div className="pb-6 text-center">
          <p className="text-[9px] font-bold text-gray-200 dark:text-gray-800 uppercase tracking-widest">
-           Secure Access • v1.2
+           Secure Access • v1.5
          </p>
       </div>
     </div>
