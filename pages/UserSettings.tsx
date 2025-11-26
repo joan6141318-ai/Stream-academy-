@@ -129,10 +129,14 @@ const UserSettings: React.FC = () => {
           // 1. Comprimir imagen (Solución a 'No carga')
           const compressedBase64 = await compressImage(file);
           
-          // 2. Subir a Firebase
-          const photoUrl = await uploadPhoto(compressedBase64);
+          // 2. Convertir a Blob para una subida robusta
+          const response = await fetch(compressedBase64);
+          const blob = await response.blob();
+
+          // 3. Subir a Firebase (ahora acepta Blob)
+          const photoUrl = await uploadPhoto(blob);
           
-          // 3. Actualizar perfil
+          // 4. Actualizar perfil
           await updateProfile({ avatarUrl: photoUrl });
       } catch (error) {
           console.error("Error uploading photo", error);

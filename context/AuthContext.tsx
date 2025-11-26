@@ -26,7 +26,7 @@ interface AuthContextType {
   register: (email: string, pass: string, name: string) => Promise<void>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<void>;
-  uploadPhoto: (base64Image: string) => Promise<string>;
+  uploadPhoto: (file: Blob | string) => Promise<string>;
   isAuthenticated: boolean;
   loading: boolean;
 }
@@ -35,13 +35,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Helper to convert Base64 to Blob for robust upload
 const base64ToBlob = (base64: string, mimeType: string = 'image/jpeg') => {
-  const byteString = window.atob(base64.split(',')[1]);
-  const ab = new ArrayBuffer(byteString.length);
-  const ia = new Uint8Array(ab);
-  for (let i = 0; i < byteString.length; i++) {
-    ia[i] = byteString.charCodeAt(i);
+  try {
+    const byteString = window.atob(base64.split(',')[1]);
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeType });
+  } catch (e) {
+    console.error("Error converting base64 to blob", e);
+    throw new Error("Error al procesar la imagen");
   }
-  return new Blob([ab], { type: mimeType });
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -167,14 +172,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
   };
 
-  const uploadPhoto = async (base64Image: string): Promise<string> => {
+  const uploadPhoto = async (file: Blob | string): Promise<string> => {
       if (!storage || !user) throw new Error("Storage no disponible");
       
       try {
           const storageRef = ref(storage, `avatars/${user.id}_profile.jpg`);
           
-          // Convert Base64 to Blob for robust upload (Fixes retry-limit-exceeded)
-          const blob = base64ToBlob(base64Image);
+          let blob: Blob;
+          if (typeof file === 'string') {
+             // Fallback for base64 string
+             blob = base64ToBlob(file);
+          } else {
+             // Direct blob usage (Preferred)
+             blob = file;
+          }
           
           // Upload Bytes
           await uploadBytes(storageRef, blob);
