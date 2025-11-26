@@ -94,7 +94,8 @@ const UserSettings: React.FC = () => {
         img.src = event.target?.result as string;
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 800; // Reducir a max 800px de ancho
+          // REDUCIDO A 500px y 0.6 para subida ultra rápida
+          const MAX_WIDTH = 500; 
           let width = img.width;
           let height = img.height;
 
@@ -108,8 +109,8 @@ const UserSettings: React.FC = () => {
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.drawImage(img, 0, 0, width, height);
-            // Convertir a JPEG con 70% de calidad
-            resolve(canvas.toDataURL('image/jpeg', 0.7)); 
+            // Convertir a JPEG con 60% de calidad (Ultra light)
+            resolve(canvas.toDataURL('image/jpeg', 0.6)); 
           } else {
             reject(new Error("Canvas context failed"));
           }
@@ -135,7 +136,8 @@ const UserSettings: React.FC = () => {
           await updateProfile({ avatarUrl: photoUrl });
       } catch (error) {
           console.error("Error uploading photo", error);
-          alert("Error al subir imagen. Intenta de nuevo.");
+          // Alert is fine here, users know network can be tricky
+          alert("Error al subir imagen. Revisa tu conexión.");
       } finally {
           setIsUploading(false);
       }

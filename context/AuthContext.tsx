@@ -8,7 +8,7 @@ import {
   sendEmailVerification
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from '../firebaseConfig';
 
 export interface User {
@@ -33,13 +33,23 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper to convert Base64 to Blob for robust upload
+const base64ToBlob = (base64: string, mimeType: string = 'image/jpeg') => {
+  const byteString = window.atob(base64.split(',')[1]);
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+  return new Blob([ab], { type: mimeType });
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   // 1. Escuchar cambios de sesión (Backup & Initial Load)
   useEffect(() => {
-    // CINTURÓN DE SEGURIDAD:
     const safetyTimer = setTimeout(() => {
         if (loading) {
             console.warn("Firebase slow response - Forcing UI load");
@@ -64,23 +74,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             role: "Streamer"
         };
 
-        if (!user) {
-            try {
-                if (db) {
-                    const userDocRef = doc(db, "users", firebaseUser.uid);
-                    const userDoc = await getDoc(userDocRef);
-                    if (userDoc.exists()) {
-                        setUser({ ...baseUser, ...userDoc.data() } as User);
-                    } else {
-                        setUser(baseUser);
-                    }
+        // Only fetch if we don't have a user or if it's a fresh load
+        try {
+            if (db) {
+                const userDocRef = doc(db, "users", firebaseUser.uid);
+                const userDoc = await getDoc(userDocRef);
+                if (userDoc.exists()) {
+                    setUser({ ...baseUser, ...userDoc.data() } as User);
                 } else {
+                    // If doc doesn't exist yet, use baseUser
                     setUser(baseUser);
                 }
-            } catch (error) {
-                console.error("Firestore error, using basic profile", error);
+            } else {
                 setUser(baseUser);
             }
+        } catch (error: any) {
+            // Handle Offline Error Gracefully
+            if (error.message && error.message.includes("offline")) {
+                console.warn("Firestore offline: Using cached/basic profile.");
+            } else {
+                console.error("Firestore error:", error);
+            }
+            // Always fallback to baseUser so app works
+            setUser(baseUser);
         }
       } else {
         setUser(null);
@@ -154,15 +170,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const uploadPhoto = async (base64Image: string): Promise<string> => {
       if (!storage || !user) throw new Error("Storage no disponible");
       
-      const storageRef = ref(storage, `avatars/${user.id}_profile.jpg`);
-      // Ensure we strip data:image/jpeg;base64, prefix if passing raw string is issue, 
-      // but uploadString with 'data_url' handles it automatically.
-      await uploadString(storageRef, base64Image, 'data_url');
-      
-      const downloadURL = await getDownloadURL(storageRef);
-      // Append timestamp to force browser cache refresh
-      const finalUrl = `${downloadURL}?t=${new Date().getTime()}`;
-      return finalUrl;
+      try {
+          const storageRef = ref(storage, `avatars/${user.id}_profile.jpg`);
+          
+          // Convert Base64 to Blob for robust upload (Fixes retry-limit-exceeded)
+          const blob = base64ToBlob(base64Image);
+          
+          // Upload Bytes
+          await uploadBytes(storageRef, blob);
+          
+          const downloadURL = await getDownloadURL(storageRef);
+          // Append timestamp to force browser cache refresh
+          const finalUrl = `${downloadURL}?t=${new Date().getTime()}`;
+          return finalUrl;
+      } catch (error) {
+          console.error("Upload failed:", error);
+          throw error;
+      }
   };
 
   const updateProfile = async (data: Partial<User>) => {
@@ -188,7 +212,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         }
     } catch (e) {
-        console.warn("Profile sync warning:", e);
+        // If offline, silently fail sync but keep local state
+        console.warn("Profile sync warning (offline/network):", e);
     }
   };
 
