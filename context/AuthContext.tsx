@@ -46,36 +46,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Usuario logueado, buscar datos extra en Firestore
+        // ESTRATEGIA DE VELOCIDAD: Cargar datos básicos primero
+        // No esperamos a la DB para mostrar que hay usuario
+        const basicUser: User = {
+            id: firebaseUser.uid,
+            name: firebaseUser.displayName || "Usuario",
+            email: firebaseUser.email || "",
+            avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${firebaseUser.displayName || 'User'}`,
+            role: "Cargando..." // Se actualizará en segundo plano
+        };
+        
+        // Solo actualizamos si no tenemos usuario o si es diferente para evitar re-renders
+        setUser(prev => {
+            if (prev && prev.id === basicUser.id) return prev; 
+            return basicUser;
+        });
+
+        // Cargar datos completos en segundo plano (Firestore)
         try {
-            if (!db) throw new Error("Firestore not initialized");
-            
-            const userDocRef = doc(db, "users", firebaseUser.uid);
-            const userDoc = await getDoc(userDocRef);
-            
-            if (userDoc.exists()) {
-                setUser({ id: firebaseUser.uid, ...userDoc.data() } as User);
-            } else {
-                // Fallback si no existe doc (raro)
-                setUser({
-                    id: firebaseUser.uid,
-                    name: firebaseUser.displayName || "Usuario",
-                    email: firebaseUser.email || "",
-                    avatarUrl: firebaseUser.photoURL || "https://picsum.photos/200/200",
-                    role: "Streamer"
+            if (db) {
+                const userDocRef = doc(db, "users", firebaseUser.uid);
+                getDoc(userDocRef).then((userDoc) => {
+                    if (userDoc.exists()) {
+                        const dbData = userDoc.data();
+                        // Actualizar silenciosamente con los datos reales (rol, admin, foto custom)
+                        setUser(prev => {
+                            if (!prev || prev.id !== firebaseUser.uid) return prev;
+                            return { ...prev, ...dbData } as User;
+                        });
+                    }
                 });
             }
         } catch (error) {
-            console.error("Error fetching user profile:", error);
-            // FALLBACK CRITICO: Si falla Firestore (offline), usar datos básicos de Auth
-            // para que el usuario pueda entrar de todos modos.
-            setUser({
-                id: firebaseUser.uid,
-                name: firebaseUser.displayName || "Usuario",
-                email: firebaseUser.email || "",
-                avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${firebaseUser.displayName || 'User'}`,
-                role: "Streamer (Modo Offline)"
-            });
+            console.error("Background profile fetch failed:", error);
         }
       } else {
         setUser(null);
@@ -86,38 +89,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
-  // --- LOGIN REAL (OPTIMIZADO) ---
+  // --- LOGIN REAL (OPTIMIZADO - VELOCIDAD MÁXIMA) ---
   const login = async (email: string, pass: string) => {
       if (!auth) throw new Error("Firebase no configurado");
       
-      // 1. Autenticar en Firebase
+      // 1. Autenticar en Firebase (Esto es lo único que esperamos)
       const userCredential = await signInWithEmailAndPassword(auth, email, pass);
       const fbUser = userCredential.user;
 
-      // 2. INYECCIÓN MANUAL DE ESTADO (Fix Race Condition)
-      // No esperamos al onAuthStateChanged, actualizamos ya para que el router deje pasar.
-      let userProfile: User = {
+      // 2. INYECCIÓN INSTANTÁNEA (Optimistic Update)
+      // Construimos el perfil con lo que ya tenemos en memoria del Auth
+      // NO ESPERAMOS A LA BASE DE DATOS AQUÍ para que la UI responda al instante
+      const instantUser: User = {
           id: fbUser.uid,
-          name: fbUser.displayName || "Cargando...",
+          name: fbUser.displayName || "Usuario",
           email: fbUser.email || "",
-          avatarUrl: fbUser.photoURL || "https://picsum.photos/200/200",
-          role: "Streamer"
+          avatarUrl: fbUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${fbUser.displayName || 'User'}`,
+          role: "Cargando..."
       };
 
-      // Intentar obtener datos frescos rápido
-      try {
-          if (db) {
-            const snap = await getDoc(doc(db, "users", fbUser.uid));
-            if (snap.exists()) {
-                userProfile = { id: fbUser.uid, ...snap.data() } as User;
-            }
-          }
-      } catch (e) {
-          console.warn("Fast login profile fetch failed, using basics");
-      }
-
       // Actualizar estado GLOBAL inmediatamente
-      setUser(userProfile);
+      // Esto desbloquea el ProtectedRoute al instante antes de que termine la promesa
+      setUser(instantUser);
   };
 
   // --- REGISTRO REAL ---
@@ -128,23 +121,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       const fbUser = userCredential.user;
 
-      // Enviar correo de verificación
-      try {
-        await sendEmailVerification(fbUser);
-      } catch (e) {
-        console.warn("No se pudo enviar correo de verificación", e);
-      }
+      // Enviar correo de verificación (Fire and forget - no esperamos)
+      sendEmailVerification(fbUser).catch(e => console.warn("Email verification error", e));
 
       // 2. Crear Perfil en Firestore
       const newUserProfile: User = {
         id: fbUser.uid,
         name: name,
         email: email,
-        avatarUrl: "https://ui-avatars.com/api/?background=7c3aed&color=fff&name=" + name,
+        avatarUrl: `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${name}`,
         role: "Streamer Oficial",
         isAdmin: false
       };
 
+      // Guardar en DB (Esperamos esto para asegurar consistencia inicial)
       try {
         if (db) {
             await setDoc(doc(db, "users", fbUser.uid), newUserProfile);
@@ -153,7 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error("Error creating user profile in DB", e);
       }
       
-      // 3. Actualizar display name en Auth (opcional pero útil)
+      // 3. Actualizar Auth Profile
       await updateAuthProfile(fbUser, { displayName: name });
 
       // Establecer usuario inmediatamente
@@ -185,18 +175,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (data: Partial<User>) => {
     if (!user) return;
     
+    // Actualización Optimista (Inmediata en UI)
+    setUser(prev => prev ? { ...prev, ...data } : null);
+
     try {
-        // Actualizar en Firestore si es posible
+        // Actualizar en Firestore en segundo plano
         if (db) {
             const userDocRef = doc(db, "users", user.id);
             await updateDoc(userDocRef, data);
         }
+        // Actualizar en Auth si cambiamos el nombre
+        if (auth.currentUser && data.name) {
+            await updateAuthProfile(auth.currentUser, { displayName: data.name });
+        }
     } catch (e) {
-        console.warn("No se pudo actualizar Firestore (Offline?), actualizando localmente", e);
+        console.warn("Error syncing profile update", e);
     }
-
-    // Actualizar estado local siempre
-    setUser(prev => prev ? { ...prev, ...data } : null);
   };
 
   return (

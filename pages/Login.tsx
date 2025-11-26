@@ -18,11 +18,10 @@ const Login: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Redireccionar AUTOMÁTICAMENTE si el usuario ya existe
-  // Esto funciona gracias a que el login() ahora actualiza el user al instante
+  // Redirección automática inicial si ya existe sesión cargada
   React.useEffect(() => {
     if (user && !loading) {
-      navigate('/home');
+      navigate('/home', { replace: true });
     }
   }, [user, loading, navigate]);
 
@@ -47,8 +46,13 @@ const Login: React.FC = () => {
         await login(email, password);
       }
       
-      // Éxito visual - La redirección la maneja el useEffect
+      // LOGIN EXITOSO
       setIsSuccess(true);
+      
+      // NAVEGACIÓN IMPERATIVA INMEDIATA
+      // No esperamos al useEffect. Como AuthContext ya actualizó el usuario synchronously/optimistically,
+      // podemos navegar inmediatamente.
+      navigate('/home', { replace: true });
       
     } catch (err: any) {
       console.error("Firebase Auth Error:", err.code, err.message);
@@ -200,7 +204,7 @@ const Login: React.FC = () => {
       
       <div className="pb-6 text-center">
          <p className="text-[9px] font-bold text-gray-200 dark:text-gray-800 uppercase tracking-widest">
-           Secure Access • v1.5
+           Secure Access • v1.6
          </p>
       </div>
     </div>
