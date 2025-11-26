@@ -122,14 +122,14 @@ const UserSettings: React.FC = () => {
     }
   };
 
-  // Función de Demo para activar modo admin
+  // Función para activar privilegios en la DB real
   const handleAdminAccess = async () => {
-      // En una app real, esto checaría el rol en la DB.
-      // Aquí, actualizamos el estado local para simularlo.
       if (!user?.isAdmin) {
-          const confirm = window.confirm("¿Activar Modo Agencia (Demo)?");
+          const confirm = window.confirm("¿Confirmas que eres el dueño de esta agencia?\n\nEsto actualizará tu rol en la base de datos.");
           if (confirm) {
+              // Esto actualiza el documento real en Firestore
               await updateProfile({ isAdmin: true, role: 'Agencia Admin' });
+              alert("Permisos actualizados. Bienvenido, Admin.");
               navigate('/admin');
           }
       } else {
@@ -205,7 +205,7 @@ const UserSettings: React.FC = () => {
             )}
         </div>
 
-        {/* --- ADMIN ACCESS (DEMO) --- */}
+        {/* --- ADMIN ACCESS --- */}
         <div className="bg-white dark:bg-brand-dark-card mb-3 shadow-sm">
             <div className="flex flex-col">
                 <SettingItem 

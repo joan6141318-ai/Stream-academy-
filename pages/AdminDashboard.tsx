@@ -1,15 +1,40 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, TrendingUp, AlertCircle, ShieldCheck, DollarSign, Activity, Search, Filter, MoreHorizontal, ArrowUpRight, Database } from 'lucide-react';
+import { Users, TrendingUp, AlertCircle, ShieldCheck, DollarSign, Filter, ArrowUpRight } from 'lucide-react';
+import { collection, getCountFromServer } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 import { Header } from '../components/Header';
-import { Button } from '../components/Button';
 
 const AdminDashboard: React.FC = () => {
-  const navigate = useNavigate();
+  const useNavigateHook = useNavigate();
+  const [totalUsers, setTotalUsers] = useState<string>('...');
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock Data for Admin View
+  // Fetch Real Data from Firestore
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        if (!db) return;
+        
+        // 1. Count Total Users
+        const coll = collection(db, "users");
+        const snapshot = await getCountFromServer(coll);
+        setTotalUsers(snapshot.data().count.toString());
+        
+      } catch (error) {
+        console.error("Error fetching admin stats:", error);
+        setTotalUsers("ERR");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  // Mock Data for other stats (until those features are built)
   const stats = [
-    { title: "Usuarios Totales", value: "1,240", change: "+12%", icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
+    { title: "Usuarios Totales", value: totalUsers, change: "Registrados", icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
     { title: "Semillas (Mes)", value: "45.2M", change: "+8.5%", icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-500/10" },
     { title: "Apelaciones", value: "18", change: "Pendientes", icon: AlertCircle, color: "text-rose-500", bg: "bg-rose-500/10" },
     { title: "Ingresos Est.", value: "$12,450", change: "USD", icon: DollarSign, color: "text-amber-500", bg: "bg-amber-500/10" },
@@ -23,20 +48,12 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full w-full bg-gray-50 dark:bg-black transition-colors duration-300">
-      <Header title="Panel Admin" showBack onBack={() => navigate('/settings')} />
+      <Header title="Panel Admin" showBack onBack={() => useNavigateHook('/settings')} />
       
       <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] px-4 pb-24">
         
-        {/* DEMO BANNER */}
-        <div className="mt-4 mb-2 bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700/50 rounded-lg p-3 flex items-center justify-center space-x-2">
-            <Database size={14} className="text-amber-600 dark:text-amber-400" />
-            <span className="text-[10px] font-black text-amber-700 dark:text-amber-300 uppercase tracking-widest">
-                Modo Demo • Datos Simulados
-            </span>
-        </div>
-
         {/* Welcome Admin */}
-        <div className="mt-4 mb-8 px-2">
+        <div className="mt-6 mb-8 px-2">
             <span className="text-[10px] font-black text-brand-purple bg-purple-50 dark:bg-purple-900/20 px-2 py-1 rounded-sm uppercase tracking-wider mb-2 inline-block">
                 Vista de Agencia
             </span>
@@ -62,7 +79,9 @@ const AdminDashboard: React.FC = () => {
                                 {stat.change}
                             </span>
                         </div>
-                        <h3 className="text-2xl font-black text-brand-black dark:text-white tracking-tight">{stat.value}</h3>
+                        <h3 className="text-2xl font-black text-brand-black dark:text-white tracking-tight">
+                            {isLoading && idx === 0 ? <span className="animate-pulse">...</span> : stat.value}
+                        </h3>
                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{stat.title}</p>
                     </div>
                 )
