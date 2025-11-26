@@ -91,10 +91,13 @@ const UserSettings: React.FC = () => {
       const reader = new FileReader();
       reader.onloadend = async () => {
         try {
+            // Subir foto
             const photoUrl = await uploadPhoto(reader.result as string);
+            // Actualizar perfil con la nueva URL
             await updateProfile({ avatarUrl: photoUrl });
         } catch (error) {
             console.error("Error uploading photo", error);
+            alert("Error al subir imagen. Intenta de nuevo.");
         } finally {
             setIsUploading(false);
         }
@@ -113,8 +116,9 @@ const UserSettings: React.FC = () => {
     setIsSaving(true);
     
     try {
+        // Al ser una actualización optimista en el contexto, esto es casi instantáneo
         await updateProfile({ name: formData.name });
-        setIsEditing(false);
+        setIsEditing(false); // Cerramos edición inmediatamente
     } catch (error) {
         console.error("Error saving profile", error);
     } finally {
@@ -155,6 +159,7 @@ const UserSettings: React.FC = () => {
                         src={user.avatarUrl} 
                         alt="Profile" 
                         className="w-full h-full rounded-full object-cover"
+                        key={user.avatarUrl} // Force re-render on url change
                     />
                     {isUploading && (
                         <div className="absolute inset-0 flex items-center justify-center">
@@ -180,12 +185,13 @@ const UserSettings: React.FC = () => {
                             value={formData.name} 
                             onChange={(e) => setFormData({...formData, name: e.target.value})}
                             className="w-full bg-gray-50 dark:bg-white/5 border-b-2 border-brand-purple p-2 text-center font-bold text-lg text-brand-black dark:text-white focus:outline-none"
+                            autoFocus
                         />
                      </div>
                      <button 
                         onClick={handleSaveProfile} 
                         disabled={isSaving}
-                        className="w-full py-2 bg-brand-purple text-white rounded-sm shadow-lg font-bold text-xs uppercase tracking-widest flex items-center justify-center"
+                        className="w-full py-2 bg-brand-purple text-white rounded-sm shadow-lg font-bold text-xs uppercase tracking-widest flex items-center justify-center active:scale-95 transition-transform"
                     >
                         {isSaving ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> : <> <Save size={14} className="mr-2" /> Guardar Cambios</>}
                     </button>
@@ -233,7 +239,7 @@ const UserSettings: React.FC = () => {
                              <textarea 
                                 value={formData.bio}
                                 onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                                className="w-full bg-gray-50 dark:bg-white/5 border-none text-sm p-2 rounded-sm h-20 resize-none focus:ring-1 focus:ring-brand-purple"
+                                className="w-full bg-gray-50 dark:bg-white/5 border-none text-sm p-2 rounded-sm h-20 resize-none focus:ring-1 focus:ring-brand-purple outline-none"
                              />
                         ) : (
                             <p className="text-sm font-medium text-brand-black dark:text-white leading-relaxed">{formData.bio}</p>

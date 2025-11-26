@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Zap, AlertCircle, WifiOff, Check } from 'lucide-react';
 import { Button } from '../components/Button';
@@ -18,9 +18,11 @@ const Login: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Redirección automática inicial si ya existe sesión cargada
-  React.useEffect(() => {
-    if (user && !loading) {
+  // --- NAVEGACIÓN REACTIVA ---
+  // Esta es la única fuente de verdad para la redirección.
+  // Solo navega cuando el usuario EXISTE y la carga TERMINÓ.
+  useEffect(() => {
+    if (!loading && user) {
       navigate('/home', { replace: true });
     }
   }, [user, loading, navigate]);
@@ -46,19 +48,16 @@ const Login: React.FC = () => {
         await login(email, password);
       }
       
-      // LOGIN EXITOSO
+      // Si llegamos aquí, Firebase respondió OK.
+      // No navegamos manualmente. Dejamos que el useEffect detecte el cambio de usuario.
       setIsSuccess(true);
-      
-      // NAVEGACIÓN IMPERATIVA INMEDIATA
-      // No esperamos al useEffect. Como AuthContext ya actualizó el usuario synchronously/optimistically,
-      // podemos navegar inmediatamente.
-      navigate('/home', { replace: true });
       
     } catch (err: any) {
       console.error("Firebase Auth Error:", err.code, err.message);
       setIsSuccess(false);
+      setIsSubmitting(false);
       
-      // Manejo de errores amigables en Español
+      // Manejo de errores
       const errorCode = err.code || '';
       const errorMessage = err.message || '';
 
@@ -84,10 +83,11 @@ const Login: React.FC = () => {
       } else {
         setError("Error de conexión. Intenta de nuevo.");
       }
-      setIsSubmitting(false); 
     }
   };
 
+  // Si está cargando la sesión inicial, mostramos null o un spinner global
+  // Pero permitimos renderizar si solo es "submitting" local
   if (loading) return null;
 
   return (
@@ -204,7 +204,7 @@ const Login: React.FC = () => {
       
       <div className="pb-6 text-center">
          <p className="text-[9px] font-bold text-gray-200 dark:text-gray-800 uppercase tracking-widest">
-           Secure Access • v1.6
+           Secure Access • v1.7
          </p>
       </div>
     </div>
