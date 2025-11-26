@@ -1,5 +1,5 @@
-// Nombre del caché
-const CACHE_NAME = 'stream-agency-v1';
+// Nombre del caché - Actualizado a v2 para forzar recarga
+const CACHE_NAME = 'stream-agency-v2';
 
 // Archivos vitales para que la app arranque offline
 const ASSETS_TO_CACHE = [
@@ -10,6 +10,9 @@ const ASSETS_TO_CACHE = [
 
 // 1. Instalación del Service Worker
 self.addEventListener('install', (event) => {
+  // Forzar al nuevo service worker a tomar control inmediatamente
+  self.skipWaiting();
+  
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('Opened cache');
@@ -29,13 +32,14 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
+    }).then(() => {
+      // Tomar control de los clientes abiertos inmediatamente
+      return self.clients.claim();
     })
   );
 });
 
 // 3. Estrategia de Red primero, luego Caché (Network First)
-// Esto asegura que el usuario siempre vea la versión más reciente si tiene internet,
-// pero si no tiene, carga la versión guardada.
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
