@@ -18,4 +18,5 @@ export interface UserProfile {
   id: string;
   role: string;
   avatarUrl: string;
+  isAdmin?: boolean; // New field for Role Based Access
 }

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Bell, Lock, HelpCircle, ChevronRight, Camera, User, Mail, CreditCard, Moon, Save, Instagram, Video, Calendar, Type } from 'lucide-react';
+import { LogOut, Bell, Lock, HelpCircle, ChevronRight, Camera, User, Mail, CreditCard, Moon, Save, Instagram, Video, Calendar, Type, Shield } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 
@@ -12,16 +12,21 @@ const SettingItem: React.FC<{
   isToggled?: boolean;
   onClick?: () => void;
   danger?: boolean;
-}> = ({ icon, label, value, isToggle, isToggled, onClick, danger }) => (
+  highlight?: boolean;
+}> = ({ icon, label, value, isToggle, isToggled, onClick, danger, highlight }) => (
   <button 
     onClick={onClick}
     className="w-full flex items-center justify-between p-4 bg-white dark:bg-brand-dark-card border-b border-gray-50 dark:border-white/5 last:border-0 active:bg-gray-50 dark:active:bg-white/5 transition-colors"
   >
     <div className="flex items-center space-x-4">
-      <div className={`p-2 rounded-sm ${danger ? 'bg-red-50 text-red-500 dark:bg-red-900/20' : 'bg-gray-50 text-brand-black dark:bg-white/10 dark:text-white'}`}>
+      <div className={`p-2 rounded-sm ${
+        danger ? 'bg-red-50 text-red-500 dark:bg-red-900/20' : 
+        highlight ? 'bg-brand-purple text-white' :
+        'bg-gray-50 text-brand-black dark:bg-white/10 dark:text-white'
+      }`}>
         {icon}
       </div>
-      <span className={`text-sm font-bold ${danger ? 'text-red-500' : 'text-brand-black dark:text-white'}`}>
+      <span className={`text-sm font-bold ${danger ? 'text-red-500' : highlight ? 'text-brand-purple' : 'text-brand-black dark:text-white'}`}>
         {label}
       </span>
     </div>
@@ -117,6 +122,21 @@ const UserSettings: React.FC = () => {
     }
   };
 
+  // Función de Demo para activar modo admin
+  const handleAdminAccess = async () => {
+      // En una app real, esto checaría el rol en la DB.
+      // Aquí, actualizamos el estado local para simularlo.
+      if (!user?.isAdmin) {
+          const confirm = window.confirm("¿Activar Modo Agencia (Demo)?");
+          if (confirm) {
+              await updateProfile({ isAdmin: true, role: 'Agencia Admin' });
+              navigate('/admin');
+          }
+      } else {
+          navigate('/admin');
+      }
+  };
+
   if (!user) return null;
 
   return (
@@ -174,14 +194,27 @@ const UserSettings: React.FC = () => {
                 <>
                     <div className="flex items-center space-x-2 mb-1">
                         <h2 className="text-2xl font-black text-brand-black dark:text-white uppercase tracking-tight">{user.name}</h2>
+                        {user.isAdmin && <Shield size={16} className="text-brand-purple" />}
                     </div>
-                    <p className="text-xs font-bold text-brand-purple bg-purple-50 dark:bg-purple-900/20 px-2 py-0.5 rounded uppercase tracking-wider mb-4">{user.id}</p>
+                    <p className="text-xs font-bold text-brand-purple bg-purple-50 dark:bg-purple-900/20 px-2 py-0.5 rounded uppercase tracking-wider mb-4">{user.role || 'Streamer'}</p>
                     
                     <button onClick={() => setIsEditing(true)} className="text-[10px] font-black uppercase tracking-widest text-gray-400 border border-gray-200 dark:border-white/10 px-4 py-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                         Editar Perfil
                     </button>
                 </>
             )}
+        </div>
+
+        {/* --- ADMIN ACCESS (DEMO) --- */}
+        <div className="bg-white dark:bg-brand-dark-card mb-3 shadow-sm">
+            <div className="flex flex-col">
+                <SettingItem 
+                    icon={<Shield size={18} />} 
+                    label={user.isAdmin ? "Panel de Agencia" : "Acceso Administrativo"} 
+                    highlight={user.isAdmin}
+                    onClick={handleAdminAccess}
+                />
+            </div>
         </div>
 
         {/* --- DETALLES DE PERFIL (Solo lectura en Demo) --- */}

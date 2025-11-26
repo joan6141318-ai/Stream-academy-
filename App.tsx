@@ -14,6 +14,7 @@ import BloqueoMotivos from './pages/BloqueoMotivos';
 import BloqueoTypes from './pages/BloqueoTypes';
 import BloqueoVip from './pages/BloqueoVip';
 import BloqueoAppeal from './pages/BloqueoAppeal';
+import AdminDashboard from './pages/AdminDashboard';
 import { MainLayout } from './components/MainLayout';
 
 // Componente para proteger rutas privadas
@@ -108,6 +109,13 @@ const AppContent: React.FC = () => {
         <Route path="/tools/gamer/setup" element={
           <ProtectedRoute>
             <GameRunTool />
+          </ProtectedRoute>
+        } />
+
+        {/* Admin Route */}
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <AdminDashboard />
           </ProtectedRoute>
         } />
         
