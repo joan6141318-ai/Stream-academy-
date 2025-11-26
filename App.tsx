@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
@@ -119,6 +119,41 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  // Splash Screen State
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500); // 2.5 seconds splash duration
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (showSplash) {
+    return (
+       <div className="fixed inset-0 z-[100] bg-white dark:bg-black flex flex-col items-center justify-center animate-fade-in transition-colors duration-500">
+          <div className="relative w-40 h-40 mb-8 flex items-center justify-center">
+              {/* Glow Effect */}
+              <div className="absolute inset-0 bg-brand-purple/30 rounded-full blur-2xl animate-pulse"></div>
+              {/* Logo with breathing animation */}
+              <img
+                src="https://i.postimg.cc/65zvGzJL/IMG_20251102_060134.png"
+                alt="StreamAgency Logo"
+                className="relative w-full h-full object-contain drop-shadow-2xl animate-[pulse_2s_ease-in-out_infinite]"
+              />
+          </div>
+          <h1 className="text-2xl font-black text-brand-black dark:text-white tracking-[0.3em] uppercase animate-pulse">
+            StreamAgency
+          </h1>
+          <div className="mt-4 flex space-x-1">
+             <div className="w-2 h-2 bg-brand-purple rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+             <div className="w-2 h-2 bg-brand-purple rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+             <div className="w-2 h-2 bg-brand-purple rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+          </div>
+       </div>
+    );
+  }
+
   return (
     <Router>
       <AuthProvider>
