@@ -9,38 +9,17 @@ import {
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { auth, db, storage } from '../firebaseConfig';
+import { auth, db, storage } from '../firebaseConfig.js';
 
-export interface User {
-  id: string; // Firebase UID
-  name: string;
-  email: string;
-  avatarUrl: string;
-  role: string;
-  isAdmin?: boolean;
-}
+const AuthContext = createContext(undefined);
 
-interface AuthContextType {
-  user: User | null;
-  login: (email: string, pass: string) => Promise<void>;
-  register: (email: string, pass: string, name: string) => Promise<void>;
-  logout: () => void;
-  updateProfile: (data: Partial<User>) => Promise<void>;
-  uploadPhoto: (file: Blob, base64Fallback?: string) => Promise<string>;
-  isAuthenticated: boolean;
-  loading: boolean;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Safety check if auth failed to initialize
     if (!auth) {
-        console.error("Auth module not initialized");
+        console.error("AuthContext: Auth module not initialized (network/config error)");
         setLoading(false);
         return;
     }
@@ -52,53 +31,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, 3000);
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      clearTimeout(safetyTimer);
+    try {
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+          clearTimeout(safetyTimer);
 
-      if (firebaseUser) {
-        const baseUser: User = {
-            id: firebaseUser.uid,
-            name: firebaseUser.displayName || "Usuario",
-            email: firebaseUser.email || "",
-            avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${firebaseUser.displayName || 'User'}`,
-            role: "Streamer"
-        };
+          if (firebaseUser) {
+            const baseUser = {
+                id: firebaseUser.uid,
+                name: firebaseUser.displayName || "Usuario",
+                email: firebaseUser.email || "",
+                avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${firebaseUser.displayName || 'User'}`,
+                role: "Streamer"
+            };
 
-        try {
-            if (db) {
-                const userDocRef = doc(db, "users", firebaseUser.uid);
-                const userDoc = await getDoc(userDocRef);
-                if (userDoc.exists()) {
-                    setUser({ ...baseUser, ...userDoc.data() } as User);
+            try {
+                if (db) {
+                    const userDocRef = doc(db, "users", firebaseUser.uid);
+                    const userDoc = await getDoc(userDocRef);
+                    if (userDoc.exists()) {
+                        setUser({ ...baseUser, ...userDoc.data() });
+                    } else {
+                        setUser(baseUser);
+                    }
                 } else {
                     setUser(baseUser);
                 }
-            } else {
+            } catch (error) {
+                console.warn("Firestore offline/error: Using cached/basic profile.", error);
                 setUser(baseUser);
             }
-        } catch (error: any) {
-            console.warn("Firestore offline/error: Using cached/basic profile.");
-            setUser(baseUser);
-        }
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
-    });
+          } else {
+            setUser(null);
+          }
+          setLoading(false);
+        });
 
-    return () => {
-        unsubscribe();
-        clearTimeout(safetyTimer);
-    };
+        return () => {
+            unsubscribe();
+            clearTimeout(safetyTimer);
+        };
+    } catch (e) {
+        console.error("Auth State Observer Error:", e);
+        setLoading(false);
+    }
   }, []); 
 
-  const login = async (email: string, pass: string) => {
+  const login = async (email, pass) => {
       if (!auth) throw new Error("Firebase no configurado o bloqueado por red.");
       
       const credential = await signInWithEmailAndPassword(auth, email, pass);
       const fbUser = credential.user;
 
-      const instantUser: User = {
+      const instantUser = {
           id: fbUser.uid,
           name: fbUser.displayName || "Usuario",
           email: fbUser.email || "",
@@ -110,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
   };
 
-  const register = async (email: string, pass: string, name: string) => {
+  const register = async (email, pass, name) => {
       if (!auth) throw new Error("Firebase no configurado o bloqueado por red.");
       
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
@@ -118,7 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       sendEmailVerification(fbUser).catch(e => console.warn("Email verification error", e));
 
-      const newUserProfile: User = {
+      const newUserProfile = {
         id: fbUser.uid,
         name: name,
         email: email,
@@ -134,7 +118,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (db) {
             await setDoc(doc(db, "users", fbUser.uid), newUserProfile);
         }
-        await updateAuthProfile(fbUser, { displayName: name });
+        if (auth && auth.currentUser) {
+            await updateAuthProfile(auth.currentUser, { displayName: name });
+        }
       } catch (e) {
         console.error("Error creating user profile in DB", e);
       }
@@ -146,7 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
   };
 
-  const uploadPhoto = async (file: Blob, base64Fallback?: string): Promise<string> => {
+  const uploadPhoto = async (file, base64Fallback) => {
       if (!user) throw new Error("No authenticated user");
       
       if (storage) {
@@ -167,7 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error("No se pudo subir la imagen ni usar el respaldo.");
   };
 
-  const updateProfile = async (data: Partial<User>) => {
+  const updateProfile = async (data) => {
     if (!user) return;
     
     setUser(prev => prev ? { ...prev, ...data } : null);
@@ -179,7 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
         if (auth && auth.currentUser) {
-            const authUpdates: { displayName?: string; photoURL?: string } = {};
+            const authUpdates = {};
             if (data.name) authUpdates.displayName = data.name;
             if (data.avatarUrl) authUpdates.photoURL = data.avatarUrl;
 

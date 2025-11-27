@@ -13,14 +13,12 @@ const firebaseConfig = {
   measurementId: "G-TVJ1112RVJ"
 };
 
-// 🔥 Inicialización segura (Singleton Pattern)
-// Si ya existe una app inicializada, la usa. Si no, crea una nueva.
-// Esto previene el error "Firebase App named '[DEFAULT]' already exists" y problemas de registro de Auth.
+// Singleton pattern: Ensure only one instance of Firebase App exists
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Inicializamos los servicios pasando la instancia 'app' explícitamente
+// Initialize services with the specific app instance
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-export { auth, db, storage };
+export { app, auth, db, storage };

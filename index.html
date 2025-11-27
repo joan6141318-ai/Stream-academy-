@@ -18,7 +18,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
-        darkMode: 'class', // ACTIVAR MODO MANUAL
+        darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
@@ -31,13 +31,13 @@
                 purple: '#7c3aed',
                 gray: '#FAFAFA',
                 border: '#eeeeee',
-                'dark-bg': '#000000', // Fondo negro puro para OLED
-                'dark-card': '#121212', // Fondo gris muy oscuro para tarjetas
+                'dark-bg': '#000000',
+                'dark-card': '#121212',
               }
             },
             borderRadius: {
               'none': '0',
-              'sm': '2px', // Minimalist squared look
+              'sm': '2px',
               'DEFAULT': '4px',
             },
             spacing: {
@@ -49,93 +49,44 @@
       }
     </script>
     <style>
-      /* App Shell Reset */
-      html {
-        height: 100%;
-        width: 100%;
-        overflow: hidden; /* Prevent html scroll */
-        -webkit-text-size-adjust: 100%;
-      }
-      
-      body {
-        height: 100%;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        overflow: hidden; /* Prevent body scroll */
-        background-color: #ffffff;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        overscroll-behavior: none;
-        user-select: none;
-        -webkit-tap-highlight-color: transparent;
-        transition: background-color 0.3s ease;
-      }
-
-      /* Dark mode body transition */
-      html.dark body {
-        background-color: #000000;
-        color: #ffffff;
-      }
-
-      #root {
-        height: 100%;
-        width: 100%;
-      }
-      
-      /* Hide Scrollbar but allow scroll */
-      .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-      }
-      .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-      }
-
-      /* Native Inputs */
-      input, textarea {
-        user-select: text;
-        appearance: none;
-        -webkit-appearance: none;
-        border-radius: 0;
-      }
-
-      /* Safe Area Utilities */
+      html { height: 100%; width: 100%; overflow: hidden; -webkit-text-size-adjust: 100%; }
+      body { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; background-color: #ffffff; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overscroll-behavior: none; user-select: none; -webkit-tap-highlight-color: transparent; transition: background-color 0.3s ease; }
+      html.dark body { background-color: #000000; color: #ffffff; }
+      #root { height: 100%; width: 100%; }
+      .scrollbar-hide::-webkit-scrollbar { display: none; }
+      .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      input, textarea { user-select: text; appearance: none; -webkit-appearance: none; border-radius: 0; }
       .pt-safe { padding-top: env(safe-area-inset-top); }
       .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
       .mt-safe { margin-top: env(safe-area-inset-top); }
       .mb-safe { margin-bottom: env(safe-area-inset-bottom); }
     </style>
-  <script type="importmap">
+    <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react": "https://esm.sh/react@18.3.1",
+    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client?deps=react@18.3.1",
+    "react-dom": "https://esm.sh/react-dom@18.3.1?deps=react@18.3.1",
+    "react-router-dom": "https://esm.sh/react-router-dom@6.23.1?deps=react@18.3.1,react-dom@18.3.1",
+    "lucide-react": "https://esm.sh/lucide-react@0.395.0?deps=react@18.3.1",
+    "firebase/app": "https://esm.sh/firebase@10.12.2/app",
+    "firebase/auth": "https://esm.sh/firebase@10.12.2/auth?deps=firebase@10.12.2",
+    "firebase/firestore": "https://esm.sh/firebase@10.12.2/firestore?deps=firebase@10.12.2",
+    "firebase/storage": "https://esm.sh/firebase@10.12.2/storage?deps=firebase@10.12.2",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
-    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
     "firebase/": "https://aistudiocdn.com/firebase@^12.6.0/"
   }
 }
 </script>
-</head>
+  </head>
   <body class="bg-white text-brand-black dark:bg-brand-dark-bg dark:text-white transition-colors duration-300">
     <div id="root"></div>
-
-    <!-- MAIN APP ENTRY POINT - CRITICAL FIX -->
-    <script type="module" src="./index.tsx"></script>
-
-    <!-- Service Worker Registration -->
+    <script type="module" src="./index.jsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-              console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            })
-            .catch((err) => {
-              console.log('ServiceWorker registration failed: ', err);
-            });
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
         });
       }
     </script>

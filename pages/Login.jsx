@@ -1,42 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Zap, AlertCircle, WifiOff, Check } from 'lucide-react';
-import { Button } from '../components/Button';
-import { useAuth } from '../context/AuthContext';
+import { Button } from '../components/Button.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
-const Login: React.FC = () => {
+const Login = () => {
   const navigate = useNavigate();
   const { login, register, user, loading } = useAuth();
   
-  // Estados para manejar el formulario
   const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const [isNetworkError, setIsNetworkError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // REDIRECCIÓN REACTIVA (Arquitectura Correcta)
-  // Escucha cambios en el usuario y redirige automáticamente cuando está listo
   useEffect(() => {
     if (user && !loading && !isSubmitting) {
-        // Redirigimos a Onboarding si no ha completado el setup, o Home si ya lo hizo.
-        // Por defecto, mandamos a Onboarding y allí se puede redirigir si ya completó.
-        // Pero según la solicitud anterior: "después del acceso al login... página Bienvenido (Onboarding)"
         navigate('/onboarding', { replace: true });
     }
   }, [user, loading, navigate, isSubmitting]);
 
-  // Limpiar errores al escribir
-  const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, value: string) => {
+  const handleInputChange = (setter, value) => {
     setError(null);
     setIsNetworkError(false);
     setter(value);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setIsNetworkError(false);
@@ -50,17 +43,13 @@ const Login: React.FC = () => {
         await login(email, password);
       }
       
-      // ÉXITO
       setIsSuccess(true);
-      // Nota: No navegamos aquí manualmente. Dejamos que el useEffect lo haga 
-      // cuando el AuthContext confirme que el usuario está listo.
       
-    } catch (err: any) {
+    } catch (err) {
       console.error("Firebase Auth Error:", err.code, err.message);
       setIsSuccess(false);
       setIsSubmitting(false);
       
-      // Manejo de errores
       const errorCode = err.code || '';
       const errorMessage = err.message || '';
 
@@ -89,12 +78,11 @@ const Login: React.FC = () => {
     }
   };
 
-  if (loading) return null; // O un spinner de carga inicial
+  if (loading) return null;
 
   return (
     <div className="flex flex-col h-full w-full bg-white dark:bg-black px-8 pb-safe pt-safe overflow-y-auto scrollbar-hide transition-colors duration-300">
       
-      {/* Hero Section */}
       <div className="flex-1 flex flex-col justify-center animate-fade-in">
         <div className="w-14 h-14 bg-brand-black dark:bg-white flex items-center justify-center rounded-sm mb-6 shadow-xl shadow-brand-purple/20">
             <Zap className="text-white dark:text-black w-7 h-7" strokeWidth={2} />
@@ -110,7 +98,6 @@ const Login: React.FC = () => {
           </p>
         </div>
 
-        {/* Mensaje de Error */}
         {error && (
           <div className={`mb-6 p-4 border-l-4 flex items-start animate-fade-in ${isNetworkError ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-500' : 'bg-red-50 dark:bg-red-900/20 border-red-500'}`}>
             {isNetworkError ? <WifiOff size={16} className="text-orange-500 mr-2 flex-shrink-0 mt-0.5" /> : <AlertCircle size={16} className="text-red-500 mr-2 flex-shrink-0 mt-0.5" />}
@@ -125,11 +112,9 @@ const Login: React.FC = () => {
           </div>
         )}
 
-        {/* Formulario */}
         <form onSubmit={handleSubmit} className="w-full space-y-8">
           <div className="space-y-6">
             
-            {/* Campo Nombre (Solo visible al registrarse) */}
             {isRegistering && (
               <div className="group animate-fade-in">
                 <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 transition-colors group-focus-within:text-brand-purple">Nombre Completo</label>

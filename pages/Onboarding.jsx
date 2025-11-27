@@ -1,9 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, UserCog, Sparkles } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext.jsx';
 
-const Onboarding: React.FC = () => {
+const Onboarding = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -20,7 +20,6 @@ const Onboarding: React.FC = () => {
       
       <div className="flex-1 flex flex-col justify-center items-center text-center animate-fade-in">
         
-        {/* Icono Decorativo */}
         <div className="relative mb-10">
             <div className="absolute inset-0 bg-brand-purple/20 blur-2xl rounded-full"></div>
             <div className="relative w-24 h-24 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center border-2 border-gray-100 dark:border-white/10 shadow-xl">
@@ -31,7 +30,6 @@ const Onboarding: React.FC = () => {
             </div>
         </div>
 
-        {/* Textos */}
         <h1 className="text-4xl font-black text-brand-black dark:text-white uppercase tracking-tighter mb-4 leading-none">
           Bienvenido
         </h1>
@@ -46,10 +44,8 @@ const Onboarding: React.FC = () => {
         </p>
       </div>
 
-      {/* Botones de Acción */}
       <div className="mb-24 w-full flex flex-col items-center">
         
-        {/* Botón Principal: Avancemos (Morado Estático) */}
         <div className="flex flex-col items-center space-y-4 mb-8 group cursor-pointer" onClick={handleConfigure}>
             <button 
                 className="w-16 h-16 bg-brand-purple text-white rounded-full shadow-xl shadow-brand-purple/30 flex items-center justify-center transition-transform duration-200 active:scale-95"
@@ -61,7 +57,6 @@ const Onboarding: React.FC = () => {
             </span>
         </div>
 
-        {/* Botón Secundario: Saltar */}
         <button 
             onClick={handleSkip}
             className="py-2 text-[9px] font-bold text-gray-300 dark:text-gray-700 uppercase tracking-widest hover:text-brand-black dark:hover:text-white transition-colors"
