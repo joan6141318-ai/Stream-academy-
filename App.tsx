@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
+import Onboarding from './pages/Onboarding'; // Importar Onboarding
 import Profile from './pages/Profile';
 import TrainingList from './pages/TrainingList';
 import TrainingDetail from './pages/TrainingDetail';
@@ -41,6 +42,13 @@ const AppContent: React.FC = () => {
       <Routes>
         {/* Public Route */}
         <Route path="/" element={<Login />} />
+
+        {/* Onboarding Route - Protected but standalone (no bottom nav) */}
+        <Route path="/onboarding" element={
+          <ProtectedRoute>
+            <Onboarding />
+          </ProtectedRoute>
+        } />
 
         {/* Authenticated Routes with Bottom Nav */}
         <Route element={<MainLayout />}>

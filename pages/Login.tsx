@@ -42,12 +42,9 @@ const Login: React.FC = () => {
       // ÉXITO CONFIRMADO
       setIsSuccess(true);
       
-      // NAVEGACIÓN FORZADA
+      // NAVEGACIÓN FORZADA A ONBOARDING
       // No esperamos a useEffect. Si la línea de arriba (await login) pasó, estamos dentro.
-      // Damos un brevísimo delay solo para que el usuario vea el check verde.
-      setTimeout(() => {
-          navigate('/home', { replace: true });
-      }, 500);
+      navigate('/onboarding', { replace: true });
       
     } catch (err: any) {
       console.error("Firebase Auth Error:", err.code, err.message);
