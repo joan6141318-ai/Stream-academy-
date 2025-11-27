@@ -1,26 +1,24 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
+// Configuración con tus claves reales
 const firebaseConfig = {
   apiKey: "AIzaSyDjoByKIdETuYnz6K9ELoNemjzTTSyd3k8",
   authDomain: "streamers-academy-8c01d.firebaseapp.com",
   projectId: "streamers-academy-8c01d",
-  storageBucket: "streamers-academy-8c01d.appspot.com",
+  storageBucket: "streamers-academy-8c01d.firebasestorage.app",
   messagingSenderId: "412239740500",
   appId: "1:412239740500:web:9921c7cd94347b8e5fb7c1",
   measurementId: "G-TVJ1112RVJ"
 };
 
-// 🔥 Inicialización segura (Singleton Pattern)
-// Si ya existe una app inicializada, la usa. Si no, crea una nueva.
-// Esto previene el error "Firebase App named '[DEFAULT]' already exists" y problemas de registro de Auth.
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+// Inicializar la aplicación de Firebase
+// Eliminamos Analytics para evitar bloqueos por AdBlockers que causan pantalla blanca
+const app = initializeApp(firebaseConfig);
 
-// Inicializamos los servicios pasando la instancia 'app' explícitamente
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-
-export { auth, db, storage };
+// Inicializar y exportar los servicios para usarlos en la app
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);

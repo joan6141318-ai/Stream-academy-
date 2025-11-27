@@ -37,20 +37,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // 1. Escuchar cambios de sesión (Backup & Initial Load)
   useEffect(() => {
-    // Safety check if auth failed to initialize
-    if (!auth) {
-        console.error("Auth module not initialized");
-        setLoading(false);
-        return;
-    }
-
     const safetyTimer = setTimeout(() => {
         if (loading) {
             console.warn("Firebase slow response - Forcing UI load");
             setLoading(false);
         }
-    }, 3000);
+    }, 2000);
+
+    if (!auth) {
+        setLoading(false);
+        return;
+    }
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       clearTimeout(safetyTimer);
@@ -92,12 +91,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []); 
 
+  // --- LOGIN ---
   const login = async (email: string, pass: string) => {
-      if (!auth) throw new Error("Firebase no configurado o bloqueado por red.");
+      if (!auth) throw new Error("Firebase no configurado");
       
       const credential = await signInWithEmailAndPassword(auth, email, pass);
       const fbUser = credential.user;
 
+      // FORCE STATE UPDATE IMMEDIATELY (Optimistic)
       const instantUser: User = {
           id: fbUser.uid,
           name: fbUser.displayName || "Usuario",
@@ -110,8 +111,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
   };
 
+  // --- REGISTRO ---
   const register = async (email: string, pass: string, name: string) => {
-      if (!auth) throw new Error("Firebase no configurado o bloqueado por red.");
+      if (!auth) throw new Error("Firebase no configurado");
       
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       const fbUser = userCredential.user;
@@ -146,20 +148,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
   };
 
+  // HYBRID UPLOAD STRATEGY: Storage -> Fallback to Base64 string
   const uploadPhoto = async (file: Blob, base64Fallback?: string): Promise<string> => {
       if (!user) throw new Error("No authenticated user");
       
+      // 1. Try Firebase Storage
       if (storage) {
           try {
               const storageRef = ref(storage, `avatars/${user.id}_profile.jpg`);
               await uploadBytes(storageRef, file);
               const downloadURL = await getDownloadURL(storageRef);
-              return `${downloadURL}?t=${new Date().getTime()}`; 
+              return `${downloadURL}?t=${new Date().getTime()}`; // Cache busting
           } catch (error) {
               console.warn("Storage upload failed (permissions/network). Switching to Base64 fallback.", error);
           }
       }
 
+      // 2. Fallback: Return the Base64 string directly
+      // This saves the image *inside* the text profile in Firestore
       if (base64Fallback) {
           return base64Fallback;
       }
@@ -170,8 +176,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (data: Partial<User>) => {
     if (!user) return;
     
+    // 1. Optimistic Update
     setUser(prev => prev ? { ...prev, ...data } : null);
 
+    // 2. Background Sync
     try {
         if (db) {
             const userDocRef = doc(db, "users", user.id);

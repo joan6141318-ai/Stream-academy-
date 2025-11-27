@@ -1,44 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, ChevronLeft, Camera, Grid, Instagram, Facebook, Video, Check, ChevronDown, User, Sparkles, PartyPopper, Hash, CalendarDays, BadgeCheck, Edit2 } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ChevronLeft, Camera, Grid, Instagram, Facebook, Video, Check, ChevronDown, User, Sparkles, PartyPopper, Hash, CalendarDays, BadgeCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-
-// Avatares Modernos "Adventurer"
-const AVATARS = [
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Felix&backgroundColor=b6e3f4",
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Aneka&backgroundColor=ffdfbf",
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Willow&backgroundColor=c0aede",
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Liam&backgroundColor=d1d4f9",
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Christopher&backgroundColor=ffd5dc",
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Jack&backgroundColor=ffdfbf",
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Jocelyn&backgroundColor=b6e3f4",
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Ryker&backgroundColor=c0aede",
-  "https://api.dicebear.com/9.x/adventurer/svg?seed=Andrea&backgroundColor=d1d4f9"
-];
-
-// Botón Circular Morado
-const NextButton = ({ onClick, disabled, text = "Siguiente", isLoading = false }: { onClick: () => void, disabled?: boolean, text?: string, isLoading?: boolean }) => (
-    <div className={`w-full py-8 flex flex-col items-center justify-center mt-auto transition-all duration-300 ${disabled ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
-        <button 
-            onClick={onClick}
-            disabled={disabled || isLoading}
-            className="w-16 h-16 bg-brand-purple text-white rounded-full shadow-xl shadow-brand-purple/40 flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95 border-4 border-white/20 dark:border-white/10"
-        >
-            {isLoading ? (
-                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-                <ArrowRight size={28} className="transition-transform duration-300" strokeWidth={3} />
-            )}
-        </button>
-        {text && (
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-purple dark:text-purple-400 mt-3 bg-white/80 dark:bg-black/80 px-2 py-0.5 rounded">
-                {text}
-            </span>
-        )}
-    </div>
-);
 
 const OnboardingSetup: React.FC = () => {
   const navigate = useNavigate();
@@ -47,7 +12,9 @@ const OnboardingSetup: React.FC = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Identity
+  // --- STATES ---
+  
+  // Step 1: Identity
   const [name, setName] = useState('');
   const [isSigned, setIsSigned] = useState<boolean | null>(null);
   const [day, setDay] = useState('');
@@ -55,19 +22,35 @@ const OnboardingSetup: React.FC = () => {
   const [year, setYear] = useState('');
   const [bigoId, setBigoId] = useState('');
 
-  // Photo
+  // Step 2: Photo
   const [photoMode, setPhotoMode] = useState<'upload' | 'avatar' | null>(null);
   const [selectedAvatar, setSelectedAvatar] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Survey
+  // Step 3: Survey
   const [referralSource, setReferralSource] = useState('');
   const [socialNetworks, setSocialNetworks] = useState<string[]>([]);
   const [friendName, setFriendName] = useState('');
 
+  // Avatares Modernos "3D/Artistic Style"
+  const AVATARS = [
+    "https://api.dicebear.com/9.x/micah/svg?seed=Felix&backgroundColor=b6e3f4&radius=50",
+    "https://api.dicebear.com/9.x/micah/svg?seed=Aneka&backgroundColor=ffdfbf&radius=50",
+    "https://api.dicebear.com/9.x/micah/svg?seed=Willow&backgroundColor=c0aede&radius=50",
+    "https://api.dicebear.com/9.x/micah/svg?seed=Liam&backgroundColor=d1d4f9&radius=50",
+    "https://api.dicebear.com/9.x/micah/svg?seed=Christopher&backgroundColor=ffd5dc&radius=50",
+    "https://api.dicebear.com/9.x/micah/svg?seed=Jack&backgroundColor=ffdfbf&radius=50",
+    "https://api.dicebear.com/9.x/micah/svg?seed=Jocelyn&backgroundColor=b6e3f4&radius=50",
+    "https://api.dicebear.com/9.x/micah/svg?seed=Ryker&backgroundColor=c0aede&radius=50",
+    "https://api.dicebear.com/9.x/micah/svg?seed=Andrea&backgroundColor=d1d4f9&radius=50"
+  ];
+
+  // Listas para fechas
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
   const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
   const years = Array.from({ length: 60 }, (_, i) => new Date().getFullYear() - 18 - i);
+
+  // --- LOGIC ---
 
   const handleBack = () => {
     if (step > 1) {
@@ -107,20 +90,13 @@ const OnboardingSetup: React.FC = () => {
             canvas.width = width;
             canvas.height = height;
             const ctx = canvas.getContext('2d');
-            if (ctx) {
-                ctx.drawImage(img, 0, 0, width, height);
-                const base64 = canvas.toDataURL('image/jpeg', 0.7);
-                setSelectedAvatar(base64);
-            }
+            ctx?.drawImage(img, 0, 0, width, height);
+            const base64 = canvas.toDataURL('image/jpeg', 0.7);
+            setSelectedAvatar(base64);
         };
       };
       reader.readAsDataURL(file);
     }
-  };
-
-  const resetPhotoSelection = () => {
-      setSelectedAvatar('');
-      setPhotoMode(null);
   };
 
   const toggleSocial = (network: string) => {
@@ -174,10 +150,33 @@ const OnboardingSetup: React.FC = () => {
     }
   };
 
+  // BOTÓN CIRCULAR MORADO (Unificado, Centrado, Parpadeo Rápido)
+  const NextButton = ({ onClick, disabled, text = "Siguiente", isLoading = false }: { onClick: () => void, disabled?: boolean, text?: string, isLoading?: boolean }) => (
+    <div className={`fixed bottom-10 left-0 right-0 flex flex-col items-center justify-center z-50 transition-all duration-300 ${disabled ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
+        <button 
+            onClick={onClick}
+            disabled={disabled || isLoading}
+            className="w-16 h-16 bg-brand-purple text-white rounded-full shadow-2xl shadow-brand-purple/50 flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-90 border-4 border-white/20 dark:border-white/10 animate-[pulse_0.7s_ease-in-out_infinite]"
+        >
+            {isLoading ? (
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+                <ArrowRight size={28} className="transition-transform duration-300" strokeWidth={3} />
+            )}
+        </button>
+        {text && (
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-purple dark:text-purple-400 mt-3 animate-fade-in bg-white/80 dark:bg-black/80 px-2 py-0.5 rounded backdrop-blur-sm">
+                {text}
+            </span>
+        )}
+    </div>
+  );
+
   return (
     <div className="flex flex-col h-full w-full bg-white dark:bg-black px-6 pt-safe pb-safe transition-colors duration-300 overflow-y-auto scrollbar-hide relative">
         
-        <div className="w-full flex justify-end py-6">
+        {/* Top Bar: Back Button */}
+        <div className="absolute top-safe right-6 z-20 mt-6">
             <button 
                 onClick={handleBack}
                 className="text-[10px] font-black uppercase tracking-widest text-gray-300 hover:text-brand-purple transition-colors flex items-center"
@@ -187,12 +186,14 @@ const OnboardingSetup: React.FC = () => {
             </button>
         </div>
 
-        <div className={`flex-1 flex flex-col transition-all duration-300 transform ${isAnimating ? '-translate-x-10 opacity-0' : 'translate-x-0 opacity-100'}`}>
+        {/* Content Container */}
+        <div className={`flex-1 flex flex-col pt-12 pb-32 transition-all duration-300 transform ${isAnimating ? '-translate-x-10 opacity-0' : 'translate-x-0 opacity-100'}`}>
             
+            {/* === PASO 1: IDENTIDAD === */}
             {step === 1 && (
-                <div className="animate-fade-in flex-1 flex flex-col min-h-0">
-                    <div className="space-y-8 mb-4">
-                        <label className="text-2xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tight block text-left">
+                <div className="space-y-10 animate-fade-in flex-1 flex flex-col">
+                    <div className="space-y-6">
+                        <label className="text-2xl font-black text-brand-black dark:text-white uppercase leading-[0.9] tracking-tight">
                             ¿Cómo te gustaría<br/>que te llamáramos?
                         </label>
                         <input 
@@ -206,13 +207,11 @@ const OnboardingSetup: React.FC = () => {
                         <div className="min-h-[3rem] flex items-center">
                             {name ? (
                                 <div className="flex items-center gap-2 animate-fade-in">
-                                    <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase tracking-tighter truncate max-w-[80%]">
+                                    <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase tracking-tighter truncate">
                                         {name}
                                     </h1>
                                     {isSigned && (
-                                        <div className="bg-blue-500 rounded-full p-0.5">
-                                            <Check size={14} className="text-white" strokeWidth={4} />
-                                        </div>
+                                        <BadgeCheck size={24} className="text-blue-500 fill-blue-500/10" strokeWidth={2} />
                                     )}
                                 </div>
                             ) : (
@@ -221,7 +220,7 @@ const OnboardingSetup: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="space-y-4 mb-4">
+                    <div className="space-y-3">
                         <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">¿Eres un emisor firmado?</label>
                         <div className="flex gap-4">
                             <button onClick={() => setIsSigned(true)} className={`flex-1 py-3 rounded-lg border-2 font-black text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 ${isSigned === true ? 'bg-brand-black dark:bg-white border-brand-black dark:border-white text-white dark:text-black shadow-md transform scale-105' : 'border-gray-100 dark:border-white/10 text-gray-400 bg-gray-50 dark:bg-white/5'}`}>{isSigned === true && <Check size={14} />} SÍ</button>
@@ -229,13 +228,13 @@ const OnboardingSetup: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="space-y-2 mb-4">
+                    <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Bigo ID</label>
                         <input type="text" value={bigoId} onChange={(e) => setBigoId(e.target.value)} placeholder="Ej: user1234" className="w-full bg-gray-50 dark:bg-white/5 border-none rounded-lg p-4 text-sm font-bold text-brand-black dark:text-white focus:ring-2 focus:ring-brand-purple/50 outline-none transition-all" />
                         <p className="text-[8px] text-gray-400 font-medium pl-1">* Se encuentra en tu perfil de Bigo.</p>
                     </div>
 
-                    <div className="space-y-2 mb-4">
+                    <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Tu edad</label>
                         <div className="grid grid-cols-3 gap-3">
                             <div className="relative"><select value={day} onChange={(e) => setDay(e.target.value)} className="w-full bg-gray-50 dark:bg-white/5 appearance-none rounded-lg p-3 text-xs font-bold text-brand-black dark:text-white text-center outline-none focus:bg-gray-100 dark:focus:bg-white/10 transition-colors"><option value="" className="text-gray-400">Día</option>{days.map(d => <option key={d} value={d}>{d}</option>)}</select><ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" /></div>
@@ -248,6 +247,7 @@ const OnboardingSetup: React.FC = () => {
                 </div>
             )}
 
+            {/* === PASO 2: FOTO DE PERFIL === */}
             {step === 2 && (
                 <div className="space-y-6 animate-fade-in flex-1 flex flex-col items-center">
                     <div className="text-center w-full mb-2">
@@ -257,6 +257,7 @@ const OnboardingSetup: React.FC = () => {
                         <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wide">configuremos una foto para tu perfil</p>
                     </div>
 
+                    {/* Main Circle - Larger */}
                     <div 
                         className="relative w-64 h-64 rounded-full bg-gray-50 dark:bg-white/5 border-[8px] border-white dark:border-white/10 shadow-2xl shadow-brand-purple/20 flex items-center justify-center overflow-hidden cursor-pointer group transition-all duration-300"
                         onClick={() => !selectedAvatar && setPhotoMode('upload')}
@@ -276,19 +277,20 @@ const OnboardingSetup: React.FC = () => {
                         )}
                     </div>
 
+                    {/* VISIBLE USER DATA CARD (New Design) */}
                     {selectedAvatar && (
-                        <div className="w-full animate-slide-up space-y-4 text-center mt-2 flex-1 flex flex-col items-center">
+                        <div className="w-full animate-slide-up space-y-4 text-center mt-2">
                             <div className="flex flex-col items-center justify-center">
                                 <div className="flex items-center gap-2 mb-1">
                                     <h3 className="text-3xl font-black text-brand-black dark:text-white uppercase tracking-tighter leading-none">{name}</h3>
-                                    {isSigned && <div className="bg-blue-500 rounded-full p-0.5"><Check size={16} className="text-white" strokeWidth={3} /></div>}
+                                    {isSigned && <BadgeCheck size={28} className="text-blue-500 fill-white dark:fill-black" strokeWidth={2} />}
                                 </div>
                                 <div className="bg-brand-black dark:bg-white text-white dark:text-black px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md">
                                     {isSigned ? 'Emisor Firmado' : 'Emisor Independiente'}
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 w-full max-w-xs mx-auto mb-4">
+                            <div className="grid grid-cols-2 gap-4 w-full max-w-xs mx-auto">
                                 <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5 flex flex-col items-center">
                                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Bigo ID</span>
                                     <span className="text-sm font-black text-brand-purple truncate w-full text-center">{bigoId || '---'}</span>
@@ -298,17 +300,10 @@ const OnboardingSetup: React.FC = () => {
                                     <span className="text-sm font-black text-brand-black dark:text-white">{getAge()} Años</span>
                                 </div>
                             </div>
-
-                            <button 
-                                onClick={resetPhotoSelection}
-                                className="text-[10px] font-bold uppercase tracking-widest text-gray-400 flex items-center hover:text-brand-purple transition-colors"
-                            >
-                                <Edit2 size={12} className="mr-1" />
-                                Editar foto de perfil
-                            </button>
                         </div>
                     )}
 
+                    {/* Options Buttons */}
                     {!selectedAvatar && (
                         <div className="w-full max-w-xs grid grid-cols-2 gap-4 mt-4">
                             <button 
@@ -330,12 +325,13 @@ const OnboardingSetup: React.FC = () => {
 
                     <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
 
+                    {/* Avatar Grid */}
                     {!selectedAvatar && photoMode === 'avatar' && (
-                        <div className="w-full mt-2 flex-1">
+                        <div className="w-full mt-2">
                             <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-3 text-center">Selecciona un estilo</p>
                             <div className="grid grid-cols-3 gap-3 p-2 animate-fade-in max-h-60 overflow-y-auto scrollbar-hide pb-20">
                                 {AVATARS.map((url, idx) => (
-                                    <div key={idx} className="aspect-square bg-blue-50 dark:bg-white/5 rounded-2xl overflow-hidden cursor-pointer hover:scale-105 active:scale-95 transition-transform shadow-sm border-2 border-transparent hover:border-brand-purple" onClick={() => setSelectedAvatar(url)}>
+                                    <div key={idx} className="aspect-square bg-gray-100 dark:bg-white/5 rounded-2xl overflow-hidden cursor-pointer hover:scale-105 active:scale-95 transition-transform shadow-sm border border-transparent hover:border-brand-purple" onClick={() => setSelectedAvatar(url)}>
                                         <img src={url} alt="Avatar" className="w-full h-full object-cover transform scale-90" />
                                     </div>
                                 ))}
@@ -347,6 +343,7 @@ const OnboardingSetup: React.FC = () => {
                 </div>
             )}
 
+            {/* === PASO 3: ENCUESTA (Acordeón) === */}
             {step === 3 && (
                 <div className="space-y-8 animate-fade-in flex-1 flex flex-col">
                     <div>
@@ -377,7 +374,10 @@ const OnboardingSetup: React.FC = () => {
                                         </div>
                                     </button>
 
+                                    {/* RESPUESTAS ANIDADAS (ACORDEÓN) */}
                                     <div className={`overflow-hidden transition-all duration-300 ${referralSource === opt ? 'max-h-40 opacity-100 mt-3' : 'max-h-0 opacity-0'}`}>
+                                        
+                                        {/* Caso: Redes Sociales */}
                                         {opt === 'Redes Sociales' && (
                                             <div className="pl-4 border-l-2 border-gray-100 dark:border-white/10 ml-4 mb-2">
                                                 <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-2">Selecciona la plataforma</p>
@@ -403,6 +403,7 @@ const OnboardingSetup: React.FC = () => {
                                             </div>
                                         )}
 
+                                        {/* Caso: Amigo */}
                                         {opt === 'Recomendación de amigo/a' && (
                                             <div className="pl-4 border-l-2 border-gray-100 dark:border-white/10 ml-4 mb-2">
                                                 <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-2">Nombre de quien te invitó</p>
@@ -430,11 +431,13 @@ const OnboardingSetup: React.FC = () => {
                 </div>
             )}
 
+            {/* === PASO 4: COMPLETADO (Formal) === */}
             {step === 4 && (
                 <div className="flex-1 flex flex-col justify-center items-center text-center animate-fade-in pb-safe">
+                    
                     <div className="mb-8 relative">
-                        <div className="w-32 h-32 bg-brand-purple rounded-full flex items-center justify-center shadow-2xl relative z-10 animate-bounce">
-                            <Check size={64} strokeWidth={5} className="text-white" />
+                        <div className="w-32 h-32 bg-brand-black dark:bg-white rounded-full flex items-center justify-center shadow-2xl relative z-10 animate-bounce">
+                            <Check size={64} strokeWidth={5} className="text-white dark:text-black" />
                         </div>
                         <div className="absolute top-0 right-0 animate-ping opacity-50">
                              <PartyPopper size={40} className="text-brand-purple" />
@@ -454,19 +457,24 @@ const OnboardingSetup: React.FC = () => {
                         </p>
                     </div>
 
+                    {/* Mensaje Formal Estilo Editorial */}
                     <div className="w-full max-w-sm mx-auto mb-16 px-6">
-                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed text-justify uppercase tracking-wide">
-                            Esperamos que disfrutes tu experiencia durante tu estadía en este proyecto de capacitación virtual que hemos diseñado para ti. Estaremos mejorando y subiendo constantes actualizaciones, por lo que te pedimos estar al pendiente.
-                        </p>
-                        
-                        <p className="text-[10px] font-black text-brand-purple uppercase tracking-[0.2em] mt-8 opacity-80 text-center">
+                        <div className="border-t border-b border-gray-200 dark:border-white/10 py-8 relative">
+                            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white dark:bg-black px-4 text-gray-300 dark:text-gray-700 font-serif italic text-lg">
+                                Mensaje de Bienvenida
+                            </span>
+                            <p className="text-sm font-serif italic text-gray-600 dark:text-gray-300 leading-relaxed text-center">
+                                "Esperamos que disfrutes tu experiencia durante tu estadía en este proyecto de capacitación virtual que hemos diseñado para ti. Estaremos mejorando y subiendo constantes actualizaciones, por lo que te pedimos estar al pendiente."
+                            </p>
+                        </div>
+                        <p className="text-[10px] font-black text-brand-purple uppercase tracking-[0.2em] mt-4 opacity-80">
                             TU AGENCIA, TU CONOCIMIENTO
                         </p>
                     </div>
 
                     <button 
                         onClick={() => navigate('/home')}
-                        className="w-full max-w-xs h-14 bg-brand-purple text-white font-black uppercase tracking-[0.25em] text-xs flex items-center justify-center rounded-full hover:bg-purple-600 active:scale-95 transition-all shadow-xl hover:shadow-purple-500/30"
+                        className="w-full max-w-xs h-14 bg-brand-purple text-white font-black uppercase tracking-[0.25em] text-xs flex items-center justify-center rounded-full hover:bg-purple-600 active:scale-95 transition-all shadow-xl hover:shadow-purple-500/30 animate-pulse"
                     >
                         COMENZAMOS
                     </button>

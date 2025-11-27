@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Zap, AlertCircle, WifiOff, Check } from 'lucide-react';
 import { Button } from '../components/Button';
@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login, register, user, loading } = useAuth();
+  const { login, register, loading } = useAuth(); // loading not strictly needed here but good for initial check
   
   // Estados para manejar el formulario
   const [isRegistering, setIsRegistering] = useState(false);
@@ -17,17 +17,6 @@ const Login: React.FC = () => {
   const [isNetworkError, setIsNetworkError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-
-  // REDIRECCIÓN REACTIVA (Arquitectura Correcta)
-  // Escucha cambios en el usuario y redirige automáticamente cuando está listo
-  useEffect(() => {
-    if (user && !loading && !isSubmitting) {
-        // Redirigimos a Onboarding si no ha completado el setup, o Home si ya lo hizo.
-        // Por defecto, mandamos a Onboarding y allí se puede redirigir si ya completó.
-        // Pero según la solicitud anterior: "después del acceso al login... página Bienvenido (Onboarding)"
-        navigate('/onboarding', { replace: true });
-    }
-  }, [user, loading, navigate, isSubmitting]);
 
   // Limpiar errores al escribir
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, value: string) => {
@@ -50,10 +39,12 @@ const Login: React.FC = () => {
         await login(email, password);
       }
       
-      // ÉXITO
+      // ÉXITO CONFIRMADO
       setIsSuccess(true);
-      // Nota: No navegamos aquí manualmente. Dejamos que el useEffect lo haga 
-      // cuando el AuthContext confirme que el usuario está listo.
+      
+      // NAVEGACIÓN FORZADA A ONBOARDING
+      // No esperamos a useEffect. Si la línea de arriba (await login) pasó, estamos dentro.
+      navigate('/onboarding', { replace: true });
       
     } catch (err: any) {
       console.error("Firebase Auth Error:", err.code, err.message);
@@ -65,7 +56,7 @@ const Login: React.FC = () => {
       const errorMessage = err.message || '';
 
       if (errorCode === 'auth/invalid-credential' || errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password') {
-        setError("Cuenta no encontrada o contraseña incorrecta. ¿Intentas registrarte? Usa el botón de abajo.");
+        setError("Credenciales inválidas o usuario no registrado. ¿Ya creaste tu cuenta?");
       } else if (errorCode === 'auth/email-already-in-use') {
         setError("Este correo ya está registrado. Cambiando a inicio de sesión...");
         setTimeout(() => {
@@ -89,7 +80,8 @@ const Login: React.FC = () => {
     }
   };
 
-  if (loading) return null; // O un spinner de carga inicial
+  // Si es carga inicial global, spinner (opcional)
+  // if (loading) return null; 
 
   return (
     <div className="flex flex-col h-full w-full bg-white dark:bg-black px-8 pb-safe pt-safe overflow-y-auto scrollbar-hide transition-colors duration-300">

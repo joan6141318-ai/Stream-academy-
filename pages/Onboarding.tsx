@@ -25,7 +25,7 @@ const Onboarding: React.FC = () => {
             <div className="absolute inset-0 bg-brand-purple/20 blur-2xl rounded-full"></div>
             <div className="relative w-24 h-24 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center border-2 border-gray-100 dark:border-white/10 shadow-xl">
                 <UserCog size={48} className="text-brand-black dark:text-white" strokeWidth={1.5} />
-                <div className="absolute top-0 right-0 bg-brand-purple text-white p-2 rounded-full shadow-lg">
+                <div className="absolute top-0 right-0 bg-brand-purple text-white p-2 rounded-full shadow-lg animate-bounce">
                     <Sparkles size={16} fill="currentColor" />
                 </div>
             </div>
@@ -46,13 +46,13 @@ const Onboarding: React.FC = () => {
         </p>
       </div>
 
-      {/* Botones de Acción */}
-      <div className="mb-24 w-full flex flex-col items-center">
+      {/* Botones de Acción - Posicionado más arriba (mb-32) */}
+      <div className="mb-32 w-full flex flex-col items-center">
         
-        {/* Botón Principal: Avancemos (Morado Estático) */}
+        {/* Botón Principal: Avancemos (Círculo Parpadeante) */}
         <div className="flex flex-col items-center space-y-4 mb-8 group cursor-pointer" onClick={handleConfigure}>
             <button 
-                className="w-16 h-16 bg-brand-purple text-white rounded-full shadow-xl shadow-brand-purple/30 flex items-center justify-center transition-transform duration-200 active:scale-95"
+                className="w-16 h-16 bg-brand-black dark:bg-white text-white dark:text-black rounded-full shadow-xl shadow-black/20 dark:shadow-white/10 flex items-center justify-center transition-all duration-300 animate-[pulse_2s_ease-in-out_infinite]"
             >
                 <ArrowRight size={28} className="transition-transform duration-300" strokeWidth={2.5} />
             </button>

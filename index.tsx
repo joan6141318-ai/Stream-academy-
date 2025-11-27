@@ -1,9 +1,8 @@
-import './firebaseConfig';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
-// Force reload timestamp: 2024-BIGO-UPDATE-V11
+// Force reload timestamp: 2024-BIGO-UPDATE-V9
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");
