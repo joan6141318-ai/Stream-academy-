@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, ShieldAlert, CheckCircle2, MessageSquareWarning, Gift, AlertTriangle, UserX, ShieldCheck, BadgeCheck, Clock, BarChart3, ChevronDown, X, ZoomIn, AlertOctagon, Gavel, Sparkles } from 'lucide-react';
+import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, ShieldAlert, CheckCircle2, MessageSquareWarning, Gift, AlertTriangle, UserX, ShieldCheck, BadgeCheck, Clock, BarChart3, ChevronDown, X, ZoomIn, AlertOctagon, Gavel, Sparkles, Check } from 'lucide-react';
 import { TRAINING_MODULES } from '../constants';
 import { Button } from '../components/Button';
 
@@ -387,7 +387,9 @@ const TrainingDetail: React.FC = () => {
                 {/* 2. Official Channels Verification */}
                 <div className="relative">
                     <div className="flex items-center justify-center space-x-2 mb-4">
-                        <BadgeCheck className="text-sky-500" size={18} />
+                        <div className="bg-blue-500 rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
+                             <Check size={12} className="text-white" strokeWidth={3} />
+                        </div>
                         <span className="text-xs font-black text-brand-black dark:text-white uppercase tracking-widest">
                             Canales Oficiales Verificados
                         </span>
@@ -402,7 +404,7 @@ const TrainingDetail: React.FC = () => {
                                 onClick={() => setSelectedImage("https://i.postimg.cc/sftKn4k0/IMG-20251125-051138.jpg")}
                             />
                             {/* Overlay Badge */}
-                            <div className="absolute top-2 right-2 bg-sky-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md flex items-center pointer-events-none">
+                            <div className="absolute top-2 right-2 bg-blue-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md flex items-center pointer-events-none">
                                 <CheckCircle2 size={10} className="mr-1" />
                                 OFICIAL
                             </div>

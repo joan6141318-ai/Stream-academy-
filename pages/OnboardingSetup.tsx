@@ -211,7 +211,9 @@ const OnboardingSetup: React.FC = () => {
                                         {name}
                                     </h1>
                                     {isSigned && (
-                                        <BadgeCheck size={24} className="text-blue-500 fill-blue-500/10" strokeWidth={2} />
+                                        <div className="bg-blue-500 rounded-full w-6 h-6 flex items-center justify-center shadow-sm flex-shrink-0">
+                                            <Check size={14} className="text-white" strokeWidth={4} />
+                                        </div>
                                     )}
                                 </div>
                             ) : (
@@ -283,7 +285,11 @@ const OnboardingSetup: React.FC = () => {
                             <div className="flex flex-col items-center justify-center">
                                 <div className="flex items-center gap-2 mb-1">
                                     <h3 className="text-3xl font-black text-brand-black dark:text-white uppercase tracking-tighter leading-none">{name}</h3>
-                                    {isSigned && <BadgeCheck size={28} className="text-blue-500 fill-white dark:fill-black" strokeWidth={2} />}
+                                    {isSigned && (
+                                        <div className="bg-blue-500 rounded-full w-7 h-7 flex items-center justify-center shadow-md border-2 border-white dark:border-black flex-shrink-0">
+                                            <Check size={16} className="text-white" strokeWidth={4} />
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="bg-brand-black dark:bg-white text-white dark:text-black px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md">
                                     {isSigned ? 'Emisor Firmado' : 'Emisor Independiente'}
