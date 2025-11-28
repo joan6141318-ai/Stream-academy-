@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, ShieldAlert, CheckCircle2, MessageSquareWarning, Gift, AlertTriangle, UserX, ShieldCheck, BadgeCheck, Clock, BarChart3, ChevronDown, X, ZoomIn, AlertOctagon, Gavel, Sparkles, Check } from 'lucide-react';
-import { TRAINING_MODULES } from '../constants';
+import { useContent } from '../context/ContentContext';
 import { Button } from '../components/Button';
 
 const TrainingDetail: React.FC = () => {
   const { topicId } = useParams();
   const navigate = useNavigate();
-  const module = TRAINING_MODULES.find(m => m.id === topicId);
+  const { modules, loading } = useContent();
+  const [module, setModule] = useState<any>(null);
   
   // State for Image Lightbox (Zoom)
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -17,6 +18,13 @@ const TrainingDetail: React.FC = () => {
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
+      if (modules.length > 0) {
+          const found = modules.find(m => m.id === topicId);
+          setModule(found);
+      }
+  }, [modules, topicId]);
+
+  useEffect(() => {
     const scrollContainer = scrollRef.current;
     if (!scrollContainer || isPaused) return;
 
@@ -24,12 +32,7 @@ const TrainingDetail: React.FC = () => {
 
     const scroll = () => {
       if (scrollContainer) {
-        // Velocidad del carrusel (1px por frame para suavidad)
         scrollContainer.scrollLeft += 1;
-
-        // Lógica de bucle infinito:
-        // Si hemos desplazado la mitad del contenido (llegando al set duplicado),
-        // reseteamos al inicio (0) que es visualmente idéntico.
         if (scrollContainer.scrollLeft >= scrollContainer.scrollWidth / 2) {
             scrollContainer.scrollLeft = 0;
         }
@@ -59,7 +62,8 @@ const TrainingDetail: React.FC = () => {
     else alert(`Abriendo recurso: ${title}`);
   };
 
-  if (!module) return null;
+  if (loading) return <div className="h-full w-full bg-white dark:bg-black flex items-center justify-center text-xs">Cargando...</div>;
+  if (!module) return <div className="h-full w-full bg-white dark:bg-black flex items-center justify-center text-xs">Módulo no encontrado</div>;
 
   // Security Points Data Structure for cleaner mapping
   const securityPoints = [
@@ -186,7 +190,7 @@ const TrainingDetail: React.FC = () => {
                 src={selectedImage} 
                 alt="Zoom view" 
                 className="max-w-full max-h-[85vh] object-contain rounded-sm shadow-2xl"
-                onClick={(e) => e.stopPropagation()} // Prevent closing when clicking image
+                onClick={(e) => e.stopPropagation()} 
             />
             <p className="absolute bottom-10 text-white/50 text-xs font-bold uppercase tracking-widest">Toca fuera para cerrar</p>
         </div>
@@ -219,7 +223,7 @@ const TrainingDetail: React.FC = () => {
         <div className="mb-8">
             <div className="h-1 w-10 bg-brand-purple mb-4"></div>
             <h2 className="text-lg font-bold text-brand-black dark:text-white leading-tight mb-4">{module.description}</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed font-medium text-justify mb-8">{module.textContent}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed font-medium text-justify mb-8 whitespace-pre-line">{module.textContent}</p>
 
             {/* LIVE DATA SPECIAL MODULE */}
             {module.id === 'live-data' && (
@@ -422,7 +426,7 @@ const TrainingDetail: React.FC = () => {
               <div className="mb-6">
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 border-b border-gray-100 dark:border-white/10 pb-2">Herramientas del Módulo</h3>
                 <div className="grid grid-cols-2 gap-3">
-                  {module.resources.map((resource, index) => {
+                  {module.resources.map((resource: any, index: number) => {
                     const style = getResourceConfig(resource.type);
                     const Icon = style.icon;
                     return (

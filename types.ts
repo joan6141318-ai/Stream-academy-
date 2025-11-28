@@ -3,6 +3,12 @@ export interface TrainingResource {
   type: 'table' | 'calc' | 'wallet' | 'card' | 'doc';
 }
 
+export interface ModuleStyle {
+  bg: string;
+  shadow: string;
+  iconName: string; // guardar el nombre del icono como string para mapearlo luego
+}
+
 export interface TrainingModule {
   id: string;
   title: string;
@@ -11,6 +17,19 @@ export interface TrainingModule {
   videoUrl: string; // Placeholder for demo
   textContent: string;
   resources?: TrainingResource[];
+  style?: ModuleStyle; // Nuevo campo para estilos dinámicos
+}
+
+export interface Banner {
+  id: string | number;
+  tag: string;
+  tagColor: string;
+  title: string;
+  subtitle: string;
+  gradient: string;
+  image: string;
+  shadow: string;
+  link?: string;
 }
 
 export interface UserProfile {
@@ -18,5 +37,5 @@ export interface UserProfile {
   id: string;
   role: string;
   avatarUrl: string;
-  isAdmin?: boolean; // New field for Role Based Access
+  isAdmin?: boolean; 
 }

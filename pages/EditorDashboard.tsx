@@ -1,60 +1,22 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Layers, Image, Type, Save, Layout, ChevronRight, Edit3, Upload, ArrowLeft } from 'lucide-react';
-import { TRAINING_MODULES } from '../constants';
-
-// Datos iniciales de Banners (mismos que en Profile.tsx para consistencia)
-const INITIAL_BANNERS = [
-    {
-      id: 'banner-5',
-      title: "JUEGA DIVIÉRTETE Y APRENDE",
-      subtitle: "Juega y diviértete mientras mejoras tus habilidades.",
-      imageUrl: "https://picsum.photos/1080/430?random=banner5",
-      tag: "GAMING"
-    },
-    {
-      id: 'banner-1',
-      title: "TORNEO PK INTER-AGENCIAS",
-      subtitle: "Participa este fin de semana y gana bonos dobles.",
-      imageUrl: "https://picsum.photos/1080/430?random=banner1",
-      tag: "NUEVO"
-    },
-    {
-      id: 'banner-2',
-      title: "BONO CRECIENTE ACTIVADO",
-      subtitle: "Completa 40 horas y recibe +$50 USD extra.",
-      imageUrl: "https://picsum.photos/1080/430?random=banner2",
-      tag: "RECOMPENSA"
-    },
-    {
-      id: 'banner-3',
-      title: "TALLER DE ILUMINACIÓN",
-      subtitle: "Mejora la calidad de tu stream hoy mismo.",
-      imageUrl: "https://picsum.photos/1080/430?random=banner3",
-      tag: "MASTERCLASS"
-    },
-    {
-      id: 'banner-4',
-      title: "TOP 10 EMISORES DEL MES",
-      subtitle: "Consulta la tabla de posiciones actualizada.",
-      imageUrl: "https://picsum.photos/1080/430?random=banner4",
-      tag: "RANKING"
-    }
-];
+import { Layers, Image, Type, Save, Layout, ChevronRight, Edit3, Lock, ArrowLeft, Palette, Type as TypeIcon } from 'lucide-react';
+import { useContent } from '../context/ContentContext';
 
 const EditorDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { banners, modules, updateBanner, updateModule } = useContent();
   
   // --- STATE MANAGEMENT ---
   const [activeCategory, setActiveCategory] = useState<'banners' | 'modules' | null>(null);
   const [editingItem, setEditingItem] = useState<any | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pin, setPin] = useState('');
+  const [pinError, setPinError] = useState(false);
 
-  // Local Data State (Simulando Base de Datos)
-  const [banners, setBanners] = useState(INITIAL_BANNERS);
-  const [modules, setModules] = useState(TRAINING_MODULES);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // --- HANDLERS ---
 
@@ -78,10 +40,12 @@ const EditorDashboard: React.FC = () => {
         const reader = new FileReader();
         reader.onload = (event) => {
             if (event.target?.result) {
-                // Actualiza la vista previa con la imagen base64
                 setEditingItem({
                     ...editingItem,
-                    imageUrl: event.target.result as string
+                    imageUrl: event.target.result as string,
+                    // Si es banner, la propiedad se llama 'image' en la interfaz, pero 'imageUrl' en la edición genérica
+                    // Ajustamos al guardar o aquí
+                    image: activeCategory === 'banners' ? event.target.result as string : undefined
                 });
             }
         };
@@ -89,21 +53,51 @@ const EditorDashboard: React.FC = () => {
     }
   };
 
-  const handleSave = () => {
-    setIsSaving(true);
-    
-    // Simular guardado en "Base de Datos"
-    setTimeout(() => {
-        if (activeCategory === 'banners') {
-            setBanners(prev => prev.map(b => b.id === editingItem.id ? editingItem : b));
-        } else if (activeCategory === 'modules') {
-            setModules(prev => prev.map(m => m.id === editingItem.id ? editingItem : m));
-        }
-        
-        setIsSaving(false);
-        setEditingItem(null); // Regresar a la lista
-        // Opcional: Podríamos mostrar un toast aquí
-    }, 800);
+  // 1. Trigger Save -> Opens PIN Modal
+  const requestSave = () => {
+      setShowPinModal(true);
+      setPin('');
+      setPinError(false);
+  };
+
+  // 2. Confirm Save with PIN
+  const confirmSave = async () => {
+      if (pin !== '3926') {
+          setPinError(true);
+          return;
+      }
+
+      setIsSaving(true);
+      setShowPinModal(false);
+
+      try {
+          if (activeCategory === 'banners') {
+              // Mapeo para asegurar compatibilidad de campos
+              const dataToSave = {
+                  title: editingItem.title,
+                  subtitle: editingItem.subtitle,
+                  image: editingItem.imageUrl || editingItem.image,
+                  tag: editingItem.tag
+              };
+              await updateBanner(String(editingItem.id), dataToSave);
+          } else if (activeCategory === 'modules') {
+               const dataToSave = {
+                  title: editingItem.title,
+                  description: editingItem.description,
+                  imageUrl: editingItem.imageUrl,
+                  textContent: editingItem.textContent,
+                  style: editingItem.style
+              };
+              await updateModule(editingItem.id, dataToSave);
+          }
+          alert("Cambios guardados exitosamente y reflejados en tiempo real.");
+          setEditingItem(null);
+      } catch (e) {
+          console.error(e);
+          alert("Error al guardar cambios.");
+      } finally {
+          setIsSaving(false);
+      }
   };
 
   // --- RENDER HELPERS ---
@@ -189,7 +183,8 @@ const EditorDashboard: React.FC = () => {
                     className="w-full bg-white dark:bg-brand-dark-card p-3 rounded-xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center space-x-4 active:scale-[0.99] transition-all text-left group"
                 >
                     <div className="w-16 h-16 rounded-lg bg-gray-200 dark:bg-white/10 overflow-hidden flex-shrink-0 relative">
-                        {item.imageUrl && <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />}
+                        {/* Banner uses 'image', Module uses 'imageUrl' */}
+                        <img src={item.imageUrl || item.image} alt="" className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                              <Edit3 size={16} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
@@ -213,9 +208,9 @@ const EditorDashboard: React.FC = () => {
     <div className="animate-slide-up space-y-6">
          {/* Preview Visual */}
          <div className="bg-white dark:bg-brand-dark-card p-4 rounded-xl shadow-lg border border-gray-100 dark:border-white/5">
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block">Vista Previa</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block">Vista Previa (Toca para editar imagen)</label>
             <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-white/5 group">
-                <img src={editingItem.imageUrl} alt="Preview" className="w-full h-full object-cover transition-opacity duration-300" />
+                <img src={editingItem.imageUrl || editingItem.image} alt="Preview" className="w-full h-full object-cover transition-opacity duration-300" />
                 
                 {/* Overlay on hover/action */}
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={openGallery}>
@@ -237,7 +232,11 @@ const EditorDashboard: React.FC = () => {
 
          {/* Form Inputs */}
          <div className="bg-white dark:bg-brand-dark-card p-6 rounded-xl shadow-lg border border-gray-100 dark:border-white/5 space-y-5">
-            
+            <div className="flex items-center space-x-2 text-brand-purple border-b border-gray-100 dark:border-white/5 pb-2">
+                <TypeIcon size={16} />
+                <h3 className="text-xs font-black uppercase">Información Textual</h3>
+            </div>
+
             {/* Title */}
             <div>
                 <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Título</label>
@@ -252,7 +251,7 @@ const EditorDashboard: React.FC = () => {
             {/* Subtitle / Description */}
             <div>
                 <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">
-                    {activeCategory === 'banners' ? 'Subtítulo' : 'Descripción'}
+                    {activeCategory === 'banners' ? 'Subtítulo' : 'Descripción Corta'}
                 </label>
                 <textarea 
                     value={editingItem.subtitle || editingItem.description || ''} 
@@ -260,62 +259,83 @@ const EditorDashboard: React.FC = () => {
                         const key = activeCategory === 'banners' ? 'subtitle' : 'description';
                         setEditingItem({...editingItem, [key]: e.target.value});
                     }}
-                    rows={3}
+                    rows={2}
                     className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-medium dark:text-white focus:border-brand-purple outline-none resize-none"
                 />
             </div>
 
-            {/* Image URL & Gallery Button */}
-            <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Imagen</label>
-                <div className="flex space-x-2">
-                    <div className="relative flex-1">
-                        <input 
-                            type="text" 
-                            value={editingItem.imageUrl} 
-                            onChange={(e) => setEditingItem({...editingItem, imageUrl: e.target.value})}
-                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 pr-10 text-xs font-mono dark:text-white focus:border-brand-purple outline-none truncate"
+            {/* EXTRA FIELDS FOR MODULES */}
+            {activeCategory === 'modules' && (
+                <>
+                    <div>
+                        <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Contenido Detallado</label>
+                        <textarea 
+                            value={editingItem.textContent || ''} 
+                            onChange={(e) => setEditingItem({...editingItem, textContent: e.target.value})}
+                            rows={5}
+                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-xs font-medium dark:text-white focus:border-brand-purple outline-none resize-none leading-relaxed"
+                            placeholder="Texto completo que aparece dentro del módulo..."
                         />
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                            <span className="text-[8px] font-bold uppercase">URL</span>
-                        </div>
                     </div>
-                    {/* GALLERY BUTTON */}
-                    <button 
-                        onClick={openGallery}
-                        className="bg-brand-purple text-white px-4 rounded-lg hover:bg-purple-700 active:scale-95 transition-all shadow-md flex items-center justify-center"
-                        title="Abrir Galería"
-                    >
-                        <Image size={20} />
-                    </button>
-                    {/* Hidden File Input */}
-                    <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        onChange={handleImageChange} 
-                        accept="image/*" 
-                        className="hidden" 
-                    />
-                </div>
-                <p className="text-[9px] text-gray-400 mt-2 ml-1">
-                    * Puedes pegar una URL externa o usar el botón para subir desde tu dispositivo.
-                </p>
-            </div>
+                    
+                    {/* STYLE EDITOR */}
+                    <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                        <div className="flex items-center space-x-2 text-brand-purple mb-4">
+                            <Palette size={16} />
+                            <h3 className="text-xs font-black uppercase">Diseño de Tarjeta</h3>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Color de Fondo (Tailwind)</label>
+                                <input 
+                                    type="text" 
+                                    value={editingItem.style?.bg || ''} 
+                                    onChange={(e) => setEditingItem({
+                                        ...editingItem, 
+                                        style: { ...editingItem.style, bg: e.target.value }
+                                    })}
+                                    placeholder="Ej: bg-blue-600"
+                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-xs font-mono dark:text-white focus:border-brand-purple outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Icono (Lucide Name)</label>
+                                <input 
+                                    type="text" 
+                                    value={editingItem.style?.iconName || ''} 
+                                    onChange={(e) => setEditingItem({
+                                        ...editingItem, 
+                                        style: { ...editingItem.style, iconName: e.target.value }
+                                    })}
+                                    placeholder="Ej: PlayCircle"
+                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-xs font-mono dark:text-white focus:border-brand-purple outline-none"
+                                />
+                            </div>
+                        </div>
+                         <p className="text-[9px] text-gray-400 mt-2">
+                            * Modifica las clases de CSS para cambiar la apariencia en la lista de módulos.
+                        </p>
+                    </div>
+                </>
+            )}
+
+            {/* Image URL Hidden Input */}
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleImageChange} 
+                accept="image/*" 
+                className="hidden" 
+            />
 
             {/* Save Button */}
             <button 
-                onClick={handleSave}
-                disabled={isSaving}
+                onClick={requestSave}
                 className="w-full bg-brand-black dark:bg-white text-white dark:text-black py-4 rounded-lg font-black uppercase tracking-widest text-xs flex items-center justify-center shadow-xl active:scale-95 transition-all mt-4"
             >
-                {isSaving ? (
-                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                    <>
-                        <Save size={16} className="mr-2" />
-                        Guardar Cambios
-                    </>
-                )}
+                <Save size={16} className="mr-2" />
+                Guardar Cambios
             </button>
          </div>
     </div>
@@ -356,6 +376,48 @@ const EditorDashboard: React.FC = () => {
         {editingItem && renderEditor()}
 
       </div>
+
+      {/* --- PIN MODAL --- */}
+      {showPinModal && (
+          <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in">
+              <div className="bg-white dark:bg-[#121212] w-full max-w-xs rounded-2xl p-6 shadow-2xl border border-gray-100 dark:border-white/10">
+                  <div className="flex flex-col items-center mb-6">
+                      <div className="bg-brand-black dark:bg-white text-white dark:text-black p-3 rounded-full mb-3">
+                          <Lock size={24} />
+                      </div>
+                      <h3 className="text-lg font-black text-brand-black dark:text-white uppercase">Seguridad</h3>
+                      <p className="text-xs text-gray-500 text-center">Ingresa el código de editor para confirmar los cambios.</p>
+                  </div>
+
+                  <input 
+                    type="password" 
+                    value={pin}
+                    onChange={(e) => { setPin(e.target.value); setPinError(false); }}
+                    maxLength={4}
+                    placeholder="••••"
+                    className="w-full bg-gray-50 dark:bg-white/5 border-2 border-gray-200 dark:border-white/10 rounded-xl p-4 text-center text-2xl font-black tracking-[1em] focus:border-brand-purple outline-none mb-4"
+                    autoFocus
+                  />
+                  
+                  {pinError && <p className="text-red-500 text-[10px] font-black uppercase text-center mb-4">Código Incorrecto</p>}
+
+                  <div className="flex gap-3">
+                      <button onClick={() => setShowPinModal(false)} className="flex-1 py-3 text-xs font-bold uppercase text-gray-400 bg-gray-100 dark:bg-white/5 rounded-lg">Cancelar</button>
+                      <button onClick={confirmSave} className="flex-1 py-3 text-xs font-bold uppercase text-white bg-brand-purple rounded-lg shadow-lg">Confirmar</button>
+                  </div>
+              </div>
+          </div>
+      )}
+
+      {/* Loading Overlay */}
+      {isSaving && (
+          <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center">
+              <div className="bg-white dark:bg-black p-4 rounded-xl flex items-center gap-3 shadow-xl">
+                  <div className="w-5 h-5 border-2 border-brand-purple border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-xs font-bold uppercase">Guardando en la nube...</span>
+              </div>
+          </div>
+      )}
     </div>
   );
 };

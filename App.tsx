@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ContentProvider } from './context/ContentContext';
 import Login from './pages/Login';
 import Onboarding from './pages/Onboarding'; 
 import OnboardingSetup from './pages/OnboardingSetup'; 
@@ -17,8 +18,8 @@ import BloqueoTypes from './pages/BloqueoTypes';
 import BloqueoVip from './pages/BloqueoVip';
 import BloqueoAppeal from './pages/BloqueoAppeal';
 import AdminDashboard from './pages/AdminDashboard';
-import AdminSelection from './pages/AdminSelection'; // Nueva Importación
-import EditorDashboard from './pages/EditorDashboard'; // Nueva Importación
+import AdminSelection from './pages/AdminSelection'; 
+import EditorDashboard from './pages/EditorDashboard'; 
 import { MainLayout } from './components/MainLayout';
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
@@ -39,9 +40,6 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
 // Protección para rutas admin
 const AdminRoute = ({ children }: { children?: React.ReactNode }) => {
     const { user, loading } = useAuth();
-    // En una app real, verificar user.isAdmin aquí
-    // Por ahora, asumimos que si el usuario entró al flujo admin (via Login como Admin), tiene permiso
-    // Opcionalmente agregar: if (!user?.isAdmin) return <Navigate to="/home" />;
     
     if (loading) return null;
     if (!user) return <Navigate to="/" />;
@@ -206,7 +204,9 @@ const App: React.FC = () => {
   return (
     <Router>
       <AuthProvider>
-        <AppContent />
+        <ContentProvider>
+           <AppContent />
+        </ContentProvider>
       </AuthProvider>
     </Router>
   );

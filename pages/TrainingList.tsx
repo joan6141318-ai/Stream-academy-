@@ -1,20 +1,23 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { TRAINING_MODULES } from '../constants';
+import { useContent } from '../context/ContentContext';
 
 const TrainingList: React.FC = () => {
   const navigate = useNavigate();
+  const { modules, loading } = useContent();
 
   return (
     <div className="flex flex-col h-full w-full bg-brand-gray dark:bg-black transition-colors duration-300">
-      {/* Removing showBack since it's now a main nav item */}
       <Header title="Secciones" />
       
-      {/* Added pb-24 for bottom nav space */}
       <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] pb-24">
         <div className="space-y-1">
-        {TRAINING_MODULES.map((module) => (
+        {loading ? (
+             [1,2,3].map(i => (
+                 <div key={i} className="h-28 w-full bg-gray-50 dark:bg-white/5 animate-pulse border-b border-gray-100 dark:border-white/10"></div>
+             ))
+        ) : modules.map((module) => (
           <div 
             key={module.id}
             onClick={() => navigate(`/training/${module.id}`)}

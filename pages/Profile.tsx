@@ -2,75 +2,29 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlayCircle, Shield, DollarSign, BarChart2, Zap, Star, Lock, Smartphone, BellRing, Trophy, TrendingUp, Video, ShieldCheck, HelpCircle, Gamepad2 } from 'lucide-react';
 import { Header } from '../components/Header';
-import { TRAINING_MODULES } from '../constants';
 import { useAuth } from '../context/AuthContext';
+import { useContent } from '../context/ContentContext';
+import * as LucideIcons from 'lucide-react';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth(); // Usamos el usuario real del contexto
+  const { user } = useAuth();
+  const { banners, modules, loading } = useContent();
   const scrollRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null); 
   const [activeIndex, setActiveIndex] = useState(0);
   const [contentPadding, setContentPadding] = useState(0); 
 
-  // Datos para el Carrusel de Banners
-  const BANNERS = [
-    {
-      id: 5,
-      tag: "GAMING",
-      tagColor: "bg-green-400 text-black",
-      title: "JUEGA DIVIÉRTETE Y APRENDE",
-      subtitle: "Juega y diviértete mientras mejoras tus habilidades.",
-      gradient: "from-indigo-600 via-purple-600 to-fuchsia-600",
-      image: "https://picsum.photos/1080/430?random=banner5",
-      icon: Gamepad2,
-      shadow: "shadow-purple-500/20"
-    },
-    {
-      id: 1,
-      tag: "NUEVO",
-      tagColor: "bg-white text-brand-black",
-      title: "TORNEO PK INTER-AGENCIAS",
-      subtitle: "Participa este fin de semana y gana bonos dobles.",
-      gradient: "from-pink-600 via-purple-600 to-indigo-600",
-      image: "https://picsum.photos/1080/430?random=banner1",
-      icon: BellRing,
-      shadow: "shadow-pink-500/20"
-    },
-    {
-      id: 2,
-      tag: "RECOMPENSA",
-      tagColor: "bg-yellow-400 text-black",
-      title: "BONO CRECIENTE ACTIVADO",
-      subtitle: "Completa 40 horas y recibe +$50 USD extra.",
-      gradient: "from-emerald-500 via-teal-500 to-cyan-600",
-      image: "https://picsum.photos/1080/430?random=banner2",
-      icon: TrendingUp,
-      shadow: "shadow-emerald-500/20"
-    },
-    {
-      id: 3,
-      tag: "MASTERCLASS",
-      tagColor: "bg-brand-black text-white",
-      title: "TALLER DE ILUMINACIÓN",
-      subtitle: "Mejora la calidad de tu stream hoy mismo.",
-      gradient: "from-orange-500 via-red-500 to-pink-600",
-      image: "https://picsum.photos/1080/430?random=banner3",
-      icon: Video,
-      shadow: "shadow-orange-500/20"
-    },
-    {
-      id: 4,
-      tag: "RANKING",
-      tagColor: "bg-blue-500 text-white",
-      title: "TOP 10 EMISORES DEL MES",
-      subtitle: "Consulta la tabla de posiciones actualizada.",
-      gradient: "from-blue-600 via-indigo-600 to-violet-600",
-      image: "https://picsum.photos/1080/430?random=banner4",
-      icon: Trophy,
-      shadow: "shadow-blue-500/20"
-    }
-  ];
+  // Mapa de iconos estáticos para Banners (si se necesita)
+  // Nota: Para banners dinámicos, idealmente guardaríamos el nombre del icono, pero por ahora usaremos lógica fallback
+  const getBannerIcon = (tag: string) => {
+      if (tag.includes('GAMING')) return Gamepad2;
+      if (tag.includes('NUEVO')) return BellRing;
+      if (tag.includes('RECOMPENSA')) return TrendingUp;
+      if (tag.includes('MASTERCLASS')) return Video;
+      if (tag.includes('RANKING')) return Trophy;
+      return Star;
+  };
 
   // Measure Hero Height to push content down
   useEffect(() => {
@@ -85,7 +39,7 @@ const Profile: React.FC = () => {
     setTimeout(updatePadding, 100);
 
     return () => window.removeEventListener('resize', updatePadding);
-  }, []);
+  }, [banners]); // Recalcular si cambian los banners
 
   // Auto-play Effect
   useEffect(() => {
@@ -106,7 +60,6 @@ const Profile: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Safety check: If user is null (should be handled by ProtectedRoute, but double check)
   if (!user) return null;
 
   const handleScroll = () => {
@@ -116,24 +69,17 @@ const Profile: React.FC = () => {
     }
   };
 
-  const handleBannerClick = (id: number) => {
-    if (id === 5) {
-      navigate('/tools/gamer');
+  const handleBannerClick = (link?: string) => {
+    if (link) {
+      navigate(link);
     }
   };
 
-  const getModuleStyle = (id: string) => {
-    switch (id) {
-      case 'bigo-live': return { icon: PlayCircle, bg: 'bg-blue-600', shadow: 'shadow-blue-600/40' };
-      case 'pagos': return { icon: DollarSign, bg: 'bg-emerald-500', shadow: 'shadow-emerald-500/40' };
-      case 'bloqueos': return { icon: Shield, bg: 'bg-rose-600', shadow: 'shadow-rose-600/40' };
-      case 'pk': return { icon: Zap, bg: 'bg-orange-500', shadow: 'shadow-orange-500/40' };
-      case 'bonos': return { icon: Star, bg: 'bg-amber-500', shadow: 'shadow-amber-500/40' };
-      case 'seguridad': return { icon: Lock, bg: 'bg-slate-800', shadow: 'shadow-slate-800/40' };
-      case 'funciones': return { icon: Smartphone, bg: 'bg-indigo-600', shadow: 'shadow-indigo-600/40' };
-      case 'live-data': return { icon: BarChart2, bg: 'bg-purple-600', shadow: 'shadow-purple-600/40' };
-      default: return { icon: PlayCircle, bg: 'bg-gray-800', shadow: 'shadow-gray-800/40' };
-    }
+  // Dynamic Icon Resolver
+  const getIconComponent = (iconName: string) => {
+      // @ts-ignore
+      const Icon = LucideIcons[iconName];
+      return Icon || PlayCircle;
   };
 
   return (
@@ -155,39 +101,45 @@ const Profile: React.FC = () => {
 
           {/* Carousel */}
           <div className="relative mt-4 mb-6 px-4">
-              <div 
-                  ref={scrollRef}
-                  onScroll={handleScroll}
-                  className="overflow-x-auto scrollbar-hide flex gap-0 snap-x snap-mandatory rounded-sm shadow-xl"
-              >
-                  {BANNERS.map((banner) => {
-                    const Icon = banner.icon;
-                    return (
-                      <div 
-                        key={banner.id}
-                        onClick={() => handleBannerClick(banner.id)}
-                        className={`relative flex-shrink-0 w-full overflow-hidden group cursor-pointer active:scale-[0.98] transition-transform duration-200 snap-center ${banner.shadow}`} 
-                        style={{ aspectRatio: '1080/430' }}
-                      >
-                          <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`}></div>
-                          <img src={banner.image} alt={banner.title} className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay" />
-                          <div className="absolute inset-0 p-5 flex flex-col justify-center items-start z-10">
-                              <div className="flex items-center space-x-2 mb-2">
-                                  <span className={`${banner.tagColor} text-[10px] font-black uppercase px-2 py-0.5 tracking-wider rounded-sm shadow-sm`}>{banner.tag}</span>
+              {loading ? (
+                  <div className="w-full aspect-[1080/430] bg-gray-200 dark:bg-white/10 rounded-sm animate-pulse"></div>
+              ) : (
+                <>
+                  <div 
+                      ref={scrollRef}
+                      onScroll={handleScroll}
+                      className="overflow-x-auto scrollbar-hide flex gap-0 snap-x snap-mandatory rounded-sm shadow-xl"
+                  >
+                      {banners.map((banner) => {
+                        const Icon = getBannerIcon(banner.tag);
+                        return (
+                          <div 
+                            key={banner.id}
+                            onClick={() => handleBannerClick(banner.link)}
+                            className={`relative flex-shrink-0 w-full overflow-hidden group cursor-pointer active:scale-[0.98] transition-transform duration-200 snap-center ${banner.shadow}`} 
+                            style={{ aspectRatio: '1080/430' }}
+                          >
+                              <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`}></div>
+                              <img src={banner.image} alt={banner.title} className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay" />
+                              <div className="absolute inset-0 p-5 flex flex-col justify-center items-start z-10">
+                                  <div className="flex items-center space-x-2 mb-2">
+                                      <span className={`${banner.tagColor} text-[10px] font-black uppercase px-2 py-0.5 tracking-wider rounded-sm shadow-sm`}>{banner.tag}</span>
+                                  </div>
+                                  <h2 className="text-2xl font-black text-white uppercase leading-none mb-1 drop-shadow-md pr-10">{banner.title}</h2>
+                                  <p className="text-white/90 text-xs font-bold mt-1 max-w-[85%] leading-tight">{banner.subtitle}</p>
+                                  <Icon className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 rotate-12" size={80} strokeWidth={1} />
                               </div>
-                              <h2 className="text-2xl font-black text-white uppercase leading-none mb-1 drop-shadow-md pr-10">{banner.title}</h2>
-                              <p className="text-white/90 text-xs font-bold mt-1 max-w-[85%] leading-tight">{banner.subtitle}</p>
-                              <Icon className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 rotate-12" size={80} strokeWidth={1} />
                           </div>
-                      </div>
-                    );
-                  })}
-              </div>
-              <div className="absolute bottom-3 left-0 right-0 flex justify-center space-x-2 z-20">
-                  {BANNERS.map((_, index) => (
-                      <div key={index} className={`h-1.5 rounded-full transition-all duration-300 shadow-sm ${activeIndex === index ? 'w-6 bg-white' : 'w-1.5 bg-white/40'}`} />
-                  ))}
-              </div>
+                        );
+                      })}
+                  </div>
+                  <div className="absolute bottom-3 left-0 right-0 flex justify-center space-x-2 z-20">
+                      {banners.map((_, index) => (
+                          <div key={index} className={`h-1.5 rounded-full transition-all duration-300 shadow-sm ${activeIndex === index ? 'w-6 bg-white' : 'w-1.5 bg-white/40'}`} />
+                      ))}
+                  </div>
+                </>
+              )}
           </div>
       </div>
 
@@ -205,9 +157,11 @@ const Profile: React.FC = () => {
             </div>
             
             <div className="grid grid-cols-2 gap-5">
-              {TRAINING_MODULES.map((module) => {
-                  const style = getModuleStyle(module.id);
-                  const Icon = style.icon;
+              {loading ? (
+                  [1,2,3,4].map(i => <div key={i} className="h-32 w-full bg-gray-200 dark:bg-white/10 rounded-sm animate-pulse"></div>)
+              ) : modules.map((module) => {
+                  const style = module.style || { bg: 'bg-gray-800', shadow: 'shadow-gray-800/40', iconName: 'PlayCircle' };
+                  const Icon = getIconComponent(style.iconName);
                   return (
                     <button 
                         key={module.id}
