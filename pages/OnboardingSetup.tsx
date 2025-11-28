@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ChevronLeft, Camera, Grid, Instagram, Facebook, Video, Check, ChevronDown, User, PartyPopper, Pencil, X } from 'lucide-react';
+import { ArrowRight, ChevronLeft, Camera, Grid, Instagram, Facebook, Video, Check, ChevronDown, User, PartyPopper, Pencil, X, Sparkles, Smile } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
@@ -32,17 +32,18 @@ const OnboardingSetup: React.FC = () => {
   const [socialNetworks, setSocialNetworks] = useState<string[]>([]);
   const [friendName, setFriendName] = useState('');
 
-  // Avatares Estilo Moderno/3D (Usando 'micah' con fondos vibrantes para simular modernidad)
+  // Avatares Estilo 3D / WhatsApp Moderno
+  // Selección limpia sin fondos pesados
   const AVATARS = [
-    "https://api.dicebear.com/9.x/micah/svg?seed=Felix&backgroundColor=b6e3f4&radius=50",
-    "https://api.dicebear.com/9.x/micah/svg?seed=Aneka&backgroundColor=ffdfbf&radius=50",
-    "https://api.dicebear.com/9.x/micah/svg?seed=Willow&backgroundColor=c0aede&radius=50",
-    "https://api.dicebear.com/9.x/micah/svg?seed=Liam&backgroundColor=d1d4f9&radius=50",
-    "https://api.dicebear.com/9.x/micah/svg?seed=Christopher&backgroundColor=ffd5dc&radius=50",
-    "https://api.dicebear.com/9.x/micah/svg?seed=Jack&backgroundColor=ffdfbf&radius=50",
-    "https://api.dicebear.com/9.x/micah/svg?seed=Jocelyn&backgroundColor=b6e3f4&radius=50",
-    "https://api.dicebear.com/9.x/micah/svg?seed=Ryker&backgroundColor=c0aede&radius=50",
-    "https://api.dicebear.com/9.x/micah/svg?seed=Andrea&backgroundColor=d1d4f9&radius=50"
+    { url: "https://avatar.iran.liara.run/public/boy?username=Max", label: "Max" },
+    { url: "https://avatar.iran.liara.run/public/girl?username=Mia", label: "Mia" },
+    { url: "https://avatar.iran.liara.run/public/boy?username=Leo", label: "Leo" },
+    { url: "https://avatar.iran.liara.run/public/girl?username=Zoe", label: "Zoe" },
+    { url: "https://avatar.iran.liara.run/public/boy?username=Alex", label: "Alex" },
+    { url: "https://avatar.iran.liara.run/public/girl?username=Sara", label: "Sara" },
+    { url: "https://avatar.iran.liara.run/public/job/designer/male", label: "Pro" },
+    { url: "https://avatar.iran.liara.run/public/job/operator/female", label: "Tech" },
+    { url: "https://avatar.iran.liara.run/public/boy?username=Sam", label: "Sam" }
   ];
 
   // Listas para fechas
@@ -365,36 +366,55 @@ const OnboardingSetup: React.FC = () => {
 
                         <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
 
-                        {/* Avatar Card Overlay (MODAL) */}
+                        {/* Avatar Card Overlay (MODAL MINIMALISTA) */}
                         {!selectedAvatar && photoMode === 'avatar' && (
-                            <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-fade-in" onClick={() => setPhotoMode(null)}>
+                            <div className="fixed inset-0 z-50 flex items-start justify-center p-4 animate-fade-in" onClick={() => setPhotoMode(null)}>
+                                
+                                {/* 1. Backdrop - Completely transparent (No blur, no color) */}
+                                <div className="absolute inset-0"></div>
+
+                                {/* 2. Tarjeta Blanca Minimalista (No Shadow, high contrast border) */}
                                 <div 
-                                    className="bg-white dark:bg-[#121212] w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative"
+                                    className="relative w-full max-w-sm bg-white rounded-3xl p-6 animate-slide-up border border-gray-100 mt-24 shadow-none"
                                     onClick={(e) => e.stopPropagation()}
                                 >
+                                    {/* Header Limpio */}
                                     <div className="flex justify-between items-center mb-6">
                                         <div>
-                                            <h3 className="text-lg font-black text-brand-black dark:text-white uppercase tracking-tight">Elige tu Avatar</h3>
-                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Estilo Moderno 3D</p>
+                                            <div className="flex items-center space-x-2">
+                                                <div className="bg-brand-purple/10 p-1.5 rounded-lg">
+                                                    <Smile size={16} className="text-brand-purple" />
+                                                </div>
+                                                <h3 className="text-sm font-black text-brand-black uppercase tracking-tight">Elige tu Avatar</h3>
+                                            </div>
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-8 mt-1">Colección 3D</p>
                                         </div>
-                                        <button onClick={() => setPhotoMode(null)} className="p-2 bg-gray-100 dark:bg-white/10 rounded-full text-gray-500">
+                                        <button onClick={() => setPhotoMode(null)} className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-400 transition-colors">
                                             <X size={18} />
                                         </button>
                                     </div>
                                     
+                                    {/* Grid de Avatares Limpios */}
                                     <div className="grid grid-cols-3 gap-4">
-                                        {AVATARS.map((url, idx) => (
+                                        {AVATARS.map((item, idx) => (
                                             <div 
                                                 key={idx} 
-                                                className="aspect-square bg-gray-50 dark:bg-white/5 rounded-2xl overflow-hidden cursor-pointer hover:scale-105 active:scale-95 transition-transform shadow-sm border border-gray-100 dark:border-white/5 hover:border-brand-purple dark:hover:border-brand-purple flex items-center justify-center" 
-                                                onClick={() => { setSelectedAvatar(url); setPhotoMode(null); }}
+                                                className="aspect-square bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100 active:scale-95 transition-all duration-200 relative overflow-hidden group border border-transparent hover:border-gray-200"
+                                                onClick={() => { setSelectedAvatar(item.url); setPhotoMode(null); }}
                                             >
-                                                <img src={url} alt={`Avatar ${idx}`} className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 flex items-end justify-center">
+                                                    <img 
+                                                        src={item.url} 
+                                                        alt={item.label} 
+                                                        className="w-[85%] h-auto object-cover transform translate-y-1 group-hover:-translate-y-1 transition-transform duration-300 drop-shadow-sm" 
+                                                    />
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
+                                    
                                     <div className="mt-6 text-center">
-                                        <p className="text-[9px] text-gray-400 font-medium">Toque para seleccionar</p>
+                                        <p className="text-[9px] text-gray-300 font-bold tracking-[0.2em] uppercase">Selecciona uno</p>
                                     </div>
                                 </div>
                             </div>

@@ -10,6 +10,7 @@ import {
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from '../firebaseConfig';
+import { ADMIN_EMAILS, DATA_VERSION } from '../constants';
 
 export interface User {
   id: string; // Firebase UID
@@ -18,7 +19,8 @@ export interface User {
   avatarUrl: string;
   role: string;
   isAdmin?: boolean;
-  isOnboardingComplete?: boolean; // Nueva propiedad para controlar el flujo
+  isOnboardingComplete?: boolean;
+  dataVersion?: number; // Para controlar migraciones
 }
 
 interface AuthContextType {
@@ -56,22 +58,63 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearTimeout(safetyTimer);
 
       if (firebaseUser) {
-        const baseUser: User = {
+        // STRICT SECURITY CHECK
+        const email = firebaseUser.email?.toLowerCase() || "";
+        const isOfficialAdmin = ADMIN_EMAILS.includes(email);
+
+        let baseUser: User = {
             id: firebaseUser.uid,
             name: firebaseUser.displayName || "Usuario",
-            email: firebaseUser.email || "",
+            email: email,
             avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${firebaseUser.displayName || 'User'}`,
-            role: "Streamer",
-            isOnboardingComplete: false
+            role: isOfficialAdmin ? "Administrador" : "Streamer",
+            isAdmin: isOfficialAdmin, // FORCE TRUE/FALSE BASED ON EMAIL
+            isOnboardingComplete: false,
+            dataVersion: DATA_VERSION
         };
 
         try {
             if (db) {
                 const userDocRef = doc(db, "users", firebaseUser.uid);
                 const userDoc = await getDoc(userDocRef);
+                
                 if (userDoc.exists()) {
-                    setUser({ ...baseUser, ...userDoc.data() } as User);
+                    const dbData = userDoc.data();
+                    
+                    // --- MIGRATION LOGIC ---
+                    // Si el usuario tiene una versión de datos vieja O no tiene versión
+                    // Forzamos la actualización
+                    const needsMigration = !dbData.dataVersion || dbData.dataVersion < DATA_VERSION;
+
+                    if (needsMigration) {
+                        console.log("Migrating user profile to version", DATA_VERSION);
+                        
+                        // Reseteamos valores críticos
+                        const updatedProfile = {
+                            ...baseUser,
+                            ...dbData,
+                            isAdmin: isOfficialAdmin, // Re-validar admin
+                            role: isOfficialAdmin ? "Administrador" : (dbData.role || "Streamer"),
+                            isOnboardingComplete: false, // FORZAR ONBOARDING
+                            dataVersion: DATA_VERSION
+                        };
+                        
+                        // Guardar en DB inmediatamente
+                        await setDoc(userDocRef, updatedProfile, { merge: true });
+                        setUser(updatedProfile);
+
+                    } else {
+                        // Usuario actualizado, cargar normal
+                        setUser({ 
+                            ...baseUser, 
+                            ...dbData, 
+                            // Siempre reforzamos la seguridad del admin en memoria
+                            isAdmin: isOfficialAdmin,
+                            role: isOfficialAdmin ? "Administrador" : (dbData.role || "Streamer")
+                        } as User);
+                    }
                 } else {
+                    // Usuario nuevo (no existe doc)
                     setUser(baseUser);
                 }
             } else {
@@ -99,14 +142,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const credential = await signInWithEmailAndPassword(auth, email, pass);
       const fbUser = credential.user;
+      const userEmail = fbUser.email?.toLowerCase() || "";
+      const isOfficialAdmin = ADMIN_EMAILS.includes(userEmail);
 
-      // Optimistic User Set (We will let Login.tsx handle the redirect logic by fetching fresh data)
+      // Optimistic User Set
       const instantUser: User = {
           id: fbUser.uid,
           name: fbUser.displayName || "Usuario",
-          email: fbUser.email || "",
+          email: userEmail,
           avatarUrl: fbUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${fbUser.displayName || 'User'}`,
-          role: "Streamer"
+          role: isOfficialAdmin ? "Administrador" : "Streamer",
+          isAdmin: isOfficialAdmin,
+          isOnboardingComplete: true // Will be checked against DB in next tick
       };
       
       setUser(instantUser);
@@ -119,17 +166,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       const fbUser = userCredential.user;
+      const userEmail = fbUser.email?.toLowerCase() || "";
+      const isOfficialAdmin = ADMIN_EMAILS.includes(userEmail);
 
       sendEmailVerification(fbUser).catch(e => console.warn("Email verification error", e));
 
       const newUserProfile: User = {
         id: fbUser.uid,
         name: name,
-        email: email,
+        email: userEmail,
         avatarUrl: `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${name}`,
-        role: "Streamer Oficial",
-        isAdmin: false,
-        isOnboardingComplete: false
+        role: isOfficialAdmin ? "Administrador" : "Streamer Oficial",
+        isAdmin: isOfficialAdmin,
+        isOnboardingComplete: false,
+        dataVersion: DATA_VERSION
       };
 
       setUser(newUserProfile);
@@ -178,6 +228,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (data: Partial<User>) => {
     if (!user) return;
+    
+    // Security Check: Prevent setting isAdmin via updateProfile unless email is whitelisted
+    if (data.isAdmin !== undefined) {
+        const isOfficialAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
+        if (!isOfficialAdmin) {
+            delete data.isAdmin; // Remove attempt to gain admin rights
+            console.warn("Security Block: Attempt to set Admin privileges denied.");
+        }
+    }
     
     // 1. Optimistic Update
     setUser(prev => prev ? { ...prev, ...data } : null);

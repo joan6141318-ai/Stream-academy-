@@ -5,6 +5,7 @@ import { Button } from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebaseConfig';
+import { ADMIN_EMAILS } from '../constants';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -36,14 +37,20 @@ const Login: React.FC = () => {
     setIsNetworkError(false);
     setIsSubmitting(true);
 
+    // --- SECURITY CHECK (ADMIN) ---
+    if (role === 'admin') {
+        const normalizedEmail = email.toLowerCase().trim();
+        if (!ADMIN_EMAILS.includes(normalizedEmail)) {
+            setError("UPS algo fallo no eres Administrador");
+            setIsSubmitting(false);
+            return;
+        }
+    }
+
     try {
       if (isRegistering) {
         if (!name.trim()) throw new Error("Ingresa tu nombre para continuar.");
         await register(email, password, name);
-        // Si se registra con el toggle en Admin, le damos permisos inmediatamente (para propósitos de la app)
-        if (role === 'admin') {
-            await updateProfile({ isAdmin: true, role: 'Administrador' });
-        }
         setIsSuccess(true);
         navigate('/onboarding', { replace: true });
       } else {
@@ -51,17 +58,25 @@ const Login: React.FC = () => {
         // ÉXITO LOGIN
         setIsSuccess(true);
         
+        // Post-login verification (Double Check)
+        const currentUser = auth.currentUser;
         if (role === 'admin') {
-            // ACTUALIZACIÓN: Si entra como admin, actualizamos su estado y lo mandamos al HOME
-            // para que vea la app normal con el menú extra.
-            await updateProfile({ isAdmin: true });
-            navigate('/home', { replace: true });
+            const currentEmail = currentUser?.email?.toLowerCase() || '';
+            if (ADMIN_EMAILS.includes(currentEmail)) {
+                 navigate('/home', { replace: true });
+            } else {
+                 // Should be caught by the pre-check, but just in case
+                 setError("UPS algo fallo no eres Administrador");
+                 setIsSubmitting(false);
+                 setIsSuccess(false);
+                 return;
+            }
         } else {
             // Lógica inteligente para Streamers:
             // Revisamos en DB si ya completó el onboarding
-            if (auth.currentUser && db) {
+            if (currentUser && db) {
                 try {
-                    const userDocRef = doc(db, "users", auth.currentUser.uid);
+                    const userDocRef = doc(db, "users", currentUser.uid);
                     const userDoc = await getDoc(userDocRef);
                     
                     if (userDoc.exists() && userDoc.data().isOnboardingComplete) {
@@ -80,7 +95,6 @@ const Login: React.FC = () => {
       }
       
     } catch (err: any) {
-      console.error("Firebase Auth Error:", err.code, err.message);
       setIsSuccess(false);
       setIsSubmitting(false);
       
@@ -88,8 +102,13 @@ const Login: React.FC = () => {
       const errorCode = err.code || '';
       const errorMessage = err.message || '';
 
+      // Suppress console error for expected login failures to keep console clean
+      if (errorCode !== 'auth/invalid-credential' && errorCode !== 'auth/user-not-found' && errorCode !== 'auth/wrong-password') {
+          console.error("Firebase Auth Error:", errorCode, errorMessage);
+      }
+
       if (errorCode === 'auth/invalid-credential' || errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password') {
-        setError("Usuario o contraseña incorrectos. Verifica tus datos.");
+        setError("Usuario o contraseña incorrectos. Si es tu primera vez, selecciona 'Crear Cuenta'.");
       } else if (errorCode === 'auth/email-already-in-use') {
         setError("Este correo ya está registrado. Cambiando a inicio de sesión...");
         setTimeout(() => {
@@ -103,7 +122,7 @@ const Login: React.FC = () => {
       } else if (errorCode === 'auth/configuration-not-found') {
         setError("Error: Configuración incompleta. Revisa la consola de Firebase.");
       } else if (errorCode === 'auth/network-request-failed' || errorMessage.includes('network-request-failed')) {
-        setError("Error de conexión: Firebase bloqueó la solicitud. Revisa tu internet o los dominios autorizados.");
+        setError("Error de conexión: Revisa tu internet.");
         setIsNetworkError(true);
       } else if (err.message) {
         setError(err.message.replace('Firebase:', '').trim());
@@ -136,14 +155,14 @@ const Login: React.FC = () => {
         {!isRegistering && (
             <div className="w-full bg-gray-100 dark:bg-white/5 p-1 rounded-lg mb-8 flex relative">
                 <button
-                    onClick={() => setRole('admin')}
+                    onClick={() => { setRole('admin'); setError(null); }}
                     className={`flex-1 flex items-center justify-center py-2.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all duration-300 z-10 ${role === 'admin' ? 'text-brand-black dark:text-black shadow-sm bg-white dark:bg-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
                 >
                     <Shield size={12} className="mr-1.5" />
                     Admin
                 </button>
                 <button
-                    onClick={() => setRole('streamer')}
+                    onClick={() => { setRole('streamer'); setError(null); }}
                     className={`flex-1 flex items-center justify-center py-2.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all duration-300 z-10 ${role === 'streamer' ? 'text-brand-black dark:text-black shadow-sm bg-white dark:bg-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
                 >
                     <User size={12} className="mr-1.5" />
@@ -247,7 +266,7 @@ const Login: React.FC = () => {
       
       <div className="pb-6 text-center">
          <p className="text-[9px] font-bold text-gray-200 dark:text-gray-800 uppercase tracking-widest">
-           Secure Access • v1.9
+           Secure Access • v1.9.1
          </p>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut, Bell, Lock, HelpCircle, ChevronRight, Camera, User, Mail, CreditCard, Moon, Save, Instagram, Video, Calendar, Type, Shield } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
+import { ADMIN_EMAILS } from '../constants';
 
 const SettingItem: React.FC<{ 
   icon: React.ReactNode; 
@@ -172,7 +173,16 @@ const UserSettings: React.FC = () => {
   };
 
   const handleAdminAccess = async () => {
-      if (!user?.isAdmin) {
+      if (!user) return;
+
+      const isAuthorized = ADMIN_EMAILS.includes(user.email.toLowerCase());
+
+      if (!isAuthorized) {
+         alert("Lo sentimos no eres Administrador hay algo en lo que te podamos ayudar?");
+         return;
+      }
+
+      if (!user.isAdmin) {
           const confirm = window.confirm("¿Confirmas que eres el dueño de esta agencia?\n\nEsto actualizará tu rol en la base de datos.");
           if (confirm) {
               await updateProfile({ isAdmin: true, role: 'Agencia Admin' });
