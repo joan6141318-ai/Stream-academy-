@@ -8,7 +8,7 @@ import { db, auth } from '../firebaseConfig';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login, register } = useAuth(); 
+  const { login, register, updateProfile } = useAuth(); 
   
   // Estados para manejar el formulario
   const [isRegistering, setIsRegistering] = useState(false);
@@ -40,18 +40,22 @@ const Login: React.FC = () => {
       if (isRegistering) {
         if (!name.trim()) throw new Error("Ingresa tu nombre para continuar.");
         await register(email, password, name);
-        // ÉXITO REGISTRO -> Siempre va a Onboarding porque es nuevo
+        // Si se registra con el toggle en Admin, le damos permisos inmediatamente (para propósitos de la app)
+        if (role === 'admin') {
+            await updateProfile({ isAdmin: true, role: 'Administrador' });
+        }
         setIsSuccess(true);
         navigate('/onboarding', { replace: true });
       } else {
         await login(email, password);
-        // ÉXITO LOGIN -> Verificar estado del perfil
+        // ÉXITO LOGIN
         setIsSuccess(true);
         
         if (role === 'admin') {
-            // Si intenta entrar como admin, lo mandamos al selector
-            // (La protección de ruta AdminRoute verificará si realmente es admin después)
-            navigate('/admin/selection', { replace: true });
+            // ACTUALIZACIÓN: Si entra como admin, actualizamos su estado y lo mandamos al HOME
+            // para que vea la app normal con el menú extra.
+            await updateProfile({ isAdmin: true });
+            navigate('/home', { replace: true });
         } else {
             // Lógica inteligente para Streamers:
             // Revisamos en DB si ya completó el onboarding
@@ -61,15 +65,12 @@ const Login: React.FC = () => {
                     const userDoc = await getDoc(userDocRef);
                     
                     if (userDoc.exists() && userDoc.data().isOnboardingComplete) {
-                        // YA configuró su perfil -> Al Home directo
                         navigate('/home', { replace: true });
                     } else {
-                        // NO ha configurado -> Al Onboarding
                         navigate('/onboarding', { replace: true });
                     }
                 } catch (fetchError) {
                     console.error("Error fetching user profile post-login", fetchError);
-                    // Si falla la lectura, por seguridad mandamos a onboarding/home por defecto
                     navigate('/onboarding', { replace: true });
                 }
             } else {
@@ -229,7 +230,7 @@ const Login: React.FC = () => {
                       {isRegistering ? 'CREANDO...' : 'INGRESANDO...'}
                   </div>
               ) : (
-                  isRegistering ? 'CREAR CUENTA' : (role === 'admin' ? 'INGRESAR COMO ADMIN' : 'INICIAR SESIÓN')
+                  isRegistering ? 'CREAR CUENTA' : (role === 'admin' ? 'INGRESAR AL PANEL' : 'INICIAR SESIÓN')
               )}
             </Button>
             
@@ -246,7 +247,7 @@ const Login: React.FC = () => {
       
       <div className="pb-6 text-center">
          <p className="text-[9px] font-bold text-gray-200 dark:text-gray-800 uppercase tracking-widest">
-           Secure Access • v1.8
+           Secure Access • v1.9
          </p>
       </div>
     </div>

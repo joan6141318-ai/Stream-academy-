@@ -94,9 +94,17 @@ const Profile: React.FC = () => {
           {/* Welcome Text */}
           <div className="px-6 pt-6 pb-2">
               <p className="text-gray-400 dark:text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Bienvenido de nuevo,</p>
-              <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tight">
-                  {user.name}
-              </h1>
+              <div className="flex items-center gap-2">
+                  <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tight">
+                      {user.name}
+                  </h1>
+                  {user.isAdmin && (
+                    <div className="bg-brand-purple text-white px-2 py-0.5 rounded-full flex items-center shadow-md animate-fade-in">
+                        <Shield size={10} className="mr-1" fill="currentColor" />
+                        <span className="text-[9px] font-black uppercase tracking-wider">Admin</span>
+                    </div>
+                  )}
+              </div>
           </div>
 
           {/* Carousel */}
