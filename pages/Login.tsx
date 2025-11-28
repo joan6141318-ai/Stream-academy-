@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login, register, loading } = useAuth(); // loading not strictly needed here but good for initial check
+  const { login, register } = useAuth(); 
   
   // Estados para manejar el formulario
   const [isRegistering, setIsRegistering] = useState(false);
@@ -38,16 +38,21 @@ const Login: React.FC = () => {
       if (isRegistering) {
         if (!name.trim()) throw new Error("Ingresa tu nombre para continuar.");
         await register(email, password, name);
+        // ÉXITO REGISTRO -> ONBOARDING
+        setIsSuccess(true);
+        navigate('/onboarding', { replace: true });
       } else {
         await login(email, password);
+        // ÉXITO LOGIN
+        setIsSuccess(true);
+        
+        // REDIRECCIÓN CONDICIONAL BASADA EN ROL SELECCIONADO
+        if (role === 'admin') {
+            navigate('/admin/selection', { replace: true });
+        } else {
+            navigate('/onboarding', { replace: true });
+        }
       }
-      
-      // ÉXITO CONFIRMADO
-      setIsSuccess(true);
-      
-      // NAVEGACIÓN FORZADA A ONBOARDING
-      // No esperamos a useEffect. Si la línea de arriba (await login) pasó, estamos dentro.
-      navigate('/onboarding', { replace: true });
       
     } catch (err: any) {
       console.error("Firebase Auth Error:", err.code, err.message);
@@ -82,9 +87,6 @@ const Login: React.FC = () => {
       }
     }
   };
-
-  // Si es carga inicial global, spinner (opcional)
-  // if (loading) return null; 
 
   return (
     <div className="flex flex-col h-full w-full bg-white dark:bg-black px-8 pb-safe pt-safe overflow-y-auto scrollbar-hide transition-colors duration-300">

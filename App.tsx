@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
-import Onboarding from './pages/Onboarding'; // Importar Onboarding
-import OnboardingSetup from './pages/OnboardingSetup'; // Importar OnboardingSetup
+import Onboarding from './pages/Onboarding'; 
+import OnboardingSetup from './pages/OnboardingSetup'; 
 import Profile from './pages/Profile';
 import TrainingList from './pages/TrainingList';
 import TrainingDetail from './pages/TrainingDetail';
@@ -17,10 +17,10 @@ import BloqueoTypes from './pages/BloqueoTypes';
 import BloqueoVip from './pages/BloqueoVip';
 import BloqueoAppeal from './pages/BloqueoAppeal';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminSelection from './pages/AdminSelection'; // Nueva Importación
+import EditorDashboard from './pages/EditorDashboard'; // Nueva Importación
 import { MainLayout } from './components/MainLayout';
 
-// Componente para proteger rutas privadas
-// Fix: Made children optional to prevent TypeScript error "Property 'children' is missing..."
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
@@ -30,11 +30,22 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   }
 
   if (!user) {
-    // Si no hay usuario, redirigir al Login
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;
+};
+
+// Protección para rutas admin
+const AdminRoute = ({ children }: { children?: React.ReactNode }) => {
+    const { user, loading } = useAuth();
+    // En una app real, verificar user.isAdmin aquí
+    // Por ahora, asumimos que si el usuario entró al flujo admin (via Login como Admin), tiene permiso
+    // Opcionalmente agregar: if (!user?.isAdmin) return <Navigate to="/home" />;
+    
+    if (loading) return null;
+    if (!user) return <Navigate to="/" />;
+    return <>{children}</>;
 };
 
 const AppContent: React.FC = () => {
@@ -126,11 +137,27 @@ const AppContent: React.FC = () => {
           </ProtectedRoute>
         } />
 
-        {/* Admin Route */}
+        {/* Admin Routes */}
         <Route path="/admin" element={
-          <ProtectedRoute>
+           <Navigate to="/admin/selection" replace />
+        } />
+        
+        <Route path="/admin/selection" element={
+          <AdminRoute>
+            <AdminSelection />
+          </AdminRoute>
+        } />
+
+        <Route path="/admin/dashboard" element={
+          <AdminRoute>
             <AdminDashboard />
-          </ProtectedRoute>
+          </AdminRoute>
+        } />
+
+        <Route path="/admin/editor" element={
+          <AdminRoute>
+            <EditorDashboard />
+          </AdminRoute>
         } />
         
         {/* Redirect unknown routes to home or login */}
@@ -147,7 +174,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
-    }, 2500); // 2.5 seconds splash duration
+    }, 2500); 
     return () => clearTimeout(timer);
   }, []);
 
