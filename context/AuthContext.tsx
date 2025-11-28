@@ -18,6 +18,7 @@ export interface User {
   avatarUrl: string;
   role: string;
   isAdmin?: boolean;
+  isOnboardingComplete?: boolean; // Nueva propiedad para controlar el flujo
 }
 
 interface AuthContextType {
@@ -60,7 +61,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             name: firebaseUser.displayName || "Usuario",
             email: firebaseUser.email || "",
             avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${firebaseUser.displayName || 'User'}`,
-            role: "Streamer"
+            role: "Streamer",
+            isOnboardingComplete: false
         };
 
         try {
@@ -98,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const credential = await signInWithEmailAndPassword(auth, email, pass);
       const fbUser = credential.user;
 
-      // FORCE STATE UPDATE IMMEDIATELY (Optimistic)
+      // Optimistic User Set (We will let Login.tsx handle the redirect logic by fetching fresh data)
       const instantUser: User = {
           id: fbUser.uid,
           name: fbUser.displayName || "Usuario",
@@ -126,7 +128,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: email,
         avatarUrl: `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${name}`,
         role: "Streamer Oficial",
-        isAdmin: false
+        isAdmin: false,
+        isOnboardingComplete: false
       };
 
       setUser(newUserProfile);

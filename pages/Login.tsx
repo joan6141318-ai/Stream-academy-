@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Zap, AlertCircle, WifiOff, Check, Shield, User } from 'lucide-react';
 import { Button } from '../components/Button';
 import { useAuth } from '../context/AuthContext';
+import { doc, getDoc } from 'firebase/firestore';
+import { db, auth } from '../firebaseConfig';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -38,19 +40,41 @@ const Login: React.FC = () => {
       if (isRegistering) {
         if (!name.trim()) throw new Error("Ingresa tu nombre para continuar.");
         await register(email, password, name);
-        // ÉXITO REGISTRO -> ONBOARDING
+        // ÉXITO REGISTRO -> Siempre va a Onboarding porque es nuevo
         setIsSuccess(true);
         navigate('/onboarding', { replace: true });
       } else {
         await login(email, password);
-        // ÉXITO LOGIN
+        // ÉXITO LOGIN -> Verificar estado del perfil
         setIsSuccess(true);
         
-        // REDIRECCIÓN CONDICIONAL BASADA EN ROL SELECCIONADO
         if (role === 'admin') {
+            // Si intenta entrar como admin, lo mandamos al selector
+            // (La protección de ruta AdminRoute verificará si realmente es admin después)
             navigate('/admin/selection', { replace: true });
         } else {
-            navigate('/onboarding', { replace: true });
+            // Lógica inteligente para Streamers:
+            // Revisamos en DB si ya completó el onboarding
+            if (auth.currentUser && db) {
+                try {
+                    const userDocRef = doc(db, "users", auth.currentUser.uid);
+                    const userDoc = await getDoc(userDocRef);
+                    
+                    if (userDoc.exists() && userDoc.data().isOnboardingComplete) {
+                        // YA configuró su perfil -> Al Home directo
+                        navigate('/home', { replace: true });
+                    } else {
+                        // NO ha configurado -> Al Onboarding
+                        navigate('/onboarding', { replace: true });
+                    }
+                } catch (fetchError) {
+                    console.error("Error fetching user profile post-login", fetchError);
+                    // Si falla la lectura, por seguridad mandamos a onboarding/home por defecto
+                    navigate('/onboarding', { replace: true });
+                }
+            } else {
+                navigate('/onboarding', { replace: true });
+            }
         }
       }
       
