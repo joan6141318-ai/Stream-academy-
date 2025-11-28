@@ -49,10 +49,10 @@ const Onboarding: React.FC = () => {
       {/* Botones de Acción - Posicionado más arriba (mb-32) */}
       <div className="mb-32 w-full flex flex-col items-center">
         
-        {/* Botón Principal: Avancemos (Círculo Parpadeante) */}
+        {/* Botón Principal: Avancemos */}
         <div className="flex flex-col items-center space-y-4 mb-8 group cursor-pointer" onClick={handleConfigure}>
             <button 
-                className="w-16 h-16 bg-brand-black dark:bg-white text-white dark:text-black rounded-full shadow-xl shadow-black/20 dark:shadow-white/10 flex items-center justify-center transition-all duration-300 animate-[pulse_2s_ease-in-out_infinite]"
+                className="w-16 h-16 bg-brand-purple text-white rounded-full shadow-xl shadow-purple-500/30 flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95"
             >
                 <ArrowRight size={28} className="transition-transform duration-300" strokeWidth={2.5} />
             </button>

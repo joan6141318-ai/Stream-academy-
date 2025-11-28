@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, AlertCircle, WifiOff, Check } from 'lucide-react';
+import { Zap, AlertCircle, WifiOff, Check, Shield, User } from 'lucide-react';
 import { Button } from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 
@@ -17,6 +17,9 @@ const Login: React.FC = () => {
   const [isNetworkError, setIsNetworkError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  
+  // Nuevo estado para el Rol
+  const [role, setRole] = useState<'streamer' | 'admin'>('streamer');
 
   // Limpiar errores al escribir
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, value: string) => {
@@ -56,7 +59,7 @@ const Login: React.FC = () => {
       const errorMessage = err.message || '';
 
       if (errorCode === 'auth/invalid-credential' || errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password') {
-        setError("Credenciales inválidas o usuario no registrado. ¿Ya creaste tu cuenta?");
+        setError("Usuario o contraseña incorrectos. Verifica tus datos.");
       } else if (errorCode === 'auth/email-already-in-use') {
         setError("Este correo ya está registrado. Cambiando a inicio de sesión...");
         setTimeout(() => {
@@ -92,7 +95,7 @@ const Login: React.FC = () => {
             <Zap className="text-white dark:text-black w-7 h-7" strokeWidth={2} />
         </div>
         
-        <div className="space-y-2 mb-12">
+        <div className="space-y-2 mb-8">
           <h1 className="text-4xl font-black tracking-tighter text-brand-black dark:text-white leading-[0.9]">
             STREAM<br/>AGENCY
           </h1>
@@ -101,6 +104,26 @@ const Login: React.FC = () => {
             {isRegistering ? 'Registro de Emisor' : 'Acceso a Plataforma'}
           </p>
         </div>
+
+        {/* SELECTOR DE ROL (ADMIN / EMISOR) */}
+        {!isRegistering && (
+            <div className="w-full bg-gray-100 dark:bg-white/5 p-1 rounded-lg mb-8 flex relative">
+                <button
+                    onClick={() => setRole('admin')}
+                    className={`flex-1 flex items-center justify-center py-2.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all duration-300 z-10 ${role === 'admin' ? 'text-brand-black dark:text-black shadow-sm bg-white dark:bg-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+                >
+                    <Shield size={12} className="mr-1.5" />
+                    Admin
+                </button>
+                <button
+                    onClick={() => setRole('streamer')}
+                    className={`flex-1 flex items-center justify-center py-2.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all duration-300 z-10 ${role === 'streamer' ? 'text-brand-black dark:text-black shadow-sm bg-white dark:bg-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+                >
+                    <User size={12} className="mr-1.5" />
+                    Emisor
+                </button>
+            </div>
+        )}
 
         {/* Mensaje de Error */}
         {error && (
@@ -141,7 +164,7 @@ const Login: React.FC = () => {
                 type="email" 
                 value={email}
                 onChange={(e) => handleInputChange(setEmail, e.target.value)}
-                placeholder="usuario@email.com"
+                placeholder={role === 'admin' ? "admin@agencia.com" : "usuario@email.com"}
                 required
                 className="w-full h-10 border-b-2 border-gray-100 dark:border-white/20 bg-transparent text-base font-bold text-brand-black dark:text-white placeholder-gray-200 dark:placeholder-gray-700 focus:outline-none focus:border-brand-black dark:focus:border-white transition-all rounded-none p-0"
               />
@@ -180,7 +203,7 @@ const Login: React.FC = () => {
                       {isRegistering ? 'CREANDO...' : 'INGRESANDO...'}
                   </div>
               ) : (
-                  isRegistering ? 'CREAR CUENTA' : 'INICIAR SESIÓN'
+                  isRegistering ? 'CREAR CUENTA' : (role === 'admin' ? 'INGRESAR COMO ADMIN' : 'INICIAR SESIÓN')
               )}
             </Button>
             
