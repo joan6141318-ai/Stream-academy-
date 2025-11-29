@@ -241,8 +241,8 @@ const OnboardingSetup: React.FC = () => {
                                             {name}
                                         </h2>
                                         {isSigned && (
-                                            <div className="bg-blue-500 rounded-full w-4 h-4 flex items-center justify-center shadow-sm flex-shrink-0">
-                                                <Check size={10} className="text-white" strokeWidth={3} />
+                                            <div className="bg-blue-500 rounded-full w-5 h-5 flex items-center justify-center shadow-sm border-2 border-white dark:border-black flex-shrink-0">
+                                                <Check size={12} className="text-white" strokeWidth={3} />
                                             </div>
                                         )}
                                     </div>
