@@ -16,6 +16,11 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  
+  // Estados para Agencia
+  const [agencyCode, setAgencyCode] = useState(''); 
+  const [agencyError, setAgencyError] = useState<string | null>(null);
+
   const [error, setError] = useState<string | null>(null);
   const [isNetworkError, setIsNetworkError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,6 +32,7 @@ const Login: React.FC = () => {
   // Limpiar errores al escribir
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, value: string) => {
     setError(null);
+    setAgencyError(null); 
     setIsNetworkError(false);
     setter(value);
   };
@@ -34,6 +40,7 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setAgencyError(null);
     setIsNetworkError(false);
     setIsSubmitting(true);
 
@@ -50,6 +57,14 @@ const Login: React.FC = () => {
     try {
       if (isRegistering) {
         if (!name.trim()) throw new Error("Ingresa tu nombre para continuar.");
+        
+        // --- VALIDACIÓN DE AGENCIA ---
+        const normalizedAgency = agencyCode.trim().toLowerCase();
+        if (normalizedAgency !== 'moon') {
+            setAgencyError("Ingresa la agencia correcta");
+            throw new Error("Lo sentimos, necesitas ser parte del equipo para tener acceso. Te invitamos a unirte a nuestra agencia, contáctanos.");
+        }
+
         await register(email, password, name);
         setIsSuccess(true);
         navigate('/onboarding', { replace: true });
@@ -101,9 +116,15 @@ const Login: React.FC = () => {
       // Manejo de errores
       const errorCode = err.code || '';
       const errorMessage = err.message || '';
+      const isCustomError = errorMessage.includes("necesitas ser parte del equipo");
 
-      // Suppress console error for expected login failures to keep console clean
-      if (errorCode !== 'auth/invalid-credential' && errorCode !== 'auth/user-not-found' && errorCode !== 'auth/wrong-password') {
+      // Suppress console error for expected login failures AND custom validation errors
+      if (
+          errorCode !== 'auth/invalid-credential' && 
+          errorCode !== 'auth/user-not-found' && 
+          errorCode !== 'auth/wrong-password' && 
+          !isCustomError
+      ) {
           console.error("Firebase Auth Error:", errorCode, errorMessage);
       }
 
@@ -227,6 +248,28 @@ const Login: React.FC = () => {
                 className="w-full h-10 border-b-2 border-gray-100 dark:border-white/20 bg-transparent text-base font-bold text-brand-black dark:text-white placeholder-gray-200 dark:placeholder-gray-700 focus:outline-none focus:border-brand-black dark:focus:border-white transition-all rounded-none p-0"
               />
             </div>
+
+            {/* Campo Agencia (Solo visible al registrarse - DESPUÉS DE CONTRASEÑA) */}
+            {isRegistering && (
+              <div className="group animate-fade-in">
+                <label className={`block text-[9px] font-black uppercase tracking-widest mb-1 transition-colors ${agencyError ? 'text-red-500' : 'text-gray-400 group-focus-within:text-brand-purple'}`}>
+                  Nombre de tu agencia
+                </label>
+                <input 
+                  type="text" 
+                  value={agencyCode}
+                  onChange={(e) => handleInputChange(setAgencyCode, e.target.value)}
+                  placeholder="Escribe el nombre de la agencia"
+                  className={`w-full h-10 border-b-2 bg-transparent text-base font-bold text-brand-black dark:text-white placeholder-gray-200 dark:placeholder-gray-700 focus:outline-none transition-all rounded-none p-0 ${agencyError ? 'border-red-500' : 'border-gray-100 dark:border-white/20 focus:border-brand-black dark:focus:border-white'}`}
+                />
+                {agencyError && (
+                    <span className="text-[9px] font-black text-red-500 uppercase mt-1 block animate-pulse">
+                        {agencyError}
+                    </span>
+                )}
+              </div>
+            )}
+
           </div>
 
           <div className="pt-6 space-y-5">
@@ -255,7 +298,7 @@ const Login: React.FC = () => {
             
             <button 
               type="button"
-              onClick={() => { setError(null); setIsRegistering(!isRegistering); }}
+              onClick={() => { setError(null); setIsRegistering(!isRegistering); setAgencyCode(''); setAgencyError(null); }}
               className="w-full text-center py-2 text-[10px] font-black text-gray-300 dark:text-gray-600 uppercase tracking-widest hover:text-brand-purple dark:hover:text-white transition-colors"
             >
               {isRegistering ? 'Cancelar Registro' : '¿Primera vez? Crear Cuenta'}
