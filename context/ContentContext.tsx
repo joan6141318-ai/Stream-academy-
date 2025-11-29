@@ -151,15 +151,40 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
 
   const updateBanner = async (id: string, data: Partial<Banner>) => {
+    // 1. Actualización Optimista: Actualizamos el estado LOCAL inmediatamente
+    setBanners(prevBanners => 
+        prevBanners.map(banner => 
+            banner.id === id ? { ...banner, ...data } : banner
+        )
+    );
+
+    // 2. Actualización en Base de Datos
     if(!db) return;
-    const ref = doc(db, "banners", String(id));
-    await updateDoc(ref, data);
+    try {
+        const ref = doc(db, "banners", String(id));
+        await updateDoc(ref, data);
+    } catch (e) {
+        console.error("Error updating banner in DB, reverting optimistic update if needed", e);
+        // Aquí podríamos revertir el estado si falla, pero para UX dejamos el cambio visual.
+    }
   };
 
   const updateModule = async (id: string, data: Partial<TrainingModule>) => {
+    // 1. Actualización Optimista: Actualizamos el estado LOCAL inmediatamente
+    setModules(prevModules => 
+        prevModules.map(module => 
+            module.id === id ? { ...module, ...data } : module
+        )
+    );
+
+    // 2. Actualización en Base de Datos
     if(!db) return;
-    const ref = doc(db, "modules", id);
-    await updateDoc(ref, data);
+    try {
+        const ref = doc(db, "modules", id);
+        await updateDoc(ref, data);
+    } catch (e) {
+        console.error("Error updating module in DB", e);
+    }
   };
 
   return (

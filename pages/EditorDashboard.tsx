@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Layers, Image, Type, Save, Layout, ChevronRight, Edit3, Lock, ArrowLeft, Palette, Type as TypeIcon, Link as LinkIcon } from 'lucide-react';
+import { Layers, Image, Type, Save, Layout, ChevronRight, Edit3, Lock, ArrowLeft, Palette, Type as TypeIcon, Link as LinkIcon, ExternalLink } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 
 const EditorDashboard: React.FC = () => {
@@ -16,13 +16,26 @@ const EditorDashboard: React.FC = () => {
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState(false);
 
+  // Estado local para el input de URL para evitar lag en el tipeo
+  const [urlInput, setUrlInput] = useState('');
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sincronizar input local cuando cambia el item editado
+  useEffect(() => {
+    if (editingItem) {
+        // Detectar si es banner (image) o módulo (imageUrl)
+        const currentImage = activeCategory === 'banners' ? editingItem.image : editingItem.imageUrl;
+        setUrlInput(currentImage || '');
+    }
+  }, [editingItem, activeCategory]);
 
   // --- HANDLERS ---
 
   const handleBack = () => {
     if (editingItem) {
         setEditingItem(null);
+        setUrlInput('');
     } else if (activeCategory) {
         setActiveCategory(null);
     } else {
@@ -40,21 +53,26 @@ const EditorDashboard: React.FC = () => {
         const reader = new FileReader();
         reader.onload = (event) => {
             if (event.target?.result) {
-                setEditingItem({
-                    ...editingItem,
-                    imageUrl: event.target.result as string,
-                    // Si es banner, la propiedad se llama 'image' en la interfaz, pero 'imageUrl' en la edición genérica
-                    // Ajustamos al guardar o aquí
-                    image: activeCategory === 'banners' ? event.target.result as string : undefined
-                });
+                const result = event.target.result as string;
+                setUrlInput(result); // Actualizar input visual
+                
+                // Actualizar estado previo para la vista
+                if (activeCategory === 'banners') {
+                    setEditingItem({ ...editingItem, image: result });
+                } else {
+                    setEditingItem({ ...editingItem, imageUrl: result });
+                }
             }
         };
         reader.readAsDataURL(file);
     }
   };
 
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUrlInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newUrl = e.target.value;
+      setUrlInput(newUrl);
+      
+      // Actualización en tiempo real de la vista previa local
       if (activeCategory === 'banners') {
           setEditingItem({ ...editingItem, image: newUrl });
       } else {
@@ -81,29 +99,30 @@ const EditorDashboard: React.FC = () => {
 
       try {
           if (activeCategory === 'banners') {
-              // Mapeo para asegurar compatibilidad de campos
+              // Estructura exacta para Banners
               const dataToSave = {
                   title: editingItem.title,
                   subtitle: editingItem.subtitle,
-                  image: editingItem.imageUrl || editingItem.image,
+                  image: urlInput, // Usar el valor del input, que puede ser editado manualmente
                   tag: editingItem.tag
               };
               await updateBanner(String(editingItem.id), dataToSave);
           } else if (activeCategory === 'modules') {
+              // Estructura exacta para Módulos
                const dataToSave = {
                   title: editingItem.title,
                   description: editingItem.description,
-                  imageUrl: editingItem.imageUrl,
+                  imageUrl: urlInput, // Usar el valor del input, que puede ser editado manualmente
                   textContent: editingItem.textContent,
                   style: editingItem.style
               };
               await updateModule(editingItem.id, dataToSave);
           }
-          alert("Cambios guardados exitosamente y reflejados en tiempo real.");
+          alert("¡Actualizado! Los cambios ya son visibles en la App.");
           setEditingItem(null);
       } catch (e) {
           console.error(e);
-          alert("Error al guardar cambios.");
+          alert("Error al guardar cambios. Verifica tu conexión.");
       } finally {
           setIsSaving(false);
       }
@@ -152,22 +171,6 @@ const EditorDashboard: React.FC = () => {
             </div>
             <ChevronRight className="text-gray-300" size={20} />
         </button>
-
-        {/* Placeholder Categories */}
-        <div className="opacity-50 pointer-events-none">
-            <div className="bg-white dark:bg-brand-dark-card p-5 rounded-xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                    <div className="bg-gray-100 dark:bg-white/10 p-3 rounded-lg text-gray-500">
-                        <Type size={24} strokeWidth={1.5} />
-                    </div>
-                    <div className="text-left">
-                        <h3 className="text-sm font-black text-brand-black dark:text-white uppercase tracking-tight">
-                            Textos Legales
-                        </h3>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
   );
 
@@ -217,16 +220,28 @@ const EditorDashboard: React.FC = () => {
     <div className="animate-slide-up space-y-6">
          {/* Preview Visual */}
          <div className="bg-white dark:bg-brand-dark-card p-4 rounded-xl shadow-lg border border-gray-100 dark:border-white/5">
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block">Vista Previa (Toca para editar imagen)</label>
-            <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-white/5 group">
-                <img src={editingItem.imageUrl || editingItem.image} alt="Preview" className="w-full h-full object-cover transition-opacity duration-300" />
+            <div className="flex justify-between items-center mb-3">
+                <label className="text-[10px] font-black uppercase text-gray-400 block">Vista Previa en Vivo</label>
+                <span className="text-[9px] font-bold text-green-500 uppercase flex items-center">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5 animate-pulse"></div>
+                    Online
+                </span>
+            </div>
+            
+            <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-white/5 group border border-gray-200 dark:border-white/10">
+                <img 
+                    src={urlInput || 'https://via.placeholder.com/800x400?text=Sin+Imagen'} 
+                    alt="Preview" 
+                    className="w-full h-full object-cover transition-opacity duration-300" 
+                    onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/800x400?text=Error+de+Carga')}
+                />
                 
                 {/* Overlay on hover/action */}
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={openGallery}>
                     <div className="bg-white/20 backdrop-blur-md p-3 rounded-full border border-white/30 text-white transform hover:scale-110 transition-transform">
                         <Image size={24} />
                     </div>
-                    <span className="absolute bottom-4 text-white text-[10px] font-black uppercase tracking-widest">Cambiar Imagen</span>
+                    <span className="absolute bottom-4 text-white text-[10px] font-black uppercase tracking-widest">Subir Localmente</span>
                 </div>
 
                 {/* Info Overlay (Simulated) */}
@@ -243,33 +258,34 @@ const EditorDashboard: React.FC = () => {
          <div className="bg-white dark:bg-brand-dark-card p-6 rounded-xl shadow-lg border border-gray-100 dark:border-white/5 space-y-5">
             
             {/* --- SECCIÓN DE IMAGEN --- */}
-            <div className="flex items-center space-x-2 text-brand-purple border-b border-gray-100 dark:border-white/5 pb-2">
-                <LinkIcon size={16} />
-                <h3 className="text-xs font-black uppercase">Recurso Visual</h3>
+            <div className="flex items-center justify-between text-brand-purple border-b border-gray-100 dark:border-white/5 pb-2">
+                <div className="flex items-center space-x-2">
+                    <LinkIcon size={16} />
+                    <h3 className="text-xs font-black uppercase">Enlace de Imagen (URL)</h3>
+                </div>
+                <ExternalLink size={12} className="opacity-50" />
             </div>
 
-            <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">
-                    Enlace de Imagen (URL)
-                </label>
+            <div className="bg-purple-50 dark:bg-purple-900/10 p-3 rounded-lg border border-purple-100 dark:border-purple-900/20">
                 <div className="flex gap-2">
                     <input
                         type="text"
-                        value={editingItem.imageUrl || editingItem.image || ''}
-                        onChange={handleUrlChange}
-                        className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-xs font-mono text-gray-600 dark:text-gray-300 focus:border-brand-purple outline-none"
-                        placeholder="https://..."
+                        value={urlInput}
+                        onChange={handleUrlInputChange}
+                        className="w-full bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-xs font-mono text-gray-600 dark:text-gray-300 focus:border-brand-purple outline-none shadow-inner"
+                        placeholder="https://i.imgur.com/..."
                     />
                     <button
                         onClick={openGallery}
-                        className="bg-gray-100 dark:bg-white/10 p-3 rounded-lg text-gray-500 hover:text-brand-purple hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors flex-shrink-0"
-                        title="Subir archivo"
+                        className="bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 p-3 rounded-lg text-gray-500 hover:text-brand-purple transition-colors flex-shrink-0 shadow-sm"
+                        title="Subir archivo desde dispositivo"
                     >
                         <Image size={18} />
                     </button>
                 </div>
-                <p className="text-[9px] text-gray-400 mt-1.5 leading-tight">
-                    Puedes pegar un enlace directo (ej: Cloudinary, Imgur) o subir un archivo localmente.
+                <p className="text-[9px] text-gray-500 dark:text-gray-400 mt-2 leading-tight flex items-start">
+                    <span className="text-brand-purple mr-1 font-bold">TIP:</span> 
+                    Pega aquí el enlace directo de tu imagen (Imgur, Cloudinary, etc). Al cambiar el texto, la vista previa de arriba se actualizará automáticamente.
                 </p>
             </div>
 
@@ -355,9 +371,6 @@ const EditorDashboard: React.FC = () => {
                                 />
                             </div>
                         </div>
-                         <p className="text-[9px] text-gray-400 mt-2">
-                            * Modifica las clases de CSS para cambiar la apariencia en la lista de módulos.
-                        </p>
                     </div>
                 </>
             )}
@@ -456,7 +469,7 @@ const EditorDashboard: React.FC = () => {
           <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center">
               <div className="bg-white dark:bg-black p-4 rounded-xl flex items-center gap-3 shadow-xl">
                   <div className="w-5 h-5 border-2 border-brand-purple border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-xs font-bold uppercase">Guardando en la nube...</span>
+                  <span className="text-xs font-bold uppercase">Publicando Cambios...</span>
               </div>
           </div>
       )}
