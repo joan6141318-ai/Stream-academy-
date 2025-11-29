@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Layers, Image as ImageIcon, Type, Save, Layout, ChevronRight, Edit3, Lock, ArrowLeft, Palette, Type as TypeIcon, Link as LinkIcon } from 'lucide-react';
+import { Layers, Image as LucideImage, Type, Save, Layout, ChevronRight, Edit3, Lock, Palette, Link as LinkIcon } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 
 const EditorDashboard: React.FC = () => {
@@ -44,7 +44,8 @@ const EditorDashboard: React.FC = () => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = (event) => {
-        const img = new Image();
+        // USO EXPLÍCITO DE window.Image PARA EVITAR CONFLICTOS
+        const img = new window.Image();
         img.src = event.target?.result as string;
         img.onload = () => {
           const canvas = document.createElement('canvas');
@@ -65,7 +66,7 @@ const EditorDashboard: React.FC = () => {
             // Convertir a JPEG con 70% de calidad para reducir tamaño base64
             resolve(canvas.toDataURL('image/jpeg', 0.7)); 
           } else {
-            reject(new Error("Error al procesar imagen"));
+            reject(new Error("Error al procesar imagen: Contexto canvas no disponible"));
           }
         };
         img.onerror = (err) => reject(err);
@@ -135,7 +136,7 @@ const EditorDashboard: React.FC = () => {
           setEditingItem(null);
       } catch (e) {
           console.error(e);
-          alert("Error al guardar cambios.");
+          alert("Error al guardar cambios. Es posible que la imagen sea muy grande.");
       } finally {
           setIsSaving(false);
       }
@@ -151,7 +152,7 @@ const EditorDashboard: React.FC = () => {
         >
             <div className="flex items-center space-x-4">
                 <div className="bg-purple-100 dark:bg-purple-900/20 p-3 rounded-lg text-purple-600 dark:text-purple-400">
-                    <ImageIcon size={24} strokeWidth={1.5} />
+                    <LucideImage size={24} strokeWidth={1.5} />
                 </div>
                 <div className="text-left">
                     <h3 className="text-sm font-black text-brand-black dark:text-white uppercase tracking-tight">
@@ -256,7 +257,7 @@ const EditorDashboard: React.FC = () => {
                 {/* Overlay on hover/action */}
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={openGallery}>
                     <div className="bg-white/20 backdrop-blur-md p-3 rounded-full border border-white/30 text-white transform hover:scale-110 transition-transform">
-                        <ImageIcon size={24} />
+                        <LucideImage size={24} />
                     </div>
                     <span className="absolute bottom-4 text-white text-[10px] font-black uppercase tracking-widest">Cambiar Imagen</span>
                 </div>
@@ -274,7 +275,7 @@ const EditorDashboard: React.FC = () => {
          {/* Form Inputs */}
          <div className="bg-white dark:bg-brand-dark-card p-6 rounded-xl shadow-lg border border-gray-100 dark:border-white/5 space-y-5">
             <div className="flex items-center space-x-2 text-brand-purple border-b border-gray-100 dark:border-white/5 pb-2">
-                <TypeIcon size={16} />
+                <Type size={16} />
                 <h3 className="text-xs font-black uppercase">Información Textual</h3>
             </div>
 
@@ -333,7 +334,7 @@ const EditorDashboard: React.FC = () => {
                         className="bg-gray-100 dark:bg-white/10 text-gray-500 hover:text-brand-purple dark:text-gray-300 dark:hover:text-white px-3 rounded-lg transition-colors border border-gray-200 dark:border-white/5"
                         title="Subir desde dispositivo"
                     >
-                        <ImageIcon size={20} />
+                        <LucideImage size={20} />
                     </button>
                 </div>
                 <p className="text-[9px] text-gray-400 mt-1 font-medium">
