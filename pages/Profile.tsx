@@ -1,3 +1,5 @@
+
+
 import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlayCircle, Shield, DollarSign, BarChart2, Zap, Star, Lock, Smartphone, BellRing, Trophy, TrendingUp, Video, ShieldCheck, HelpCircle, Gamepad2 } from 'lucide-react';
@@ -9,7 +11,7 @@ import * as LucideIcons from 'lucide-react';
 const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { banners, modules, loading } = useContent();
+  const { banners, modules, homeConfig, loading } = useContent();
   const scrollRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null); 
   const [activeIndex, setActiveIndex] = useState(0);
@@ -93,7 +95,9 @@ const Profile: React.FC = () => {
       >
           {/* Welcome Text */}
           <div className="px-6 pt-6 pb-2">
-              <p className="text-gray-400 dark:text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Bienvenido de nuevo,</p>
+              <p className="text-gray-400 dark:text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">
+                  {homeConfig?.welcomeText || "Bienvenido de nuevo,"}
+              </p>
               <div className="flex items-center gap-2">
                   <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tight">
                       {user.name}
@@ -165,37 +169,47 @@ const Profile: React.FC = () => {
         {/* Modules Grid */}
         <div className="mx-4 mb-5">
             <div className="mb-4 pl-1 border-l-4 border-brand-purple ml-1">
-                <h3 className="text-lg font-black uppercase tracking-wide text-brand-black dark:text-white ml-2 leading-none">Módulos de Capacitación</h3>
-                <p className="text-xs text-gray-400 font-bold ml-2 mt-1">Elige el módulo relacionado con tu duda</p>
+                <h3 className="text-lg font-black uppercase tracking-wide text-brand-black dark:text-white ml-2 leading-none">
+                    {homeConfig?.modulesTitle || "Módulos de Capacitación"}
+                </h3>
+                <p className="text-xs text-gray-400 font-bold ml-2 mt-1">
+                    {homeConfig?.modulesSubtitle || "Elige el módulo relacionado con tu duda"}
+                </p>
             </div>
             
             <div className="grid grid-cols-2 gap-5">
               {loading ? (
                   [1,2,3,4].map(i => <div key={i} className="h-32 w-full bg-gray-200 dark:bg-white/10 rounded-sm animate-pulse"></div>)
               ) : modules.map((module) => {
-                  const style = module.style || { bg: 'bg-gray-800', shadow: 'shadow-gray-800/40', iconName: 'PlayCircle' };
+                  const style = module.style || { bg: 'bg-gray-800', shadow: 'shadow-gray-800/40', iconName: 'PlayCircle', cardOpacity: 1 };
                   const Icon = getIconComponent(style.iconName);
+                  
                   return (
                     <button 
                         key={module.id}
                         onClick={() => navigate(`/training/${module.id}`)}
-                        className={`relative flex flex-col justify-end p-4 h-32 w-full text-left ${style.bg} rounded-sm active:scale-[0.98] transition-transform duration-200 shadow-lg ${style.shadow} overflow-hidden`}
+                        className={`relative flex flex-col justify-end p-4 h-32 w-full text-left rounded-sm active:scale-[0.98] transition-transform duration-200 shadow-lg ${style.shadow} overflow-hidden group`}
                     >
-                        {/* IMAGEN DE FONDO PARA EL MÓDULO SI EXISTE */}
+                        {/* CAPA 0: IMAGEN DE FONDO (Siempre atrás) */}
                         {module.imageUrl && (
-                            <div className="absolute inset-0 z-0 opacity-50 mix-blend-overlay">
-                                <img 
-                                    src={module.imageUrl} 
-                                    alt="" 
-                                    className={`w-full h-full object-cover ${style.imagePosition || 'object-center'}`} 
-                                />
-                            </div>
+                            <img 
+                                src={module.imageUrl} 
+                                alt="" 
+                                className={`absolute inset-0 w-full h-full object-cover z-0 ${style.imagePosition || 'object-center'}`} 
+                            />
                         )}
+
+                        {/* CAPA 1: COLOR DE FONDO (Overlay con opacidad variable) */}
+                        <div 
+                            className={`absolute inset-0 z-10 ${style.bg} transition-opacity duration-300`}
+                            style={{ opacity: style.cardOpacity !== undefined ? style.cardOpacity : 1 }}
+                        ></div>
                         
-                        <div className="relative z-10">
-                          <span className="text-sm font-black uppercase leading-tight block text-white tracking-wide">{module.title}</span>
+                        {/* CAPA 2: CONTENIDO (Siempre visible 100%) */}
+                        <div className="relative z-20">
+                          <span className="text-sm font-black uppercase leading-tight block text-white tracking-wide drop-shadow-md">{module.title}</span>
                         </div>
-                        <div className="absolute -bottom-4 -right-4 opacity-20 text-white rotate-[-10deg]">
+                        <div className="absolute -bottom-4 -right-4 opacity-20 text-white rotate-[-10deg] z-20 group-hover:scale-110 transition-transform">
                            <Icon size={80} strokeWidth={1.5} />
                         </div>
                     </button>

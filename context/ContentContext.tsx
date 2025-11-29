@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { collection, onSnapshot, doc, updateDoc, setDoc, getDocs } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-import { Banner, TrainingModule } from '../types';
+import { Banner, TrainingModule, HomeConfig } from '../types';
 import { TRAINING_MODULES as INITIAL_MODULES } from '../constants';
 
 // Datos iniciales de Banners para sembrar la DB si está vacía
@@ -79,12 +79,20 @@ const getInitialStyle = (id: string) => {
     }
 };
 
+const INITIAL_HOME_CONFIG: HomeConfig = {
+    welcomeText: "Bienvenido de nuevo,",
+    modulesTitle: "Módulos de Capacitación",
+    modulesSubtitle: "Elige el módulo relacionado con tu duda"
+};
+
 interface ContentContextType {
   banners: Banner[];
   modules: TrainingModule[];
+  homeConfig: HomeConfig;
   loading: boolean;
   updateBanner: (id: string, data: Partial<Banner>) => Promise<void>;
   updateModule: (id: string, data: Partial<TrainingModule>) => Promise<void>;
+  updateHomeConfig: (data: Partial<HomeConfig>) => Promise<void>;
 }
 
 const ContentContext = createContext<ContentContextType | undefined>(undefined);
@@ -98,6 +106,7 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
        const initStyle = getInitialStyle(m.id);
        return {...m, style: initStyle};
   }));
+  const [homeConfig, setHomeConfig] = useState<HomeConfig>(INITIAL_HOME_CONFIG);
   const [loading, setLoading] = useState(true);
 
   // Inicializar Datos y Escuchar Cambios
@@ -152,16 +161,29 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         // Mantenemos los datos iniciales
     });
 
+    // 3. Listen Home Config
+    const unsubConfig = onSnapshot(doc(db, "config", "home"), (docSnap) => {
+        if (docSnap.exists()) {
+            setHomeConfig(docSnap.data() as HomeConfig);
+        } else {
+            // Si no existe, intentar crearlo con valores por defecto
+             setDoc(doc(db, "config", "home"), INITIAL_HOME_CONFIG).catch(e => console.warn("Auto-seed config failed", e));
+        }
+    }, (error) => {
+        console.warn("Firestore Config Error", error.code);
+    });
+
     setLoading(false);
 
     return () => {
         unsubBanners();
         unsubModules();
+        unsubConfig();
     };
   }, []);
 
   const updateBanner = async (id: string, data: Partial<Banner>) => {
-    // 1. Actualización Optimista: Actualizamos el estado LOCAL inmediatamente
+    // 1. Actualización Optimista
     setBanners(prevBanners => 
         prevBanners.map(banner => 
             banner.id === id ? { ...banner, ...data } : banner
@@ -174,13 +196,12 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const ref = doc(db, "banners", String(id));
         await updateDoc(ref, data);
     } catch (e) {
-        console.error("Error updating banner in DB, reverting optimistic update if needed", e);
-        // Aquí podríamos revertir el estado si falla, pero para UX dejamos el cambio visual.
+        console.error("Error updating banner in DB", e);
     }
   };
 
   const updateModule = async (id: string, data: Partial<TrainingModule>) => {
-    // 1. Actualización Optimista: Actualizamos el estado LOCAL inmediatamente
+    // 1. Actualización Optimista
     setModules(prevModules => 
         prevModules.map(module => 
             module.id === id ? { ...module, ...data } : module
@@ -197,8 +218,19 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  const updateHomeConfig = async (data: Partial<HomeConfig>) => {
+      setHomeConfig(prev => ({ ...prev, ...data }));
+      if (!db) return;
+      try {
+          const ref = doc(db, "config", "home");
+          await setDoc(ref, data, { merge: true });
+      } catch (e) {
+          console.error("Error updating home config", e);
+      }
+  };
+
   return (
-    <ContentContext.Provider value={{ banners, modules, loading, updateBanner, updateModule }}>
+    <ContentContext.Provider value={{ banners, modules, homeConfig, loading, updateBanner, updateModule, updateHomeConfig }}>
       {children}
     </ContentContext.Provider>
   );

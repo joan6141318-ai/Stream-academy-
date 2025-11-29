@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -20,6 +21,8 @@ import BloqueoAppeal from './pages/BloqueoAppeal';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminSelection from './pages/AdminSelection'; 
 import EditorDashboard from './pages/EditorDashboard'; 
+import WelcomeIntermediate from './pages/WelcomeIntermediate';
+import PKCalendar from './pages/PKCalendar'; // New Import
 import { MainLayout } from './components/MainLayout';
 import { ADMIN_EMAILS } from './constants';
 
@@ -77,6 +80,20 @@ const AppContent: React.FC = () => {
       <Routes>
         {/* Public Route */}
         <Route path="/" element={<Login />} />
+
+        {/* New Intermediate Page */}
+        <Route path="/welcome" element={
+          <ProtectedRoute>
+            <WelcomeIntermediate />
+          </ProtectedRoute>
+        } />
+        
+        {/* New PK Calendar Page */}
+        <Route path="/pk-calendar" element={
+          <ProtectedRoute>
+            <PKCalendar />
+          </ProtectedRoute>
+        } />
 
         {/* Onboarding Routes - Protected but standalone */}
         <Route path="/onboarding" element={

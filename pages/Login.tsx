@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Zap, AlertCircle, WifiOff, Check, Shield, User } from 'lucide-react';
 import { Button } from '../components/Button';
@@ -9,7 +9,7 @@ import { ADMIN_EMAILS } from '../constants';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login, register, updateProfile } = useAuth(); 
+  const { login, register, updateProfile, user, loading } = useAuth(); 
   
   // Estados para manejar el formulario
   const [isRegistering, setIsRegistering] = useState(false);
@@ -28,6 +28,13 @@ const Login: React.FC = () => {
   
   // Nuevo estado para el Rol
   const [role, setRole] = useState<'streamer' | 'admin'>('streamer');
+
+  // EFECTO: Si el usuario ya está logueado, mandarlo a /welcome
+  useEffect(() => {
+    if (!loading && user) {
+        navigate('/welcome', { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   // Limpiar errores al escribir
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, value: string) => {
@@ -67,46 +74,15 @@ const Login: React.FC = () => {
 
         await register(email, password, name);
         setIsSuccess(true);
-        navigate('/onboarding', { replace: true });
+        // REDIRECCIÓN A WELCOME PARA NUEVOS REGISTROS
+        navigate('/welcome', { replace: true });
       } else {
         await login(email, password);
         // ÉXITO LOGIN
         setIsSuccess(true);
         
-        // Post-login verification (Double Check)
-        const currentUser = auth.currentUser;
-        if (role === 'admin') {
-            const currentEmail = currentUser?.email?.toLowerCase() || '';
-            if (ADMIN_EMAILS.includes(currentEmail)) {
-                 navigate('/home', { replace: true });
-            } else {
-                 // Should be caught by the pre-check, but just in case
-                 setError("UPS algo fallo no eres Administrador");
-                 setIsSubmitting(false);
-                 setIsSuccess(false);
-                 return;
-            }
-        } else {
-            // Lógica inteligente para Streamers:
-            // Revisamos en DB si ya completó el onboarding
-            if (currentUser && db) {
-                try {
-                    const userDocRef = doc(db, "users", currentUser.uid);
-                    const userDoc = await getDoc(userDocRef);
-                    
-                    if (userDoc.exists() && userDoc.data().isOnboardingComplete) {
-                        navigate('/home', { replace: true });
-                    } else {
-                        navigate('/onboarding', { replace: true });
-                    }
-                } catch (fetchError) {
-                    console.error("Error fetching user profile post-login", fetchError);
-                    navigate('/onboarding', { replace: true });
-                }
-            } else {
-                navigate('/onboarding', { replace: true });
-            }
-        }
+        // La redirección ahora también la maneja el useEffect, pero la mantenemos aquí para respuesta inmediata
+        navigate('/welcome', { replace: true });
       }
       
     } catch (err: any) {

@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, ShieldAlert, MessageSquareWarning, Gift, AlertTriangle, UserX, ShieldCheck, Clock, BarChart3, ChevronDown, X, ZoomIn, AlertOctagon, Gavel, Sparkles, Check } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { Button } from '../components/Button';
+import * as LucideIcons from 'lucide-react';
 
 const TrainingDetail: React.FC = () => {
   const { topicId } = useParams();
@@ -45,14 +47,30 @@ const TrainingDetail: React.FC = () => {
     return () => cancelAnimationFrame(animationFrameId);
   }, [isPaused]);
 
+  // Helper para obtener icono dinámico o fallback
+  const getResourceIcon = (iconName?: string, type?: string) => {
+    if (iconName && (LucideIcons as any)[iconName]) {
+        return (LucideIcons as any)[iconName];
+    }
+    // Fallback based on type
+    switch(type) {
+      case 'table': return Table;
+      case 'calc': return Calculator;
+      case 'wallet': return Wallet;
+      case 'card': return CreditCard;
+      case 'doc': return ScrollText;
+      default: return Folder;
+    }
+  };
+
   const getResourceConfig = (type: string) => {
     switch(type) {
-      case 'table': return { icon: Table, bg: 'bg-blue-500 dark:bg-blue-600', shadow: 'shadow-blue-500/30' };
-      case 'calc': return { icon: Calculator, bg: 'bg-orange-500 dark:bg-orange-600', shadow: 'shadow-orange-500/30' };
-      case 'wallet': return { icon: Wallet, bg: 'bg-emerald-500 dark:bg-emerald-600', shadow: 'shadow-emerald-500/30' };
-      case 'card': return { icon: CreditCard, bg: 'bg-violet-500 dark:bg-violet-600', shadow: 'shadow-violet-500/30' };
-      case 'doc': return { icon: ScrollText, bg: 'bg-rose-500 dark:bg-rose-600', shadow: 'shadow-rose-500/30' };
-      default: return { icon: Folder, bg: 'bg-gray-500', shadow: 'shadow-gray-500/30' };
+      case 'table': return { bg: 'bg-blue-500 dark:bg-blue-600', shadow: 'shadow-blue-500/30' };
+      case 'calc': return { bg: 'bg-orange-500 dark:bg-orange-600', shadow: 'shadow-orange-500/30' };
+      case 'wallet': return { bg: 'bg-emerald-500 dark:bg-emerald-600', shadow: 'shadow-emerald-500/30' };
+      case 'card': return { bg: 'bg-violet-500 dark:bg-violet-600', shadow: 'shadow-violet-500/30' };
+      case 'doc': return { bg: 'bg-rose-500 dark:bg-rose-600', shadow: 'shadow-rose-500/30' };
+      default: return { bg: 'bg-gray-500', shadow: 'shadow-gray-500/30' };
     }
   };
 
@@ -426,15 +444,38 @@ const TrainingDetail: React.FC = () => {
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 border-b border-gray-100 dark:border-white/10 pb-2">Herramientas del Módulo</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {module.resources.map((resource: any, index: number) => {
-                    const style = getResourceConfig(resource.type);
-                    const Icon = style.icon;
+                    // Usar estilo personalizado si existe, sino fallback
+                    const defaultStyle = getResourceConfig(resource.type);
+                    const style = resource.style || defaultStyle;
+                    const Icon = getResourceIcon(resource.style?.iconName, resource.type);
+                    
                     return (
-                      <button key={index} onClick={() => handleResourceClick(resource.type, resource.title)} className={`relative flex flex-col justify-between p-3 h-20 w-full text-left ${style.bg} rounded-sm active:scale-[0.97] transition-transform duration-200 shadow-md ${style.shadow} overflow-hidden group`}>
-                        <div className="relative z-10 flex flex-col h-full justify-between">
+                      <button 
+                        key={index} 
+                        onClick={() => handleResourceClick(resource.type, resource.title)} 
+                        className={`relative flex flex-col justify-between p-3 h-20 w-full text-left rounded-sm active:scale-[0.97] transition-transform duration-200 shadow-md ${style.shadow} overflow-hidden group`}
+                      >
+                         {/* CAPA 0: IMAGEN (Si existe en recurso o fallback al módulo para efecto glass) */}
+                         <img 
+                             src={resource.imageUrl || module.imageUrl} 
+                             alt="" 
+                             className="absolute inset-0 w-full h-full object-cover z-0"
+                             // Fallback to avoid broken image icon if module.imageUrl is missing
+                             onError={(e) => (e.currentTarget.style.display = 'none')}
+                         />
+
+                         {/* CAPA 1: COLOR (Con Opacidad) */}
+                         <div 
+                            className={`absolute inset-0 z-10 ${style.bg}`}
+                            style={{ opacity: style.cardOpacity !== undefined ? style.cardOpacity : 1 }}
+                         ></div>
+
+                        {/* CAPA 2: CONTENIDO */}
+                        <div className="relative z-20 flex flex-col h-full justify-between">
                            <div className="bg-white/20 w-fit p-1 rounded-[2px] backdrop-blur-sm"><Icon size={14} className="text-white" strokeWidth={3} /></div>
                            <span className="text-[11px] font-black uppercase leading-tight text-white tracking-wide pr-4">{resource.title}</span>
                         </div>
-                        <div className="absolute -bottom-2 -right-2 opacity-20 text-white rotate-[-15deg] transition-transform group-active:scale-110"><Icon size={50} strokeWidth={1.5} /></div>
+                        <div className="absolute -bottom-2 -right-2 opacity-20 text-white rotate-[-15deg] transition-transform group-active:scale-110 z-20"><Icon size={50} strokeWidth={1.5} /></div>
                       </button>
                     );
                   })}
