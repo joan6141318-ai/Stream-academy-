@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Layers, Image, Type, Save, Layout, ChevronRight, Edit3, Lock, ArrowLeft, Palette, Type as TypeIcon } from 'lucide-react';
+import { Layers, Image as ImageIcon, Type, Save, Layout, ChevronRight, Edit3, Lock, ArrowLeft, Palette, Type as TypeIcon, Link as LinkIcon } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 
 const EditorDashboard: React.FC = () => {
@@ -34,22 +34,59 @@ const EditorDashboard: React.FC = () => {
     fileInputRef.current?.click();
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Función para comprimir imágenes antes de procesar (Fix Firestore 1MB limit)
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image(); // Constructor nativo limpio
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800; // Limit width for banners/modules
+          let width = img.width;
+          let height = img.height;
+
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            // Convertir a JPEG con 70% de calidad para reducir tamaño base64
+            resolve(canvas.toDataURL('image/jpeg', 0.7)); 
+          } else {
+            reject(new Error("Error al procesar imagen"));
+          }
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && editingItem) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            if (event.target?.result) {
-                setEditingItem({
-                    ...editingItem,
-                    imageUrl: event.target.result as string,
-                    // Si es banner, la propiedad se llama 'image' en la interfaz, pero 'imageUrl' en la edición genérica
-                    // Ajustamos al guardar o aquí
-                    image: activeCategory === 'banners' ? event.target.result as string : undefined
-                });
-            }
-        };
-        reader.readAsDataURL(file);
+        try {
+            // Comprimir imagen antes de establecerla en el estado
+            const compressedBase64 = await compressImage(file);
+            
+            setEditingItem({
+                ...editingItem,
+                imageUrl: compressedBase64,
+                // Unified update for visual feedback
+                image: compressedBase64 
+            });
+        } catch (error) {
+            console.error("Error compressing image:", error);
+            alert("La imagen es demasiado pesada o incompatible. Intenta con otra.");
+        }
     }
   };
 
@@ -84,7 +121,7 @@ const EditorDashboard: React.FC = () => {
                const dataToSave = {
                   title: editingItem.title,
                   description: editingItem.description,
-                  imageUrl: editingItem.imageUrl,
+                  imageUrl: editingItem.imageUrl || editingItem.image, // Ensure we get the latest url
                   textContent: editingItem.textContent,
                   style: editingItem.style
               };
@@ -94,7 +131,7 @@ const EditorDashboard: React.FC = () => {
           setEditingItem(null);
       } catch (e) {
           console.error(e);
-          alert("Error al guardar cambios.");
+          alert("Error al guardar cambios. Es posible que la imagen sea muy grande.");
       } finally {
           setIsSaving(false);
       }
@@ -110,7 +147,7 @@ const EditorDashboard: React.FC = () => {
         >
             <div className="flex items-center space-x-4">
                 <div className="bg-purple-100 dark:bg-purple-900/20 p-3 rounded-lg text-purple-600 dark:text-purple-400">
-                    <Image size={24} strokeWidth={1.5} />
+                    <ImageIcon size={24} strokeWidth={1.5} />
                 </div>
                 <div className="text-left">
                     <h3 className="text-sm font-black text-brand-black dark:text-white uppercase tracking-tight">
@@ -215,7 +252,7 @@ const EditorDashboard: React.FC = () => {
                 {/* Overlay on hover/action */}
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={openGallery}>
                     <div className="bg-white/20 backdrop-blur-md p-3 rounded-full border border-white/30 text-white transform hover:scale-110 transition-transform">
-                        <Image size={24} />
+                        <ImageIcon size={24} />
                     </div>
                     <span className="absolute bottom-4 text-white text-[10px] font-black uppercase tracking-widest">Cambiar Imagen</span>
                 </div>
@@ -262,6 +299,42 @@ const EditorDashboard: React.FC = () => {
                     rows={2}
                     className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-medium dark:text-white focus:border-brand-purple outline-none resize-none"
                 />
+            </div>
+
+            {/* Image Source Input (Manual URL) */}
+            <div>
+                <label className="text-[10px] font-black uppercase text-gray-400 mb-1 flex items-center">
+                    <LinkIcon size={10} className="mr-1" />
+                    Enlace de Imagen (URL)
+                </label>
+                <div className="flex gap-2">
+                    <div className="relative flex-1">
+                        <input 
+                            type="text" 
+                            value={editingItem.imageUrl || editingItem.image || ''} 
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setEditingItem({
+                                    ...editingItem, 
+                                    imageUrl: val,
+                                    image: val
+                                });
+                            }}
+                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 pr-8 text-xs font-mono dark:text-white focus:border-brand-purple outline-none"
+                            placeholder="https://ejemplo.com/imagen.jpg"
+                        />
+                    </div>
+                    <button 
+                        onClick={openGallery}
+                        className="bg-gray-100 dark:bg-white/10 text-gray-500 hover:text-brand-purple dark:text-gray-300 dark:hover:text-white px-3 rounded-lg transition-colors border border-gray-200 dark:border-white/5"
+                        title="Subir desde dispositivo"
+                    >
+                        <ImageIcon size={20} />
+                    </button>
+                </div>
+                <p className="text-[9px] text-gray-400 mt-1 font-medium">
+                    * Pega un enlace directo o usa el botón para subir (se comprimirá automáticamente).
+                </p>
             </div>
 
             {/* EXTRA FIELDS FOR MODULES */}
@@ -338,86 +411,6 @@ const EditorDashboard: React.FC = () => {
                 Guardar Cambios
             </button>
          </div>
-    </div>
-  );
-
-  return (
-    <div className="flex flex-col h-full w-full bg-gray-50 dark:bg-black transition-colors duration-300">
-      {/* Dynamic Header */}
-      <Header 
-        title={editingItem ? 'Editar Item' : (activeCategory === 'banners' ? 'Banners' : (activeCategory === 'modules' ? 'Módulos' : 'Modo Editor'))} 
-        showBack 
-        onBack={handleBack} 
-      />
-
-      <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] px-4 pb-24">
-        
-        {/* Intro only on Main Menu */}
-        {!activeCategory && !editingItem && (
-            <div className="mt-6 mb-8 px-2">
-                <div className="inline-flex items-center space-x-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full mb-3">
-                    <Layout size={14} strokeWidth={2.5} />
-                    <span className="text-[10px] font-black uppercase tracking-wide">CMS Visual</span>
-                </div>
-                <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tight mb-2">
-                    Gestor de<br/>Contenido
-                </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
-                    Edita la estructura visual de la aplicación en tiempo real.
-                </p>
-            </div>
-        )}
-
-        {/* --- NAVIGATION RENDER LOGIC --- */}
-        {!activeCategory && !editingItem && renderCategoryList()}
-        
-        {activeCategory && !editingItem && renderItemList()}
-        
-        {editingItem && renderEditor()}
-
-      </div>
-
-      {/* --- PIN MODAL --- */}
-      {showPinModal && (
-          <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in">
-              <div className="bg-white dark:bg-[#121212] w-full max-w-xs rounded-2xl p-6 shadow-2xl border border-gray-100 dark:border-white/10">
-                  <div className="flex flex-col items-center mb-6">
-                      <div className="bg-brand-black dark:bg-white text-white dark:text-black p-3 rounded-full mb-3">
-                          <Lock size={24} />
-                      </div>
-                      <h3 className="text-lg font-black text-brand-black dark:text-white uppercase">Seguridad</h3>
-                      <p className="text-xs text-gray-500 text-center">Ingresa el código de editor para confirmar los cambios.</p>
-                  </div>
-
-                  <input 
-                    type="password" 
-                    value={pin}
-                    onChange={(e) => { setPin(e.target.value); setPinError(false); }}
-                    maxLength={4}
-                    placeholder="••••"
-                    className="w-full bg-gray-50 dark:bg-white/5 border-2 border-gray-200 dark:border-white/10 rounded-xl p-4 text-center text-2xl font-black tracking-[1em] focus:border-brand-purple outline-none mb-4"
-                    autoFocus
-                  />
-                  
-                  {pinError && <p className="text-red-500 text-[10px] font-black uppercase text-center mb-4">Código Incorrecto</p>}
-
-                  <div className="flex gap-3">
-                      <button onClick={() => setShowPinModal(false)} className="flex-1 py-3 text-xs font-bold uppercase text-gray-400 bg-gray-100 dark:bg-white/5 rounded-lg">Cancelar</button>
-                      <button onClick={confirmSave} className="flex-1 py-3 text-xs font-bold uppercase text-white bg-brand-purple rounded-lg shadow-lg">Confirmar</button>
-                  </div>
-              </div>
-          </div>
-      )}
-
-      {/* Loading Overlay */}
-      {isSaving && (
-          <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center">
-              <div className="bg-white dark:bg-black p-4 rounded-xl flex items-center gap-3 shadow-xl">
-                  <div className="w-5 h-5 border-2 border-brand-purple border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-xs font-bold uppercase">Guardando en la nube...</span>
-              </div>
-          </div>
-      )}
     </div>
   );
 };
