@@ -6,7 +6,11 @@ import { useContent } from '../context/ContentContext';
 
 const EditorDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { banners, modules, updateBanner, updateModule } = useContent();
+  const content = useContent();
+  const banners = content?.banners || [];
+  const modules = content?.modules || [];
+  const updateBanner = content?.updateBanner;
+  const updateModule = content?.updateModule;
   
   // --- STATE MANAGEMENT ---
   const [activeCategory, setActiveCategory] = useState<'banners' | 'modules' | null>(null);
@@ -40,7 +44,7 @@ const EditorDashboard: React.FC = () => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = (event) => {
-        const img = new Image(); // Constructor nativo limpio
+        const img = new Image();
         img.src = event.target?.result as string;
         img.onload = () => {
           const canvas = document.createElement('canvas');
@@ -108,7 +112,7 @@ const EditorDashboard: React.FC = () => {
       setShowPinModal(false);
 
       try {
-          if (activeCategory === 'banners') {
+          if (activeCategory === 'banners' && updateBanner) {
               // Mapeo para asegurar compatibilidad de campos
               const dataToSave = {
                   title: editingItem.title,
@@ -117,7 +121,7 @@ const EditorDashboard: React.FC = () => {
                   tag: editingItem.tag
               };
               await updateBanner(String(editingItem.id), dataToSave);
-          } else if (activeCategory === 'modules') {
+          } else if (activeCategory === 'modules' && updateModule) {
                const dataToSave = {
                   title: editingItem.title,
                   description: editingItem.description,
@@ -131,7 +135,7 @@ const EditorDashboard: React.FC = () => {
           setEditingItem(null);
       } catch (e) {
           console.error(e);
-          alert("Error al guardar cambios. Es posible que la imagen sea muy grande.");
+          alert("Error al guardar cambios.");
       } finally {
           setIsSaving(false);
       }
