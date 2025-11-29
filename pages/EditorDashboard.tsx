@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Layers, Image, Type, Save, Layout, ChevronRight, Edit3, Lock, ArrowLeft, Palette, Type as TypeIcon } from 'lucide-react';
+import { Layers, Image, Type, Save, Layout, ChevronRight, Edit3, Lock, ArrowLeft, Palette, Type as TypeIcon, Link as LinkIcon } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 
 const EditorDashboard: React.FC = () => {
@@ -51,6 +51,15 @@ const EditorDashboard: React.FC = () => {
         };
         reader.readAsDataURL(file);
     }
+  };
+
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newUrl = e.target.value;
+      if (activeCategory === 'banners') {
+          setEditingItem({ ...editingItem, image: newUrl });
+      } else {
+          setEditingItem({ ...editingItem, imageUrl: newUrl });
+      }
   };
 
   // 1. Trigger Save -> Opens PIN Modal
@@ -232,7 +241,40 @@ const EditorDashboard: React.FC = () => {
 
          {/* Form Inputs */}
          <div className="bg-white dark:bg-brand-dark-card p-6 rounded-xl shadow-lg border border-gray-100 dark:border-white/5 space-y-5">
+            
+            {/* --- SECCIÓN DE IMAGEN --- */}
             <div className="flex items-center space-x-2 text-brand-purple border-b border-gray-100 dark:border-white/5 pb-2">
+                <LinkIcon size={16} />
+                <h3 className="text-xs font-black uppercase">Recurso Visual</h3>
+            </div>
+
+            <div>
+                <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">
+                    Enlace de Imagen (URL)
+                </label>
+                <div className="flex gap-2">
+                    <input
+                        type="text"
+                        value={editingItem.imageUrl || editingItem.image || ''}
+                        onChange={handleUrlChange}
+                        className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-xs font-mono text-gray-600 dark:text-gray-300 focus:border-brand-purple outline-none"
+                        placeholder="https://..."
+                    />
+                    <button
+                        onClick={openGallery}
+                        className="bg-gray-100 dark:bg-white/10 p-3 rounded-lg text-gray-500 hover:text-brand-purple hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors flex-shrink-0"
+                        title="Subir archivo"
+                    >
+                        <Image size={18} />
+                    </button>
+                </div>
+                <p className="text-[9px] text-gray-400 mt-1.5 leading-tight">
+                    Puedes pegar un enlace directo (ej: Cloudinary, Imgur) o subir un archivo localmente.
+                </p>
+            </div>
+
+            {/* --- SECCIÓN DE TEXTO --- */}
+            <div className="flex items-center space-x-2 text-brand-purple border-b border-gray-100 dark:border-white/5 pb-2 pt-2">
                 <TypeIcon size={16} />
                 <h3 className="text-xs font-black uppercase">Información Textual</h3>
             </div>
