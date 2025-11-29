@@ -15,7 +15,8 @@ const INITIAL_BANNERS: Banner[] = [
       gradient: "from-indigo-600 via-purple-600 to-fuchsia-600",
       image: "https://picsum.photos/1080/430?random=banner5",
       shadow: "shadow-purple-500/20",
-      link: '/tools/gamer'
+      link: '/tools/gamer',
+      imagePosition: 'object-center'
     },
     {
       id: 'banner-1',
@@ -25,7 +26,8 @@ const INITIAL_BANNERS: Banner[] = [
       subtitle: "Participa este fin de semana y gana bonos dobles.",
       gradient: "from-pink-600 via-purple-600 to-indigo-600",
       image: "https://picsum.photos/1080/430?random=banner1",
-      shadow: "shadow-pink-500/20"
+      shadow: "shadow-pink-500/20",
+      imagePosition: 'object-center'
     },
     {
       id: 'banner-2',
@@ -35,7 +37,8 @@ const INITIAL_BANNERS: Banner[] = [
       subtitle: "Completa 40 horas y recibe +$50 USD extra.",
       gradient: "from-emerald-500 via-teal-500 to-cyan-600",
       image: "https://picsum.photos/1080/430?random=banner2",
-      shadow: "shadow-emerald-500/20"
+      shadow: "shadow-emerald-500/20",
+      imagePosition: 'object-center'
     },
     {
       id: 'banner-3',
@@ -45,7 +48,8 @@ const INITIAL_BANNERS: Banner[] = [
       subtitle: "Mejora la calidad de tu stream hoy mismo.",
       gradient: "from-orange-500 via-red-500 to-pink-600",
       image: "https://picsum.photos/1080/430?random=banner3",
-      shadow: "shadow-orange-500/20"
+      shadow: "shadow-orange-500/20",
+      imagePosition: 'object-center'
     },
     {
       id: 'banner-4',
@@ -55,22 +59,23 @@ const INITIAL_BANNERS: Banner[] = [
       subtitle: "Consulta la tabla de posiciones actualizada.",
       gradient: "from-blue-600 via-indigo-600 to-violet-600",
       image: "https://picsum.photos/1080/430?random=banner4",
-      shadow: "shadow-blue-500/20"
+      shadow: "shadow-blue-500/20",
+      imagePosition: 'object-center'
     }
 ];
 
 // Helper para asignar estilos iniciales a los módulos si no los tienen
 const getInitialStyle = (id: string) => {
     switch (id) {
-      case 'bigo-live': return { iconName: 'PlayCircle', bg: 'bg-blue-600', shadow: 'shadow-blue-600/40' };
-      case 'pagos': return { iconName: 'DollarSign', bg: 'bg-emerald-500', shadow: 'shadow-emerald-500/40' };
-      case 'bloqueos': return { iconName: 'Shield', bg: 'bg-rose-600', shadow: 'shadow-rose-600/40' };
-      case 'pk': return { iconName: 'Zap', bg: 'bg-orange-500', shadow: 'shadow-orange-500/40' };
-      case 'bonos': return { iconName: 'Star', bg: 'bg-amber-500', shadow: 'shadow-amber-500/40' };
-      case 'seguridad': return { iconName: 'Lock', bg: 'bg-slate-800', shadow: 'shadow-slate-800/40' };
-      case 'funciones': return { iconName: 'Smartphone', bg: 'bg-indigo-600', shadow: 'shadow-indigo-600/40' };
-      case 'live-data': return { iconName: 'BarChart2', bg: 'bg-purple-600', shadow: 'shadow-purple-600/40' };
-      default: return { iconName: 'PlayCircle', bg: 'bg-gray-800', shadow: 'shadow-gray-800/40' };
+      case 'bigo-live': return { iconName: 'PlayCircle', bg: 'bg-blue-600', shadow: 'shadow-blue-600/40', imagePosition: 'object-center' };
+      case 'pagos': return { iconName: 'DollarSign', bg: 'bg-emerald-500', shadow: 'shadow-emerald-500/40', imagePosition: 'object-center' };
+      case 'bloqueos': return { iconName: 'Shield', bg: 'bg-rose-600', shadow: 'shadow-rose-600/40', imagePosition: 'object-center' };
+      case 'pk': return { iconName: 'Zap', bg: 'bg-orange-500', shadow: 'shadow-orange-500/40', imagePosition: 'object-center' };
+      case 'bonos': return { iconName: 'Star', bg: 'bg-amber-500', shadow: 'shadow-amber-500/40', imagePosition: 'object-center' };
+      case 'seguridad': return { iconName: 'Lock', bg: 'bg-slate-800', shadow: 'shadow-slate-800/40', imagePosition: 'object-center' };
+      case 'funciones': return { iconName: 'Smartphone', bg: 'bg-indigo-600', shadow: 'shadow-indigo-600/40', imagePosition: 'object-center' };
+      case 'live-data': return { iconName: 'BarChart2', bg: 'bg-purple-600', shadow: 'shadow-purple-600/40', imagePosition: 'object-center' };
+      default: return { iconName: 'PlayCircle', bg: 'bg-gray-800', shadow: 'shadow-gray-800/40', imagePosition: 'object-center' };
     }
 };
 
@@ -88,7 +93,11 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Inicializamos con datos estáticos para que la app siempre tenga contenido
   // incluso si Firebase falla o no tiene permisos.
   const [banners, setBanners] = useState<Banner[]>(INITIAL_BANNERS);
-  const [modules, setModules] = useState<TrainingModule[]>(INITIAL_MODULES.map(m => ({...m, style: getInitialStyle(m.id)})));
+  const [modules, setModules] = useState<TrainingModule[]>(INITIAL_MODULES.map(m => {
+       // @ts-ignore
+       const initStyle = getInitialStyle(m.id);
+       return {...m, style: initStyle};
+  }));
   const [loading, setLoading] = useState(true);
 
   // Inicializar Datos y Escuchar Cambios
@@ -126,6 +135,7 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
              console.log("Seeding Modules...");
              try {
                  for (const m of INITIAL_MODULES) {
+                     // @ts-ignore
                      const styledModule = { ...m, style: getInitialStyle(m.id) };
                      await setDoc(doc(db, "modules", m.id), styledModule);
                  }

@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Layers, Image, Type, Save, Layout, ChevronRight, Edit3, Lock, ArrowLeft, Palette, Type as TypeIcon, Link as LinkIcon, ExternalLink } from 'lucide-react';
+import { Layers, Image, Type, Save, Layout, ChevronRight, Edit3, Lock, Palette, Type as TypeIcon, Link as LinkIcon, ExternalLink, ArrowUp, ArrowDown, Minus, Eye, X, Smartphone, BellRing, Trophy, TrendingUp, Video, Gamepad2, Star, ShieldCheck, HelpCircle, ChevronLeft } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
+import * as LucideIcons from 'lucide-react';
 
 const EditorDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const EditorDashboard: React.FC = () => {
   const [editingItem, setEditingItem] = useState<any | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
+  const [showFullPreview, setShowFullPreview] = useState(false); // Estado para Preview
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState(false);
 
@@ -80,6 +82,27 @@ const EditorDashboard: React.FC = () => {
       }
   };
 
+  // Handler para posición de imagen
+  const handleImagePosition = (pos: 'object-top' | 'object-center' | 'object-bottom') => {
+      if (activeCategory === 'banners') {
+          setEditingItem({ ...editingItem, imagePosition: pos });
+      } else {
+          setEditingItem({ 
+              ...editingItem, 
+              style: { ...editingItem.style, imagePosition: pos } 
+          });
+      }
+  };
+
+  // Helper para obtener posición actual
+  const getCurrentImagePosition = () => {
+      if (activeCategory === 'banners') {
+          return editingItem.imagePosition || 'object-center';
+      } else {
+          return editingItem.style?.imagePosition || 'object-center';
+      }
+  };
+
   // 1. Trigger Save -> Opens PIN Modal
   const requestSave = () => {
       setShowPinModal(true);
@@ -103,8 +126,9 @@ const EditorDashboard: React.FC = () => {
               const dataToSave = {
                   title: editingItem.title,
                   subtitle: editingItem.subtitle,
-                  image: urlInput, // Usar el valor del input, que puede ser editado manualmente
-                  tag: editingItem.tag
+                  image: urlInput, 
+                  tag: editingItem.tag,
+                  imagePosition: editingItem.imagePosition || 'object-center'
               };
               await updateBanner(String(editingItem.id), dataToSave);
           } else if (activeCategory === 'modules') {
@@ -112,9 +136,9 @@ const EditorDashboard: React.FC = () => {
                const dataToSave = {
                   title: editingItem.title,
                   description: editingItem.description,
-                  imageUrl: urlInput, // Usar el valor del input, que puede ser editado manualmente
+                  imageUrl: urlInput, 
                   textContent: editingItem.textContent,
-                  style: editingItem.style
+                  style: editingItem.style // Esto incluye el imagePosition dentro de style
               };
               await updateModule(editingItem.id, dataToSave);
           }
@@ -126,6 +150,22 @@ const EditorDashboard: React.FC = () => {
       } finally {
           setIsSaving(false);
       }
+  };
+
+  // Helper para resolver icono dinámico (para preview de módulo)
+  const getIconComponent = (iconName: string) => {
+      // @ts-ignore
+      const Icon = LucideIcons[iconName];
+      return Icon || LucideIcons.PlayCircle;
+  };
+
+    const getBannerIcon = (tag: string) => {
+      if (tag.includes('GAMING')) return Gamepad2;
+      if (tag.includes('NUEVO')) return BellRing;
+      if (tag.includes('RECOMPENSA')) return TrendingUp;
+      if (tag.includes('MASTERCLASS')) return Video;
+      if (tag.includes('RANKING')) return Trophy;
+      return Star;
   };
 
   // --- RENDER HELPERS ---
@@ -196,7 +236,11 @@ const EditorDashboard: React.FC = () => {
                 >
                     <div className="w-16 h-16 rounded-lg bg-gray-200 dark:bg-white/10 overflow-hidden flex-shrink-0 relative">
                         {/* Banner uses 'image', Module uses 'imageUrl' */}
-                        <img src={item.imageUrl || item.image} alt="" className="w-full h-full object-cover" />
+                        <img 
+                            src={item.imageUrl || item.image} 
+                            alt="" 
+                            className={`w-full h-full object-cover ${activeCategory === 'banners' ? item.imagePosition : item.style?.imagePosition}`} 
+                        />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                              <Edit3 size={16} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
@@ -216,23 +260,29 @@ const EditorDashboard: React.FC = () => {
     );
   };
 
-  const renderEditor = () => (
+  const renderEditor = () => {
+    const currentPos = getCurrentImagePosition();
+
+    return (
     <div className="animate-slide-up space-y-6">
          {/* Preview Visual */}
          <div className="bg-white dark:bg-brand-dark-card p-4 rounded-xl shadow-lg border border-gray-100 dark:border-white/5">
             <div className="flex justify-between items-center mb-3">
-                <label className="text-[10px] font-black uppercase text-gray-400 block">Vista Previa en Vivo</label>
-                <span className="text-[9px] font-bold text-green-500 uppercase flex items-center">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5 animate-pulse"></div>
-                    Online
-                </span>
+                <label className="text-[10px] font-black uppercase text-gray-400 block">Vista Previa de Edición</label>
+                <button 
+                    onClick={() => setShowFullPreview(true)}
+                    className="text-[9px] font-bold text-brand-purple bg-purple-50 dark:bg-purple-900/20 px-2 py-1 rounded hover:bg-purple-100 transition-colors flex items-center uppercase"
+                >
+                    <Eye size={12} className="mr-1" />
+                    Vista previa página
+                </button>
             </div>
             
             <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-white/5 group border border-gray-200 dark:border-white/10">
                 <img 
                     src={urlInput || 'https://via.placeholder.com/800x400?text=Sin+Imagen'} 
                     alt="Preview" 
-                    className="w-full h-full object-cover transition-opacity duration-300" 
+                    className={`w-full h-full object-cover transition-opacity duration-300 ${currentPos}`} 
                     onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/800x400?text=Error+de+Carga')}
                 />
                 
@@ -285,8 +335,36 @@ const EditorDashboard: React.FC = () => {
                 </div>
                 <p className="text-[9px] text-gray-500 dark:text-gray-400 mt-2 leading-tight flex items-start">
                     <span className="text-brand-purple mr-1 font-bold">TIP:</span> 
-                    Pega aquí el enlace directo de tu imagen (Imgur, Cloudinary, etc). Al cambiar el texto, la vista previa de arriba se actualizará automáticamente.
+                    Pega aquí el enlace directo de tu imagen (Imgur, Cloudinary, etc).
                 </p>
+            </div>
+
+            {/* --- CONTROL DE POSICIÓN DE IMAGEN --- */}
+            <div>
+                <label className="text-[10px] font-black uppercase text-gray-400 mb-2 block">Ajustar Posición de Imagen</label>
+                <div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-lg border border-gray-200 dark:border-white/10">
+                    <button 
+                        onClick={() => handleImagePosition('object-top')}
+                        className={`flex-1 flex flex-col items-center justify-center py-2 rounded-md transition-all ${currentPos === 'object-top' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-purple border border-gray-200 dark:border-white/10' : 'text-gray-400 hover:text-gray-600'}`}
+                    >
+                        <ArrowUp size={16} />
+                        <span className="text-[9px] font-bold mt-1">Arriba</span>
+                    </button>
+                    <button 
+                        onClick={() => handleImagePosition('object-center')}
+                        className={`flex-1 flex flex-col items-center justify-center py-2 rounded-md transition-all ${currentPos === 'object-center' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-purple border border-gray-200 dark:border-white/10' : 'text-gray-400 hover:text-gray-600'}`}
+                    >
+                        <Minus size={16} />
+                        <span className="text-[9px] font-bold mt-1">Centro</span>
+                    </button>
+                    <button 
+                        onClick={() => handleImagePosition('object-bottom')}
+                        className={`flex-1 flex flex-col items-center justify-center py-2 rounded-md transition-all ${currentPos === 'object-bottom' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-purple border border-gray-200 dark:border-white/10' : 'text-gray-400 hover:text-gray-600'}`}
+                    >
+                        <ArrowDown size={16} />
+                        <span className="text-[9px] font-bold mt-1">Abajo</span>
+                    </button>
+                </div>
             </div>
 
             {/* --- SECCIÓN DE TEXTO --- */}
@@ -394,7 +472,155 @@ const EditorDashboard: React.FC = () => {
             </button>
          </div>
     </div>
-  );
+    );
+  };
+
+  // --- PREVIEW MODAL (FULL PAGE MOCKUP) ---
+  const renderPreviewModal = () => {
+      if (!editingItem) return null;
+
+      // PREVIEW TYPE 1: BANNERS (Muestra Home Page Profile)
+      if (activeCategory === 'banners') {
+          // Crear lista inyectando el banner editado
+          const previewBanners = banners.map(b => {
+              if (b.id === editingItem.id) {
+                  return { ...editingItem, image: urlInput };
+              }
+              return b;
+          });
+
+          return (
+            <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4 animate-fade-in">
+                 <div className="w-full max-w-sm h-full max-h-[85vh] bg-brand-gray dark:bg-black rounded-3xl overflow-hidden relative shadow-2xl border-4 border-gray-800 flex flex-col">
+                     
+                     {/* Mock Status Bar */}
+                     <div className="h-6 w-full bg-black/20 flex justify-between items-center px-4 shrink-0 z-50 relative">
+                         <span className="text-[10px] text-white font-bold">9:41</span>
+                         <div className="flex gap-1">
+                             <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
+                             <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
+                         </div>
+                     </div>
+
+                     <div className="flex-1 overflow-y-auto scrollbar-hide relative bg-brand-gray dark:bg-black">
+                        {/* HEADER */}
+                        <header className="fixed top-6 left-0 right-0 z-40 flex flex-col justify-end pt-safe transition-all duration-300 bg-brand-gray/90 dark:bg-black/80 backdrop-blur-md border-b border-gray-200/50 dark:border-white/10" style={{ height: '3.5rem', position: 'sticky', top: 0 }}>
+                            <div className="flex items-center justify-between px-4 h-14 w-full">
+                                <h1 className="text-base font-bold uppercase tracking-wider ml-1 truncate text-brand-black dark:text-white">Inicio</h1>
+                                <div className="w-10 h-10 flex items-center justify-center rounded-full text-brand-black dark:text-white"><BellRing size={22} /></div>
+                            </div>
+                        </header>
+
+                        {/* HERO */}
+                        <div className="bg-brand-gray dark:bg-black pb-4">
+                            <div className="px-6 pt-6 pb-2">
+                                <p className="text-gray-400 dark:text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Bienvenido de nuevo,</p>
+                                <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tight">Streamer</h1>
+                            </div>
+                            <div className="relative mt-4 mb-6 px-4">
+                                 <div className="overflow-x-auto scrollbar-hide flex gap-0 snap-x snap-mandatory rounded-sm shadow-xl">
+                                    {previewBanners.map((banner) => {
+                                        const Icon = getBannerIcon(banner.tag);
+                                        return (
+                                            <div key={banner.id} className={`relative flex-shrink-0 w-full overflow-hidden snap-center ${banner.shadow}`} style={{ aspectRatio: '1080/430' }}>
+                                                <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`}></div>
+                                                <img src={banner.image} alt={banner.title} className={`absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay ${banner.imagePosition || 'object-center'}`} />
+                                                <div className="absolute inset-0 p-5 flex flex-col justify-center items-start z-10">
+                                                    <div className="flex items-center space-x-2 mb-2">
+                                                        <span className={`${banner.tagColor} text-[10px] font-black uppercase px-2 py-0.5 tracking-wider rounded-sm shadow-sm`}>{banner.tag}</span>
+                                                    </div>
+                                                    <h2 className="text-2xl font-black text-white uppercase leading-none mb-1 drop-shadow-md pr-10">{banner.title}</h2>
+                                                    <p className="text-white/90 text-xs font-bold mt-1 max-w-[85%] leading-tight">{banner.subtitle}</p>
+                                                    <Icon className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 rotate-12" size={80} strokeWidth={1} />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                 </div>
+                            </div>
+                        </div>
+                        {/* GRID PLACEHOLDER */}
+                        <div className="mx-4 mb-24 opacity-50 grayscale">
+                            <div className="mb-4 pl-1 border-l-4 border-brand-purple ml-1">
+                                <h3 className="text-lg font-black uppercase tracking-wide text-brand-black dark:text-white ml-2 leading-none">Módulos</h3>
+                            </div>
+                            <div className="grid grid-cols-2 gap-5"><div className="h-32 bg-gray-800 rounded-sm"></div><div className="h-32 bg-gray-800 rounded-sm"></div></div>
+                        </div>
+                     </div>
+
+                     <div className="absolute bottom-6 left-0 right-0 flex justify-center z-50">
+                         <button onClick={() => setShowFullPreview(false)} className="bg-white text-black px-6 py-2 rounded-full font-black uppercase text-xs shadow-lg active:scale-95 transition-transform">Cerrar Vista Previa</button>
+                     </div>
+                 </div>
+            </div>
+          );
+      }
+
+      // PREVIEW TYPE 2: MODULES (Muestra Training Detail Page)
+      if (activeCategory === 'modules') {
+          // Combinar datos editados con la estructura del item
+          const previewModule = { ...editingItem, imageUrl: urlInput };
+          const currentPos = getCurrentImagePosition();
+
+          return (
+            <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4 animate-fade-in">
+                 <div className="w-full max-w-sm h-full max-h-[85vh] bg-white dark:bg-black rounded-3xl overflow-hidden relative shadow-2xl border-4 border-gray-800 flex flex-col">
+                     
+                     {/* Mock Status Bar */}
+                     <div className="absolute top-0 left-0 right-0 h-6 z-50 flex justify-between items-center px-4 pointer-events-none">
+                         <span className="text-[10px] text-white font-bold drop-shadow-md">9:41</span>
+                         <div className="flex gap-1"><div className="w-2.5 h-2.5 bg-white rounded-full shadow-sm"></div><div className="w-2.5 h-2.5 bg-white rounded-full shadow-sm"></div></div>
+                     </div>
+
+                     {/* CONTENT */}
+                     <div className="flex-1 overflow-y-auto scrollbar-hide relative bg-white dark:bg-black">
+                        {/* Nav Mock */}
+                        <div className="absolute top-0 left-0 w-full z-40 pt-8 px-4 pointer-events-none">
+                            <div className="w-10 h-10 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 shadow-lg">
+                                <ChevronLeft size={24} />
+                            </div>
+                        </div>
+
+                        {/* HERO IMAGE */}
+                        <div className="h-[40vh] w-full relative bg-brand-black shrink-0">
+                            <img 
+                                src={previewModule.imageUrl || 'https://via.placeholder.com/800x800'} 
+                                className={`w-full h-full object-cover opacity-90 ${currentPos}`} 
+                                alt="Preview"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-black via-transparent to-black/40"></div>
+                            <div className="absolute bottom-0 left-0 w-full px-6 pb-6 z-10">
+                                <span className="text-[10px] font-black text-white bg-brand-purple px-2 py-1 uppercase tracking-widest mb-3 inline-block shadow-sm">Módulo</span>
+                                <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-[0.9] mb-1 drop-shadow-sm">{previewModule.title}</h1>
+                            </div>
+                        </div>
+
+                        {/* TEXT CONTENT */}
+                        <div className="px-6 pt-4 pb-20 bg-white dark:bg-black relative z-10 min-h-[50vh]">
+                            <div className="h-1 w-10 bg-brand-purple mb-4"></div>
+                            <h2 className="text-lg font-bold text-brand-black dark:text-white leading-tight mb-4">{previewModule.description}</h2>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed font-medium text-justify whitespace-pre-line">{previewModule.textContent}</p>
+                            
+                            {/* Fake Resources */}
+                            <div className="mt-8 pt-6 border-t border-gray-100 dark:border-white/10 opacity-60">
+                                <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">Recursos del Módulo</h3>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="h-16 bg-gray-100 dark:bg-white/5 rounded-sm"></div>
+                                    <div className="h-16 bg-gray-100 dark:bg-white/5 rounded-sm"></div>
+                                </div>
+                            </div>
+                        </div>
+                     </div>
+
+                     <div className="absolute bottom-6 left-0 right-0 flex justify-center z-50">
+                         <button onClick={() => setShowFullPreview(false)} className="bg-white text-black px-6 py-2 rounded-full font-black uppercase text-xs shadow-lg active:scale-95 transition-transform">Cerrar Vista Previa</button>
+                     </div>
+                 </div>
+            </div>
+          );
+      }
+      return null;
+  };
 
   return (
     <div className="flex flex-col h-full w-full bg-gray-50 dark:bg-black transition-colors duration-300">
@@ -473,6 +699,9 @@ const EditorDashboard: React.FC = () => {
               </div>
           </div>
       )}
+
+      {/* Full Screen Preview Modal */}
+      {showFullPreview && renderPreviewModal()}
     </div>
   );
 };

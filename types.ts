@@ -7,6 +7,7 @@ export interface ModuleStyle {
   bg: string;
   shadow: string;
   iconName: string; // guardar el nombre del icono como string para mapearlo luego
+  imagePosition?: 'object-top' | 'object-center' | 'object-bottom'; // Nuevo campo de posición
 }
 
 export interface TrainingModule {
@@ -30,6 +31,7 @@ export interface Banner {
   image: string;
   shadow: string;
   link?: string;
+  imagePosition?: 'object-top' | 'object-center' | 'object-bottom'; // Nuevo campo de posición
 }
 
 export interface UserProfile {

@@ -128,7 +128,12 @@ const Profile: React.FC = () => {
                             style={{ aspectRatio: '1080/430' }}
                           >
                               <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`}></div>
-                              <img src={banner.image} alt={banner.title} className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay" />
+                              {/* Aplicamos la posición de la imagen aquí (object-top, object-center, etc) */}
+                              <img 
+                                src={banner.image} 
+                                alt={banner.title} 
+                                className={`absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay ${banner.imagePosition || 'object-center'}`} 
+                              />
                               <div className="absolute inset-0 p-5 flex flex-col justify-center items-start z-10">
                                   <div className="flex items-center space-x-2 mb-2">
                                       <span className={`${banner.tagColor} text-[10px] font-black uppercase px-2 py-0.5 tracking-wider rounded-sm shadow-sm`}>{banner.tag}</span>
@@ -176,6 +181,17 @@ const Profile: React.FC = () => {
                         onClick={() => navigate(`/training/${module.id}`)}
                         className={`relative flex flex-col justify-end p-4 h-32 w-full text-left ${style.bg} rounded-sm active:scale-[0.98] transition-transform duration-200 shadow-lg ${style.shadow} overflow-hidden`}
                     >
+                        {/* IMAGEN DE FONDO PARA EL MÓDULO SI EXISTE */}
+                        {module.imageUrl && (
+                            <div className="absolute inset-0 z-0 opacity-50 mix-blend-overlay">
+                                <img 
+                                    src={module.imageUrl} 
+                                    alt="" 
+                                    className={`w-full h-full object-cover ${style.imagePosition || 'object-center'}`} 
+                                />
+                            </div>
+                        )}
+                        
                         <div className="relative z-10">
                           <span className="text-sm font-black uppercase leading-tight block text-white tracking-wide">{module.title}</span>
                         </div>
