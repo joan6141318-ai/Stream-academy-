@@ -98,7 +98,7 @@ const AdminDashboard: React.FC = () => {
 
   // Eliminar solicitud: Borra de la DB
   const handleDeleteRequest = async (reqId: string) => {
-      const confirm = window.confirm("¿Limpiar de la lista? Esta acción es permanente.");
+      const confirm = window.confirm("¿Eliminar del historial? Esta acción borrará el registro permanentemente.");
       if (confirm) {
           await deletePKRequest(reqId);
       }
@@ -380,38 +380,47 @@ const AdminDashboard: React.FC = () => {
 
                         {/* --- HISTORIAL --- */}
                         <div>
-                            <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center mt-6 pt-6 border-t border-gray-100 dark:border-white/5">
-                                <History className="mr-2" size={14} /> 
-                                Historial de Procesadas
-                            </h3>
+                            <div className="flex items-center justify-between mt-8 mb-4 pt-6 border-t border-gray-100 dark:border-white/5">
+                                <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center">
+                                    <History className="mr-2" size={14} /> 
+                                    Historial de Solicitudes
+                                </h3>
+                                <span className="text-[9px] font-bold bg-gray-100 dark:bg-white/10 px-2 py-1 rounded text-gray-500">{historyRequests.length}</span>
+                            </div>
 
                             {historyRequests.length === 0 ? (
-                                <div className="text-center py-4">
-                                    <p className="text-[10px] text-gray-300 dark:text-gray-600 font-bold uppercase">Historial vacío</p>
+                                <div className="text-center py-10 opacity-50">
+                                    <History size={32} className="mx-auto mb-2 text-gray-300" />
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase">Historial vacío</p>
                                 </div>
                             ) : (
-                                <div className="space-y-2 opacity-80">
+                                <div className="space-y-3">
                                     {historyRequests.map((req) => (
-                                        <div key={req.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl flex items-center justify-between border border-transparent hover:border-gray-200 dark:hover:border-white/10 transition-colors group">
-                                            <div>
-                                                <div className="flex items-center space-x-2 mb-0.5">
-                                                    <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
-                                                        req.status === 'approved' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                                        <div key={req.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl flex items-center justify-between border border-transparent hover:bg-white dark:hover:bg-brand-dark-card hover:shadow-sm hover:border-gray-100 dark:hover:border-white/10 transition-all group">
+                                            <div className="flex-1 min-w-0 pr-4">
+                                                <div className="flex items-center space-x-2 mb-1">
+                                                    <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${
+                                                        req.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                                                     }`}>
                                                         {req.status === 'approved' ? 'AGENDADA' : 'RECHAZADA'}
                                                     </span>
-                                                    <span className="text-[9px] text-gray-400 font-bold">{req.date}</span>
+                                                    <div className="flex items-center text-[9px] font-bold text-gray-400">
+                                                        <Calendar size={10} className="mr-1" />
+                                                        {req.date}
+                                                    </div>
                                                 </div>
-                                                <span className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">ID: {req.bigoId}</span>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase truncate">ID: {req.bigoId}</span>
+                                                </div>
                                             </div>
                                             
-                                            {/* BOTÓN DE LIMPIEZA (BASURA) - SOLO EN HISTORIAL */}
+                                            {/* BOTÓN DE LIMPIEZA (BASURA) - VISIBLE EN HISTORIAL */}
                                             <button 
                                                 onClick={() => handleDeleteRequest(req.id)}
-                                                className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-white/10 transition-all"
-                                                title="Limpiar del historial"
+                                                className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-white/10 transition-all shadow-sm bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 group-hover:border-red-100"
+                                                title="Eliminar registro"
                                             >
-                                                <Trash2 size={14} />
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
                                     ))}
