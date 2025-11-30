@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Calendar, Swords, Shield, ArrowRight, ChevronDown, ChevronUp, CheckCircle2, Clock, Check, History, XCircle, AlertCircle, CalendarCheck, Loader2 } from 'lucide-react';
+import { Calendar, Swords, Shield, ArrowRight, ChevronDown, ChevronUp, CheckCircle2, Clock, Check, History, XCircle, Loader2, CalendarCheck } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { useAuth } from '../context/AuthContext';
 import { PKEvent } from '../types';
@@ -17,7 +17,7 @@ const PKCalendar: React.FC = () => {
   const { pkSchedule, addPKRequest, pkRequests } = useContent();
   const { user } = useAuth();
   
-  // Estado para desplegar listas (Acordeones) - Initial state set to false for all
+  // Estado para desplegar listas (Acordeones) - Initial state set to false (Collapsed by default)
   const [openPotential, setOpenPotential] = useState(false);
   const [openSupersmash, setOpenSupersmash] = useState(false);
   const [openRequest, setOpenRequest] = useState(false);
@@ -74,7 +74,7 @@ const PKCalendar: React.FC = () => {
             clearTimeout(timerRef.current);
           }
 
-          // Ocultar confirmación después de 5 segundos
+          // Ocultar confirmación después de 5 segundos (Descongela la notificación)
           timerRef.current = setTimeout(() => {
               setMyRequest(null);
               timerRef.current = null;

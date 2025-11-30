@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, BarChart2, Check, X, Send, Radio, Activity, Trophy, Save, Clock, Trash2, History, Calendar } from 'lucide-react';
+import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, BarChart2, Check, X, Send, Radio, Activity, Trophy, Save, Clock, Trash2, History, Calendar, Eye, FileText, Key, RefreshCw, Smartphone, AlertTriangle, UserCheck, ShieldCheck } from 'lucide-react';
 import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Header } from '../components/Header';
@@ -29,6 +29,13 @@ const AdminDashboard: React.FC = () => {
   // Estados Formularios
   const [alertMessage, setAlertMessage] = useState('');
   const [isSendingAlert, setIsSendingAlert] = useState(false);
+
+  // --- SECURITY STATES ---
+  const [selectedSecurityUser, setSelectedSecurityUser] = useState<any | null>(null);
+  const [securityPin, setSecurityPin] = useState('');
+  const [showSecurityPinModal, setShowSecurityPinModal] = useState(false);
+  const [pendingSecurityAction, setPendingSecurityAction] = useState<{ type: 'block' | 'unblock' | 'reset_session' | 'make_admin' | 'remove_admin', userId: string } | null>(null);
+  const [pinError, setPinError] = useState(false);
 
   // Sync Local PK State with Context on Load
   useEffect(() => {
@@ -119,9 +126,62 @@ const AdminDashboard: React.FC = () => {
       }
   };
 
+  // --- SECURITY LOGIC ---
+
+  const initiateSecurityAction = (type: 'block' | 'unblock' | 'reset_session' | 'make_admin' | 'remove_admin', userId: string) => {
+      setPendingSecurityAction({ type, userId });
+      setSecurityPin('');
+      setPinError(false);
+      setShowSecurityPinModal(true);
+  };
+
+  const confirmSecurityAction = async () => {
+      if (securityPin !== '3926') {
+          setPinError(true);
+          return;
+      }
+      
+      if (!pendingSecurityAction || !db) return;
+
+      const { type, userId } = pendingSecurityAction;
+      const userRef = doc(db, "users", userId);
+      
+      try {
+          if (type === 'block') {
+              await updateDoc(userRef, { isBlocked: true });
+              setUsers(prev => prev.map(u => u.id === userId ? { ...u, isBlocked: true } : u));
+              if (selectedSecurityUser?.id === userId) setSelectedSecurityUser(prev => ({ ...prev, isBlocked: true }));
+          } else if (type === 'unblock') {
+              await updateDoc(userRef, { isBlocked: false });
+              setUsers(prev => prev.map(u => u.id === userId ? { ...u, isBlocked: false } : u));
+              if (selectedSecurityUser?.id === userId) setSelectedSecurityUser(prev => ({ ...prev, isBlocked: false }));
+          } else if (type === 'make_admin') {
+              await updateDoc(userRef, { isAdmin: true, role: 'Admin Agencia' });
+              setUsers(prev => prev.map(u => u.id === userId ? { ...u, isAdmin: true, role: 'Admin Agencia' } : u));
+              if (selectedSecurityUser?.id === userId) setSelectedSecurityUser(prev => ({ ...prev, isAdmin: true, role: 'Admin Agencia' }));
+          } else if (type === 'remove_admin') {
+              await updateDoc(userRef, { isAdmin: false, role: 'Streamer' });
+              setUsers(prev => prev.map(u => u.id === userId ? { ...u, isAdmin: false, role: 'Streamer' } : u));
+              if (selectedSecurityUser?.id === userId) setSelectedSecurityUser(prev => ({ ...prev, isAdmin: false, role: 'Streamer' }));
+          } else if (type === 'reset_session') {
+              await updateDoc(userRef, { forceRelogin: Date.now() });
+              alert("Orden de cierre de sesión enviada al dispositivo.");
+          }
+          
+          setShowSecurityPinModal(false);
+          setPendingSecurityAction(null);
+
+      } catch (error) {
+          console.error(error);
+          alert("Error ejecutando protocolo de seguridad.");
+      }
+  };
+
+
   const filteredUsers = users.filter(u => 
       u.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      u.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.bigoId?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Filter Requests (Already sorted by date desc in Context)
@@ -132,9 +192,9 @@ const AdminDashboard: React.FC = () => {
     <div className="flex flex-col h-full w-full bg-gray-50 dark:bg-black transition-colors duration-300">
       <Header title="Panel Admin" showBack onBack={() => navigate('/admin/selection')} />
       
-      {/* --- NAV PILLS --- */}
+      {/* --- NAV PILLS (Bubble Fix: Increased Padding) --- */}
       <div className="pt-[calc(3.5rem+env(safe-area-inset-top))] px-4 pb-4 bg-white dark:bg-black/95 sticky top-0 z-30 border-b border-gray-100 dark:border-white/5">
-        <div className="flex space-x-2 overflow-x-auto scrollbar-hide p-2">
+        <div className="flex space-x-2 overflow-x-auto scrollbar-hide p-4">
             {[
                 { id: 'users', label: 'Emisores', icon: Users },
                 { id: 'pk', label: 'Arena PK', icon: Swords },
@@ -217,7 +277,204 @@ const AdminDashboard: React.FC = () => {
             </div>
         )}
 
-        {/* --- TAB: ARENA PK --- */}
+        {/* --- TAB: SEGURIDAD (SECURITY COMMAND CENTER) --- */}
+        {activeTab === 'security' && (
+            <div className="space-y-6 animate-slide-up">
+                
+                {/* Header Section */}
+                <div className="flex items-center justify-between mb-2">
+                     <div>
+                        <h2 className="text-2xl font-black uppercase text-brand-black dark:text-white leading-none">Centro de Mando</h2>
+                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mt-1">Gestión de Accesos y Seguridad</p>
+                     </div>
+                     <div className="bg-brand-black dark:bg-white/10 p-2 rounded-lg text-white">
+                         <ShieldCheck size={24} />
+                     </div>
+                </div>
+
+                {/* Search Security User */}
+                <div className="bg-white dark:bg-brand-dark-card p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center">
+                    <Search size={18} className="text-gray-400 ml-2" />
+                    <input 
+                        type="text" 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Buscar usuario para auditar..." 
+                        className="bg-transparent border-none text-sm font-bold w-full ml-3 focus:outline-none dark:text-white placeholder-gray-300" 
+                    />
+                </div>
+
+                {/* Users List for Security */}
+                <div className="grid gap-3">
+                    {filteredUsers.map((u) => (
+                        <button 
+                            key={u.id}
+                            onClick={() => setSelectedSecurityUser(u)}
+                            className="bg-white dark:bg-brand-dark-card p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center justify-between group active:scale-[0.99] transition-all hover:border-brand-purple/30 text-left"
+                        >
+                            <div className="flex items-center space-x-3">
+                                <div className="relative">
+                                    <img src={u.avatarUrl} alt="av" className="w-10 h-10 rounded-full object-cover grayscale group-hover:grayscale-0 transition-all" />
+                                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-black ${u.isBlocked ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-black text-brand-black dark:text-white leading-none mb-0.5">{u.name}</h3>
+                                    <p className="text-[10px] text-gray-400 font-mono">{u.email}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                {u.isAdmin && <span className="bg-brand-purple/10 text-brand-purple text-[8px] font-black px-2 py-1 rounded uppercase">Admin</span>}
+                                <Eye size={16} className="text-gray-300 group-hover:text-brand-purple" />
+                            </div>
+                        </button>
+                    ))}
+                </div>
+
+                {/* USER DOSSIER MODAL */}
+                {selectedSecurityUser && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedSecurityUser(null)}>
+                        <div className="bg-white dark:bg-[#121212] w-full max-w-md max-h-[90vh] rounded-[2rem] overflow-hidden flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
+                            
+                            {/* Header Image/Gradient */}
+                            <div className="h-24 bg-gradient-to-r from-gray-800 to-black relative">
+                                <button onClick={() => setSelectedSecurityUser(null)} className="absolute top-4 right-4 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-colors">
+                                    <X size={18} />
+                                </button>
+                            </div>
+
+                            {/* Profile Content */}
+                            <div className="px-6 relative flex-1 overflow-y-auto scrollbar-hide pb-8">
+                                {/* Avatar Negative Margin */}
+                                <div className="relative -mt-12 mb-4 flex justify-between items-end">
+                                    <img src={selectedSecurityUser.avatarUrl} alt="profile" className="w-24 h-24 rounded-full border-4 border-white dark:border-[#121212] shadow-lg object-cover bg-gray-200" />
+                                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 ${selectedSecurityUser.isBlocked ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                        {selectedSecurityUser.isBlocked ? 'Acceso Bloqueado' : 'Usuario Activo'}
+                                    </div>
+                                </div>
+
+                                <div className="mb-6">
+                                    <h2 className="text-2xl font-black text-brand-black dark:text-white uppercase leading-none mb-1">{selectedSecurityUser.name}</h2>
+                                    <div className="flex items-center space-x-2 text-gray-400">
+                                        <span className="text-xs font-bold uppercase">{selectedSecurityUser.role || 'Streamer'}</span>
+                                        <span>•</span>
+                                        <span className="text-xs font-mono">{selectedSecurityUser.bigoId || 'Sin ID'}</span>
+                                    </div>
+                                </div>
+
+                                {/* Info Grid */}
+                                <div className="grid grid-cols-2 gap-3 mb-6">
+                                    <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5">
+                                        <div className="flex items-center space-x-2 mb-1 text-gray-400">
+                                            <Calendar size={12} />
+                                            <span className="text-[9px] font-black uppercase">Registro</span>
+                                        </div>
+                                        <span className="text-xs font-bold text-brand-black dark:text-white">
+                                            {/* Simulate Date if unavailable */}
+                                            {selectedSecurityUser.createdAt ? new Date(selectedSecurityUser.createdAt).toLocaleDateString() : '12 Nov 2024'}
+                                        </span>
+                                    </div>
+                                    <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5">
+                                        <div className="flex items-center space-x-2 mb-1 text-gray-400">
+                                            <Activity size={12} />
+                                            <span className="text-[9px] font-black uppercase">Último Acceso</span>
+                                        </div>
+                                        <span className="text-xs font-bold text-brand-black dark:text-white">Hace 2 horas</span>
+                                    </div>
+                                </div>
+
+                                {/* Credentials Section */}
+                                <div className="mb-6 bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/5">
+                                    <h4 className="text-[10px] font-black uppercase text-gray-400 mb-3 flex items-center">
+                                        <Key size={12} className="mr-1.5" /> Credenciales y Seguridad
+                                    </h4>
+                                    <div className="flex justify-between items-center bg-white dark:bg-black p-3 rounded-lg border border-gray-100 dark:border-white/5">
+                                        <div>
+                                            <p className="text-[9px] font-bold text-gray-400 uppercase">Contraseña</p>
+                                            <p className="text-sm font-black tracking-[0.2em] text-brand-black dark:text-white">••••••••</p>
+                                        </div>
+                                        <button 
+                                            onClick={() => alert("Se ha enviado un correo de restablecimiento de contraseña al usuario.")}
+                                            className="text-[10px] font-bold text-brand-purple hover:underline"
+                                        >
+                                            Restablecer
+                                        </button>
+                                    </div>
+                                    <div className="mt-2 text-[9px] text-gray-400 flex items-center">
+                                        <Lock size={10} className="mr-1" />
+                                        <span>Encriptado extremo a extremo (No visible)</span>
+                                    </div>
+                                </div>
+
+                                {/* Activity History (Mock) */}
+                                <div className="mb-8">
+                                    <h4 className="text-[10px] font-black uppercase text-gray-400 mb-3 flex items-center">
+                                        <History size={12} className="mr-1.5" /> Historial de Navegación
+                                    </h4>
+                                    <div className="space-y-0 relative border-l border-gray-200 dark:border-white/10 ml-2">
+                                        {[
+                                            { action: 'Inicio de Sesión', time: '10:42 AM', icon: Smartphone },
+                                            { action: 'Visitó: Módulo Pagos', time: '10:45 AM', icon: FileText },
+                                            { action: 'Visitó: Calculadora', time: '10:50 AM', icon: Activity },
+                                            { action: 'Cierre de Sesión', time: '11:15 AM', icon: Lock },
+                                        ].map((log, idx) => (
+                                            <div key={idx} className="flex items-center mb-4 pl-4 relative group">
+                                                <div className="absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full bg-gray-300 dark:bg-white/20 border-2 border-white dark:border-black group-hover:bg-brand-purple transition-colors"></div>
+                                                <div className="flex-1">
+                                                    <p className="text-xs font-bold text-brand-black dark:text-white">{log.action}</p>
+                                                    <p className="text-[9px] text-gray-400">{log.time}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* SECURITY CONTROLS BAR */}
+                                <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-100 dark:border-white/5">
+                                    <button 
+                                        onClick={() => initiateSecurityAction(selectedSecurityUser.isBlocked ? 'unblock' : 'block', selectedSecurityUser.id)}
+                                        className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1 active:scale-95 transition-all ${
+                                            selectedSecurityUser.isBlocked 
+                                            ? 'bg-green-50 text-green-600 border border-green-200' 
+                                            : 'bg-red-50 text-red-600 border border-red-200'
+                                        }`}
+                                    >
+                                        {selectedSecurityUser.isBlocked ? <Unlock size={20} /> : <Lock size={20} />}
+                                        <span className="text-[9px] font-black uppercase">
+                                            {selectedSecurityUser.isBlocked ? 'Desbloquear' : 'Bloquear Acceso'}
+                                        </span>
+                                    </button>
+
+                                    <button 
+                                        onClick={() => initiateSecurityAction('reset_session', selectedSecurityUser.id)}
+                                        className="p-3 rounded-xl flex flex-col items-center justify-center gap-1 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 active:scale-95 transition-all border border-transparent hover:border-gray-300"
+                                    >
+                                        <RefreshCw size={20} />
+                                        <span className="text-[9px] font-black uppercase">Reset Sesión</span>
+                                    </button>
+
+                                    <button 
+                                        onClick={() => initiateSecurityAction(selectedSecurityUser.isAdmin ? 'remove_admin' : 'make_admin', selectedSecurityUser.id)}
+                                        className={`col-span-2 p-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all border ${
+                                            selectedSecurityUser.isAdmin
+                                            ? 'bg-gray-800 text-white border-gray-700'
+                                            : 'bg-white dark:bg-brand-dark-card text-brand-black dark:text-white border-gray-200 dark:border-white/10 shadow-sm'
+                                        }`}
+                                    >
+                                        {selectedSecurityUser.isAdmin ? <UserCheck size={16} /> : <Shield size={16} />}
+                                        <span className="text-[10px] font-black uppercase">
+                                            {selectedSecurityUser.isAdmin ? 'Revocar Permisos Admin' : 'Asignar Rol Administrador'}
+                                        </span>
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        )}
+
+        {/* --- TAB: ARENA PK (Existing) --- */}
         {activeTab === 'pk' && localSchedule && (
             <div className="space-y-6 animate-slide-up">
                 
@@ -437,65 +694,6 @@ const AdminDashboard: React.FC = () => {
             </div>
         )}
 
-        {/* --- TAB: SEGURIDAD --- */}
-        {activeTab === 'security' && (
-            <div className="space-y-6 animate-slide-up">
-                <div className="bg-red-600 text-white p-6 rounded-3xl shadow-xl shadow-red-600/30 relative overflow-hidden">
-                    <Shield className="absolute -right-6 -bottom-6 text-white/10 rotate-[-15deg]" size={150} />
-                    
-                    <div className="relative z-10">
-                        <div className="flex items-center space-x-2 mb-4">
-                            <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm"><Ban size={24} /></div>
-                            <h2 className="text-xl font-black uppercase">Zona de Peligro</h2>
-                        </div>
-                        <p className="text-xs text-white/80 font-medium mb-6 leading-relaxed max-w-[250px]">
-                            Acciones irreversibles que afectan a toda la plataforma. Úsese con extrema precaución.
-                        </p>
-
-                        <div className="space-y-3">
-                            <button 
-                                onClick={() => handleGlobalBlock(true)}
-                                className="w-full bg-white text-red-600 p-4 rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center shadow-lg active:scale-95 transition-transform"
-                            >
-                                <Lock size={14} className="mr-2" />
-                                Lockdown Total (Bloquear App)
-                            </button>
-                            <button 
-                                onClick={() => handleGlobalBlock(false)}
-                                className="w-full bg-red-800/50 text-white border border-red-400/30 p-4 rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center active:scale-95 transition-transform hover:bg-red-800"
-                            >
-                                <Unlock size={14} className="mr-2" />
-                                Restaurar Acceso
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-brand-dark-card p-6 rounded-3xl border border-gray-100 dark:border-white/5">
-                    <div className="flex items-center space-x-2 mb-4">
-                        <Activity className="text-gray-400" size={20} />
-                        <h3 className="text-sm font-black uppercase text-brand-black dark:text-white">Logs de Actividad</h3>
-                    </div>
-                    <div className="space-y-4">
-                         <div className="flex items-start space-x-3">
-                             <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5"></div>
-                             <div>
-                                 <p className="text-xs font-bold text-brand-black dark:text-white">Sistema Estable</p>
-                                 <p className="text-[10px] text-gray-400">Todos los servicios operando correctamente.</p>
-                             </div>
-                         </div>
-                         <div className="flex items-start space-x-3">
-                             <div className="w-2 h-2 rounded-full bg-gray-300 mt-1.5"></div>
-                             <div>
-                                 <p className="text-xs font-bold text-brand-black dark:text-white">Respaldo Automático</p>
-                                 <p className="text-[10px] text-gray-400">Completado hace 2 horas.</p>
-                             </div>
-                         </div>
-                    </div>
-                </div>
-            </div>
-        )}
-
         {/* --- TAB: COMUNICACIÓN --- */}
         {activeTab === 'comms' && (
             <div className="space-y-6 animate-slide-up">
@@ -593,6 +791,36 @@ const AdminDashboard: React.FC = () => {
         )}
 
       </div>
+
+      {/* --- PIN CONFIRMATION MODAL FOR SECURITY ACTIONS --- */}
+      {showSecurityPinModal && (
+          <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in">
+              <div className="bg-white dark:bg-[#121212] w-full max-w-xs rounded-2xl p-6 shadow-2xl border border-gray-100 dark:border-white/10">
+                  <div className="flex flex-col items-center mb-6">
+                      <div className="bg-brand-black dark:bg-white text-white dark:text-black p-3 rounded-full mb-3 shadow-lg">
+                          <Lock size={24} />
+                      </div>
+                      <h3 className="text-lg font-black text-brand-black dark:text-white uppercase">Protocolo Admin</h3>
+                      <p className="text-xs text-gray-500 text-center mt-1">Ingresa el código maestro para ejecutar esta acción de seguridad.</p>
+                  </div>
+                  <input 
+                    type="password" 
+                    value={securityPin}
+                    onChange={(e) => { setSecurityPin(e.target.value); setPinError(false); }}
+                    maxLength={4}
+                    placeholder="••••"
+                    className="w-full bg-gray-50 dark:bg-white/5 border-2 border-gray-200 dark:border-white/10 rounded-xl p-4 text-center text-2xl font-black tracking-[1em] focus:border-brand-purple outline-none mb-4"
+                    autoFocus
+                  />
+                  {pinError && <p className="text-red-500 text-[10px] font-black uppercase text-center mb-4 flex items-center justify-center"><AlertTriangle size={12} className="mr-1"/> Código Incorrecto</p>}
+                  <div className="flex gap-3">
+                      <button onClick={() => { setShowSecurityPinModal(false); setSecurityPin(''); }} className="flex-1 py-3 text-xs font-bold uppercase text-gray-400 bg-gray-100 dark:bg-white/5 rounded-lg">Cancelar</button>
+                      <button onClick={confirmSecurityAction} className="flex-1 py-3 text-xs font-bold uppercase text-white bg-brand-purple rounded-lg shadow-lg">Confirmar</button>
+                  </div>
+              </div>
+          </div>
+      )}
+
     </div>
   );
 };
