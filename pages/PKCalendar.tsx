@@ -17,8 +17,8 @@ const PKCalendar: React.FC = () => {
   const { pkSchedule, addPKRequest, pkRequests } = useContent();
   const { user } = useAuth();
   
-  // Estado para desplegar listas (Acordeones)
-  const [openPotential, setOpenPotential] = useState(true);
+  // Estado para desplegar listas (Acordeones) - Initial state set to false for all
+  const [openPotential, setOpenPotential] = useState(false);
   const [openSupersmash, setOpenSupersmash] = useState(false);
   const [openRequest, setOpenRequest] = useState(false);
 
