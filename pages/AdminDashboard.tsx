@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, BarChart2, Check, X, Send, Radio, Activity, Trophy, Save, Clock, Trash2, History, Calendar } from 'lucide-react';
@@ -283,18 +284,20 @@ const AdminDashboard: React.FC = () => {
                              </div>
                          </div>
 
-                         {/* SUPERSMASH EDITOR */}
+                         {/* SUPERSMASH EDITOR - Updated Style to Neutral (Gray) */}
                          <div className="bg-white dark:bg-brand-dark-card p-4 rounded-3xl border border-gray-100 dark:border-white/5">
                              <div className="flex items-center space-x-2 mb-4 border-b border-gray-100 dark:border-white/5 pb-2">
+                                 {/* Icon stays Orange */}
                                  <div className="bg-orange-500 text-white p-1.5 rounded"><Swords size={16} /></div>
                                  <h3 className="text-sm font-black uppercase">PK Supersmash</h3>
                              </div>
                              
                              <div className="space-y-3">
                                 {localSchedule.supersmash.map((event, idx) => (
-                                    <div key={event.id} className="bg-orange-50 dark:bg-orange-900/10 p-3 rounded-xl border border-orange-100 dark:border-orange-900/20 flex items-center justify-between gap-3">
+                                    <div key={event.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5 flex items-center justify-between gap-3">
                                         <div className="flex flex-col items-center justify-center bg-white dark:bg-black/20 p-2 rounded-lg min-w-[60px]">
-                                            <Clock size={12} className="text-orange-400 mb-1"/>
+                                            {/* Clock Icon changed to Gray */}
+                                            <Clock size={12} className="text-gray-400 mb-1"/>
                                             <span className="text-[9px] font-black text-brand-black dark:text-white whitespace-nowrap text-center leading-tight">
                                                 08:00<br/>08:15 PM
                                             </span>
@@ -302,14 +305,15 @@ const AdminDashboard: React.FC = () => {
                                         
                                         <div className="flex-1 flex items-center gap-2">
                                             <input 
-                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-orange-500 text-center uppercase" 
+                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-brand-purple text-center uppercase" 
                                                 placeholder="ID EMISOR"
                                                 value={event.id1}
                                                 onChange={(e) => handleScheduleChange('supersmash', idx, 'id1', e.target.value)}
                                             />
-                                            <span className="text-[10px] font-black text-orange-300">VS</span>
+                                            {/* VS Text changed to Gray */}
+                                            <span className="text-[10px] font-black text-gray-300">VS</span>
                                             <input 
-                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-orange-500 text-center uppercase" 
+                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-brand-purple text-center uppercase" 
                                                 placeholder="ID OPONENTE"
                                                 value={event.id2}
                                                 onChange={(e) => handleScheduleChange('supersmash', idx, 'id2', e.target.value)}
@@ -319,7 +323,7 @@ const AdminDashboard: React.FC = () => {
                                 ))}
                              </div>
 
-                             {/* BOTÓN PUBLICAR PARA SUPERSMASH */}
+                             {/* BOTÓN PUBLICAR PARA SUPERSMASH - Stays Orange */}
                              <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
                                  <Button onClick={saveSchedule} fullWidth variant="black" className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg h-12 text-xs border-transparent">
                                      <Save size={16} className="mr-2" /> Publicar Cambios (Supersmash)
