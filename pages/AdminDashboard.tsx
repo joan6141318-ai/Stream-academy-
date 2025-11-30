@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, BarChart2, Check, X, Send, Radio, Activity, Trophy, Save, Clock, Trash2, History } from 'lucide-react';
+import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, BarChart2, Check, X, Send, Radio, Activity, Trophy, Save, Clock, Trash2, History, Calendar } from 'lucide-react';
 import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Header } from '../components/Header';
@@ -344,22 +344,33 @@ const AdminDashboard: React.FC = () => {
                             ) : (
                                 <div className="space-y-3">
                                     {pendingRequests.map((req) => (
-                                        <div key={req.id} className="bg-white dark:bg-brand-dark-card p-4 rounded-2xl shadow-sm border-l-4 border-l-brand-purple border-y border-r border-gray-100 dark:border-white/5 flex items-center justify-between">
-                                            <div>
-                                                <div className="flex items-center space-x-2 mb-1">
-                                                    <div className="bg-brand-purple/10 px-2 py-0.5 rounded text-[9px] font-black text-brand-purple uppercase">Pendiente</div>
-                                                    <span className="text-[10px] font-bold text-gray-400 uppercase">{req.date}</span>
+                                        <div key={req.id} className="bg-white dark:bg-brand-dark-card p-4 rounded-2xl shadow-sm border-l-4 border-l-brand-purple border-y border-r border-gray-100 dark:border-white/5 flex flex-col gap-3">
+                                            
+                                            {/* Header: Date Highlight & Status */}
+                                            <div className="flex justify-between items-center border-b border-gray-50 dark:border-white/5 pb-2">
+                                                <div className="flex items-center space-x-2 bg-gray-100 dark:bg-white/10 px-2.5 py-1.5 rounded-lg shadow-sm">
+                                                    <Calendar size={14} className="text-gray-500 dark:text-gray-300 stroke-[2.5]"/>
+                                                    <span className="text-xs font-black text-brand-black dark:text-white uppercase tracking-tight">{req.date}</span>
                                                 </div>
-                                                <h3 className="text-sm font-black uppercase text-brand-black dark:text-white">ID: {req.bigoId}</h3>
-                                                <p className="text-[10px] text-gray-400">Solicita Batalla PK</p>
+                                                <div className="bg-brand-purple/10 px-2 py-0.5 rounded text-[9px] font-black text-brand-purple uppercase">
+                                                    Pendiente
+                                                </div>
                                             </div>
-                                            <div className="flex gap-2">
-                                                <button onClick={() => handleRejectRequest(req.id)} className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-400 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors" title="Rechazar">
-                                                    <X size={16} />
-                                                </button>
-                                                <button onClick={() => handleApproveRequest(req.id)} className="w-9 h-9 rounded-xl bg-brand-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Agendar (Aprobar)">
-                                                    <Check size={16} />
-                                                </button>
+
+                                            <div className="flex justify-between items-end">
+                                                <div>
+                                                    <h3 className="text-lg font-black uppercase text-brand-black dark:text-white leading-none">ID: {req.bigoId}</h3>
+                                                    <p className="text-[10px] text-gray-400 mt-1 font-bold">Solicita Batalla PK</p>
+                                                </div>
+                                                
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => handleRejectRequest(req.id)} className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-400 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors border border-transparent hover:border-red-100" title="Rechazar">
+                                                        <X size={18} strokeWidth={2.5} />
+                                                    </button>
+                                                    <button onClick={() => handleApproveRequest(req.id)} className="w-10 h-10 rounded-xl bg-brand-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Agendar (Aprobar)">
+                                                        <Check size={18} strokeWidth={3} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
@@ -389,7 +400,7 @@ const AdminDashboard: React.FC = () => {
                                                     }`}>
                                                         {req.status === 'approved' ? 'AGENDADA' : 'RECHAZADA'}
                                                     </span>
-                                                    <span className="text-[9px] text-gray-400">{req.date}</span>
+                                                    <span className="text-[9px] text-gray-400 font-bold">{req.date}</span>
                                                 </div>
                                                 <span className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">ID: {req.bigoId}</span>
                                             </div>
