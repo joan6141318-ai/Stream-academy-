@@ -3,16 +3,16 @@
 export interface TrainingResource {
   title: string;
   type: 'table' | 'calc' | 'wallet' | 'card' | 'doc';
-  imageUrl?: string; // Nuevo: Imagen de fondo opcional para la tarjeta interna
-  style?: ModuleStyle; // Nuevo: Estilo personalizado para la tarjeta interna
+  imageUrl?: string; 
+  style?: ModuleStyle; 
 }
 
 export interface ModuleStyle {
   bg: string;
   shadow: string;
-  iconName: string; // guardar el nombre del icono como string para mapearlo luego
-  imagePosition?: 'object-top' | 'object-center' | 'object-bottom'; // Nuevo campo de posición
-  cardOpacity?: number; // 0.0 a 1.0 (Transparencia)
+  iconName: string; 
+  imagePosition?: 'object-top' | 'object-center' | 'object-bottom'; 
+  cardOpacity?: number; 
 }
 
 export interface TrainingModule {
@@ -20,10 +20,10 @@ export interface TrainingModule {
   title: string;
   description: string;
   imageUrl: string;
-  videoUrl: string; // Placeholder for demo
+  videoUrl: string; 
   textContent: string;
   resources?: TrainingResource[];
-  style?: ModuleStyle; // Nuevo campo para estilos dinámicos
+  style?: ModuleStyle; 
 }
 
 export interface Banner {
@@ -36,7 +36,7 @@ export interface Banner {
   image: string;
   shadow: string;
   link?: string;
-  imagePosition?: 'object-top' | 'object-center' | 'object-bottom'; // Nuevo campo de posición
+  imagePosition?: 'object-top' | 'object-center' | 'object-bottom'; 
 }
 
 export interface HomeConfig {
@@ -51,4 +51,29 @@ export interface UserProfile {
   role: string;
   avatarUrl: string;
   isAdmin?: boolean; 
+}
+
+// --- PK ARENA TYPES ---
+export interface PKEvent {
+  id: string;
+  time: string;
+  user1: string; // Deprecated visually, but kept for structure
+  id1: string;
+  user2: string; // Deprecated visually, but kept for structure
+  id2: string;
+  confirmed: boolean;
+}
+
+export interface PKSchedule {
+  potential: PKEvent[];
+  supersmash: PKEvent[];
+}
+
+export interface PKRequest {
+  id: string;
+  userId: string; // ID del usuario que solicita
+  date: string;
+  bigoId: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: number;
 }

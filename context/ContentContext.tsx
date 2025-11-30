@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { collection, onSnapshot, doc, updateDoc, setDoc, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, setDoc, addDoc, deleteDoc, query } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-import { Banner, TrainingModule, HomeConfig } from '../types';
+import { Banner, TrainingModule, HomeConfig, PKSchedule, PKRequest } from '../types';
 import { TRAINING_MODULES as INITIAL_MODULES } from '../constants';
 
 // Datos iniciales de Banners para sembrar la DB si está vacía
@@ -85,21 +85,43 @@ const INITIAL_HOME_CONFIG: HomeConfig = {
     modulesSubtitle: "Elige el módulo relacionado con tu duda"
 };
 
+// Initial PK Data Structure (Empty Slots)
+const INITIAL_PK_SCHEDULE: PKSchedule = {
+    potential: [
+        { id: 'p1', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
+        { id: 'p2', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
+        { id: 'p3', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
+        { id: 'p4', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
+        { id: 'p5', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
+    ],
+    supersmash: [
+        { id: 's1', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
+        { id: 's2', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
+        { id: 's3', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
+        { id: 's4', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
+        { id: 's5', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
+    ]
+};
+
 interface ContentContextType {
   banners: Banner[];
   modules: TrainingModule[];
   homeConfig: HomeConfig;
+  pkSchedule: PKSchedule;
+  pkRequests: PKRequest[];
   loading: boolean;
   updateBanner: (id: string, data: Partial<Banner>) => Promise<void>;
   updateModule: (id: string, data: Partial<TrainingModule>) => Promise<void>;
   updateHomeConfig: (data: Partial<HomeConfig>) => Promise<void>;
+  updatePKSchedule: (data: PKSchedule) => Promise<void>;
+  addPKRequest: (date: string, bigoId: string, userId: string) => Promise<void>;
+  updatePKRequestStatus: (id: string, status: 'approved' | 'rejected') => Promise<void>;
+  deletePKRequest: (id: string) => Promise<void>;
 }
 
 const ContentContext = createContext<ContentContextType | undefined>(undefined);
 
 export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Inicializamos con datos estáticos para que la app siempre tenga contenido
-  // incluso si Firebase falla o no tiene permisos.
   const [banners, setBanners] = useState<Banner[]>(INITIAL_BANNERS);
   const [modules, setModules] = useState<TrainingModule[]>(INITIAL_MODULES.map(m => {
        // @ts-ignore
@@ -107,9 +129,10 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
        return {...m, style: initStyle};
   }));
   const [homeConfig, setHomeConfig] = useState<HomeConfig>(INITIAL_HOME_CONFIG);
+  const [pkSchedule, setPkSchedule] = useState<PKSchedule>(INITIAL_PK_SCHEDULE);
+  const [pkRequests, setPkRequests] = useState<PKRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Inicializar Datos y Escuchar Cambios
   useEffect(() => {
     if (!db) {
         setLoading(false);
@@ -119,59 +142,63 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // 1. Listen Banners
     const unsubBanners = onSnapshot(collection(db, "banners"), async (snapshot) => {
         if (snapshot.empty) {
-            // Seed DB if empty (Intentar solo si hay permisos)
-            console.log("Seeding Banners...");
             try {
                 for (const b of INITIAL_BANNERS) {
                     await setDoc(doc(db, "banners", String(b.id)), b);
                 }
-            } catch (e) {
-                console.warn("Seeding failed (Permission Denied), using static data.");
-            }
+            } catch (e) { console.warn("Seeding Banners failed"); }
         } else {
             const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Banner));
             setBanners(list);
         }
-    }, (error) => {
-        // Callback de error para evitar que la app explote por permisos
-        console.warn("Firestore Banner Error (using offline data):", error.code);
-        // Mantenemos los datos iniciales
-    });
+    }, (error) => console.warn("Banners Error:", error.code));
 
     // 2. Listen Modules
     const unsubModules = onSnapshot(collection(db, "modules"), async (snapshot) => {
         if (snapshot.empty) {
-             console.log("Seeding Modules...");
              try {
                  for (const m of INITIAL_MODULES) {
                      // @ts-ignore
                      const styledModule = { ...m, style: getInitialStyle(m.id) };
                      await setDoc(doc(db, "modules", m.id), styledModule);
                  }
-             } catch (e) {
-                 console.warn("Seeding failed (Permission Denied), using static data.");
-             }
+             } catch (e) { console.warn("Seeding Modules failed"); }
         } else {
             const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as TrainingModule));
             setModules(list);
         }
-    }, (error) => {
-        // Callback de error
-        console.warn("Firestore Module Error (using offline data):", error.code);
-        // Mantenemos los datos iniciales
-    });
+    }, (error) => console.warn("Modules Error:", error.code));
 
     // 3. Listen Home Config
     const unsubConfig = onSnapshot(doc(db, "config", "home"), (docSnap) => {
         if (docSnap.exists()) {
             setHomeConfig(docSnap.data() as HomeConfig);
         } else {
-            // Si no existe, intentar crearlo con valores por defecto
              setDoc(doc(db, "config", "home"), INITIAL_HOME_CONFIG).catch(e => console.warn("Auto-seed config failed", e));
         }
-    }, (error) => {
-        console.warn("Firestore Config Error", error.code);
-    });
+    }, (error) => console.warn("Config Error", error.code));
+
+    // 4. Listen PK Schedule
+    const unsubPK = onSnapshot(doc(db, "schedules", "main"), (docSnap) => {
+        if (docSnap.exists()) {
+            setPkSchedule(docSnap.data() as PKSchedule);
+        } else {
+            setDoc(doc(db, "schedules", "main"), INITIAL_PK_SCHEDULE).catch(e => console.warn("Auto-seed PK failed", e));
+        }
+    }, (error) => console.warn("PK Schedule Error", error.code));
+
+    // 5. Listen PK Requests - SORTED CLIENT SIDE TO AVOID INDEX ISSUES
+    // Removed 'orderBy' from query to guarantee results without manual indexing
+    const unsubRequests = onSnapshot(
+        query(collection(db, "pk_requests")), 
+        (snapshot) => {
+            const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as PKRequest));
+            // Sort by createdAt desc manually in Javascript
+            list.sort((a, b) => b.createdAt - a.createdAt);
+            setPkRequests(list);
+        },
+        (error) => console.warn("Requests Error", error.code)
+    );
 
     setLoading(false);
 
@@ -179,58 +206,68 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         unsubBanners();
         unsubModules();
         unsubConfig();
+        unsubPK();
+        unsubRequests();
     };
   }, []);
 
   const updateBanner = async (id: string, data: Partial<Banner>) => {
-    // 1. Actualización Optimista
-    setBanners(prevBanners => 
-        prevBanners.map(banner => 
-            banner.id === id ? { ...banner, ...data } : banner
-        )
-    );
-
-    // 2. Actualización en Base de Datos
+    setBanners(prev => prev.map(b => b.id === id ? { ...b, ...data } : b));
     if(!db) return;
-    try {
-        const ref = doc(db, "banners", String(id));
-        await updateDoc(ref, data);
-    } catch (e) {
-        console.error("Error updating banner in DB", e);
-    }
+    try { await updateDoc(doc(db, "banners", String(id)), data); } catch (e) { console.error(e); }
   };
 
   const updateModule = async (id: string, data: Partial<TrainingModule>) => {
-    // 1. Actualización Optimista
-    setModules(prevModules => 
-        prevModules.map(module => 
-            module.id === id ? { ...module, ...data } : module
-        )
-    );
-
-    // 2. Actualización en Base de Datos
+    setModules(prev => prev.map(m => m.id === id ? { ...m, ...data } : m));
     if(!db) return;
-    try {
-        const ref = doc(db, "modules", id);
-        await updateDoc(ref, data);
-    } catch (e) {
-        console.error("Error updating module in DB", e);
-    }
+    try { await updateDoc(doc(db, "modules", id), data); } catch (e) { console.error(e); }
   };
 
   const updateHomeConfig = async (data: Partial<HomeConfig>) => {
       setHomeConfig(prev => ({ ...prev, ...data }));
       if (!db) return;
+      try { await setDoc(doc(db, "config", "home"), data, { merge: true }); } catch (e) { console.error(e); }
+  };
+
+  const updatePKSchedule = async (data: PKSchedule) => {
+      setPkSchedule(data);
+      if (!db) return;
+      try { await setDoc(doc(db, "schedules", "main"), data); } catch (e) { console.error(e); }
+  };
+
+  const addPKRequest = async (date: string, bigoId: string, userId: string) => {
+      if (!db) return;
       try {
-          const ref = doc(db, "config", "home");
-          await setDoc(ref, data, { merge: true });
-      } catch (e) {
-          console.error("Error updating home config", e);
-      }
+          await addDoc(collection(db, "pk_requests"), {
+              date,
+              bigoId,
+              userId,
+              status: 'pending',
+              createdAt: Date.now()
+          });
+      } catch (e) { console.error("Error adding PK request", e); }
+  };
+
+  const updatePKRequestStatus = async (id: string, status: 'approved' | 'rejected') => {
+      if (!db) return;
+      try {
+          await updateDoc(doc(db, "pk_requests", id), { status });
+      } catch (e) { console.error("Error updating PK request", e); }
+  };
+
+  const deletePKRequest = async (id: string) => {
+      if (!db) return;
+      try {
+          await deleteDoc(doc(db, "pk_requests", id));
+      } catch (e) { console.error("Error removing PK request", e); }
   };
 
   return (
-    <ContentContext.Provider value={{ banners, modules, homeConfig, loading, updateBanner, updateModule, updateHomeConfig }}>
+    <ContentContext.Provider value={{ 
+        banners, modules, homeConfig, pkSchedule, pkRequests, loading, 
+        updateBanner, updateModule, updateHomeConfig, updatePKSchedule, 
+        addPKRequest, updatePKRequestStatus, deletePKRequest 
+    }}>
       {children}
     </ContentContext.Provider>
   );

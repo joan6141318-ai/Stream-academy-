@@ -1,18 +1,10 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Calendar, Swords, Shield, ArrowRight, ChevronDown, ChevronUp, CheckCircle2, Clock, User, Check } from 'lucide-react';
-
-interface PKEvent {
-  id: string;
-  time: string;
-  user1: string;
-  id1: string;
-  user2: string;
-  id2: string;
-  confirmed?: boolean;
-}
+import { Calendar, Swords, Shield, ArrowRight, ChevronDown, ChevronUp, CheckCircle2, Clock, Check, History, XCircle, AlertCircle, CalendarCheck, Loader2 } from 'lucide-react';
+import { useContent } from '../context/ContentContext';
+import { useAuth } from '../context/AuthContext';
+import { PKEvent } from '../types';
 
 interface RequestData {
     date: string;
@@ -21,6 +13,8 @@ interface RequestData {
 
 const PKCalendar: React.FC = () => {
   const navigate = useNavigate();
+  const { pkSchedule, addPKRequest, pkRequests } = useContent();
+  const { user } = useAuth();
   
   // Estado para desplegar listas (Acordeones)
   const [openPotential, setOpenPotential] = useState(true);
@@ -36,90 +30,81 @@ const PKCalendar: React.FC = () => {
   // Fecha Actual Formateada
   const today = new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
 
-  // Mock Data: 5 Eventos Potencial (Formatos de 15 min)
-  const [potentialList, setPotentialList] = useState<PKEvent[]>([
-    { id: 'p1', time: '08:00 - 08:15 PM', user1: '---', id1: '---', user2: '---', id2: '---', confirmed: false },
-    { id: 'p2', time: '08:15 - 08:30 PM', user1: '---', id1: '---', user2: '---', id2: '---', confirmed: false },
-    { id: 'p3', time: '08:30 - 08:45 PM', user1: '---', id1: '---', user2: '---', id2: '---', confirmed: false },
-    { id: 'p4', time: '08:45 - 09:00 PM', user1: '---', id1: '---', user2: '---', id2: '---', confirmed: false },
-    { id: 'p5', time: '09:00 - 09:15 PM', user1: '---', id1: '---', user2: '---', id2: '---', confirmed: false },
-  ]);
+  // Filtrar solicitudes del usuario actual
+  const myRequestsHistory = pkRequests.filter(req => req.userId === user?.id);
 
-  // Mock Data: 5 Eventos Supersmash (Formatos de 15 min)
-  const [supersmashList, setSupersmashList] = useState<PKEvent[]>([
-     { id: 's1', time: '08:00 - 08:15 PM', user1: '---', id1: '---', user2: '---', id2: '---', confirmed: false },
-     { id: 's2', time: '08:15 - 08:30 PM', user1: '---', id1: '---', user2: '---', id2: '---', confirmed: false },
-     { id: 's3', time: '08:30 - 08:45 PM', user1: '---', id1: '---', user2: '---', id2: '---', confirmed: false },
-     { id: 's4', time: '08:45 - 09:00 PM', user1: '---', id1: '---', user2: '---', id2: '---', confirmed: false },
-     { id: 's5', time: '09:00 - 09:15 PM', user1: '---', id1: '---', user2: '---', id2: '---', confirmed: false },
-  ]);
-
-  const toggleConfirm = (listType: 'potential' | 'supersmash', id: string) => {
-      const setter = listType === 'potential' ? setPotentialList : setSupersmashList;
-      setter(prev => prev.map(item => {
-          if (item.id === id) return { ...item, confirmed: !item.confirmed };
-          return item;
-      }));
-  };
-
-  const handleRequestPK = (e: React.FormEvent) => {
+  const handleRequestPK = async (e: React.FormEvent) => {
       e.preventDefault();
+      if (!requestDate || !requestBigoId || !user) return;
+
       setIsSubmitting(true);
-      setTimeout(() => {
+      
+      try {
+          // Enviar a la base de datos a través del contexto
+          await addPKRequest(requestDate, requestBigoId, user.id);
+          
           setMyRequest({
               date: requestDate,
               bigoId: requestBigoId
           });
-          setIsSubmitting(false);
           setRequestDate('');
           setRequestBigoId('');
           setOpenRequest(false); // Cerrar acordeón para mostrar resultado abajo
-      }, 1500);
+          
+          // Scroll suave hacia abajo para ver el historial
+          setTimeout(() => {
+              window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+          }, 500);
+
+      } catch (error) {
+          alert("Error al enviar la solicitud. Intenta de nuevo.");
+      } finally {
+          setIsSubmitting(false);
+      }
   };
 
-  const renderEventRow = (item: PKEvent, type: 'potential' | 'supersmash') => (
+  const renderEventRow = (item: PKEvent) => (
       <div key={item.id} className="py-5 border-b border-gray-100 dark:border-white/5 last:border-0 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors px-3 -mx-3 rounded-xl mb-2">
           
           {/* Header Fila: Hora + Acción */}
-          <div className="flex justify-between items-center mb-3">
-              <div className="flex items-center space-x-2 bg-gray-100 dark:bg-white/10 px-2 py-1 rounded text-gray-500 dark:text-gray-300">
-                  <Clock size={10} />
+          <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center space-x-2 bg-gray-100 dark:bg-white/10 px-3 py-1.5 rounded-lg text-gray-500 dark:text-gray-300">
+                  <Clock size={12} strokeWidth={2.5} />
                   <span className="text-[10px] font-black">{item.time}</span>
               </div>
               
               <button 
-                  onClick={(e) => { e.stopPropagation(); toggleConfirm(type, item.id); }}
-                  className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 ${item.confirmed ? 'bg-green-500 text-white shadow-lg shadow-green-500/30' : 'bg-gray-100 dark:bg-white/10 text-gray-300 hover:bg-brand-purple hover:text-white'}`}
+                  className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 cursor-default ${item.confirmed ? 'bg-green-500 text-white shadow-lg shadow-green-500/30' : 'bg-gray-100 dark:bg-white/10 text-gray-300'}`}
               >
                   <CheckCircle2 size={16} strokeWidth={2.5} />
               </button>
           </div>
 
-          {/* Versus Center */}
-          <div className="flex items-center justify-center space-x-3 mb-4">
-               <span className="text-sm font-black text-brand-black dark:text-white uppercase tracking-tight truncate max-w-[100px] text-right">
-                   {item.user1}
-               </span>
-               <div className="bg-brand-black dark:bg-white text-white dark:text-black text-[9px] font-black px-1.5 py-0.5 rounded skew-x-[-10deg]">
-                   VS
+          {/* Versus Center - CLEAN ID ONLY */}
+          <div className="flex items-center justify-between gap-2 px-1">
+               {/* Emisor ID */}
+               <div className="flex-1 text-right">
+                   <span className={`text-base font-black uppercase tracking-tight ${item.id1 ? 'text-brand-black dark:text-white' : 'text-gray-200 dark:text-white/10'}`}>
+                       {item.id1 || '_ _ _'}
+                   </span>
+                   {item.id1 && <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">Emisor</p>}
                </div>
-               <span className="text-sm font-black text-brand-black dark:text-white uppercase tracking-tight truncate max-w-[100px] text-left">
-                   {item.user2}
-               </span>
-          </div>
 
-          {/* Professional ID Slots - Full Width */}
-          <div className="flex w-full bg-gray-50 dark:bg-white/5 rounded-lg border border-gray-100 dark:border-white/5 overflow-hidden">
-               <div className="flex-1 flex flex-col items-center justify-center py-2 border-r border-gray-100 dark:border-white/5">
-                   <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Emisor ID</span>
-                   <span className="text-xs font-mono font-bold text-gray-600 dark:text-gray-300 tracking-wide">{item.id1}</span>
+               {/* VS Badge */}
+               <div className="flex flex-col items-center justify-center px-4">
+                   <div className="bg-brand-black dark:bg-white text-white dark:text-black text-[10px] font-black px-2 py-1 rounded skew-x-[-10deg] shadow-lg">
+                       VS
+                   </div>
                </div>
-               <div className="flex-1 flex flex-col items-center justify-center py-2">
-                   <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Rival ID</span>
-                   <span className="text-xs font-mono font-bold text-gray-600 dark:text-gray-300 tracking-wide">{item.id2}</span>
+
+               {/* Oponente ID */}
+               <div className="flex-1 text-left">
+                   <span className={`text-base font-black uppercase tracking-tight ${item.id2 ? 'text-brand-black dark:text-white' : 'text-gray-200 dark:text-white/10'}`}>
+                       {item.id2 || '_ _ _'}
+                   </span>
+                   {item.id2 && <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">Rival</p>}
                </div>
           </div>
-
       </div>
   );
 
@@ -161,7 +146,7 @@ const PKCalendar: React.FC = () => {
             {/* Lista Desplegable */}
             <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openPotential ? 'max-h-[1200px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
                 <div className="bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-white/5 rounded-2xl p-4 shadow-sm">
-                    {potentialList.map(item => renderEventRow(item, 'potential'))}
+                    {pkSchedule.potential.map(item => renderEventRow(item))}
                 </div>
             </div>
         </div>
@@ -191,7 +176,7 @@ const PKCalendar: React.FC = () => {
              {/* Lista Desplegable */}
              <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openSupersmash ? 'max-h-[1200px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
                 <div className="bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-white/5 rounded-2xl p-4 shadow-sm">
-                    {supersmashList.map(item => renderEventRow(item, 'supersmash'))}
+                    {pkSchedule.supersmash.map(item => renderEventRow(item))}
                 </div>
             </div>
         </div>
@@ -294,7 +279,7 @@ const PKCalendar: React.FC = () => {
                 </div>
             </div>
             
-            {/* --- TARJETA DE CONFIRMACIÓN (RESULTADO) --- */}
+            {/* --- TARJETA DE CONFIRMACIÓN (RESULTADO INMEDIATO) --- */}
             {myRequest && (
                 <div className="mt-6 animate-slide-up">
                     <div className="bg-brand-purple text-white p-6 rounded-2xl shadow-xl shadow-purple-500/20 relative overflow-hidden border border-white/10">
@@ -322,10 +307,56 @@ const PKCalendar: React.FC = () => {
                             </div>
                             
                             <p className="text-[9px] mt-4 opacity-70">
-                                * Espera la confirmación de tu líder de agencia.
+                                * Revisa el estatus abajo en "Mis Solicitudes".
                             </p>
                         </div>
                     </div>
+                </div>
+            )}
+        </div>
+
+        {/* --- SECCIÓN: HISTORIAL DE SOLICITUDES (MEJORADO) --- */}
+        <div className="mb-12">
+            <div className="flex items-center mb-4 px-2">
+                <History className="mr-2 text-brand-purple" size={16}/> 
+                <h3 className="text-sm font-black uppercase tracking-widest text-brand-black dark:text-white">Mis Solicitudes</h3>
+            </div>
+            
+            {myRequestsHistory.length === 0 ? (
+                <div className="bg-gray-50 dark:bg-white/5 rounded-2xl p-8 text-center border border-gray-100 dark:border-white/5 flex flex-col items-center justify-center">
+                    <Swords size={32} className="text-gray-300 mb-2" />
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">No has enviado solicitudes</p>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {myRequestsHistory.map((req) => (
+                        <div key={req.id} className="bg-white dark:bg-brand-dark-card p-4 rounded-xl border border-gray-100 dark:border-white/5 shadow-sm flex items-center justify-between animate-fade-in hover:scale-[1.01] transition-transform duration-200">
+                            <div className="flex items-center space-x-4">
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-inner ${
+                                    req.status === 'approved' ? 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400' :
+                                    req.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400' :
+                                    'bg-amber-100 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400'
+                                }`}>
+                                    {req.status === 'approved' ? <CalendarCheck size={20} strokeWidth={2.5} /> :
+                                     req.status === 'rejected' ? <XCircle size={20} strokeWidth={2.5} /> :
+                                     <Loader2 size={20} strokeWidth={2.5} className="animate-spin" />}
+                                </div>
+                                <div>
+                                    <div className="flex items-center space-x-2">
+                                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${
+                                            req.status === 'approved' ? 'bg-green-100 text-green-700' :
+                                            req.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                            'bg-amber-100 text-amber-700'
+                                        }`}>
+                                            {req.status === 'pending' ? 'EN REVISIÓN' : (req.status === 'approved' ? 'AGENDADA' : 'RECHAZADA')}
+                                        </span>
+                                    </div>
+                                    <h4 className="text-sm font-black text-brand-black dark:text-white uppercase mt-1">{req.date}</h4>
+                                    <p className="text-[10px] text-gray-400 mt-0.5 font-medium">ID: {req.bigoId}</p>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
         </div>
