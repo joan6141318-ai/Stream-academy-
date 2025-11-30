@@ -1,7 +1,8 @@
 
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, BarChart2, Check, X, Send, Radio, Activity, Trophy, Save, Clock, Trash2, History, Calendar, Eye, FileText, Key, RefreshCw, Smartphone, AlertTriangle, UserCheck, ShieldCheck } from 'lucide-react';
+import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, BarChart2, Check, X, Send, Radio, Activity, Trophy, Save, Clock, Trash2, History, Calendar, Eye, FileText, Key, RefreshCw, Smartphone, AlertTriangle, UserCheck, ShieldCheck, Laptop } from 'lucide-react';
 import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Header } from '../components/Header';
@@ -330,144 +331,138 @@ const AdminDashboard: React.FC = () => {
                     ))}
                 </div>
 
-                {/* USER DOSSIER MODAL */}
+                {/* USER DOSSIER MODAL (REDESIGNED) */}
                 {selectedSecurityUser && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedSecurityUser(null)}>
-                        <div className="bg-white dark:bg-[#121212] w-full max-w-md max-h-[90vh] rounded-[2rem] overflow-hidden flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
+                        {/* Improved Card Structure: Fixes gray strip issue by ensuring clean flex layout */}
+                        <div className="bg-white dark:bg-[#121212] w-full max-w-md max-h-[85vh] rounded-[2rem] overflow-hidden flex flex-col shadow-2xl relative border border-gray-100 dark:border-white/10" onClick={e => e.stopPropagation()}>
                             
-                            {/* Header Image/Gradient */}
-                            <div className="h-24 bg-gradient-to-r from-gray-800 to-black relative">
-                                <button onClick={() => setSelectedSecurityUser(null)} className="absolute top-4 right-4 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-colors">
+                            {/* Header Gradient */}
+                            <div className="h-20 bg-gradient-to-r from-gray-900 to-black shrink-0 relative flex justify-end p-4">
+                                <button onClick={() => setSelectedSecurityUser(null)} className="bg-white/20 text-white p-2 rounded-full hover:bg-white/30 transition-colors backdrop-blur-md">
                                     <X size={18} />
                                 </button>
                             </div>
 
-                            {/* Profile Content */}
-                            <div className="px-6 relative flex-1 overflow-y-auto scrollbar-hide pb-8">
-                                {/* Avatar Negative Margin */}
-                                <div className="relative -mt-12 mb-4 flex justify-between items-end">
-                                    <img src={selectedSecurityUser.avatarUrl} alt="profile" className="w-24 h-24 rounded-full border-4 border-white dark:border-[#121212] shadow-lg object-cover bg-gray-200" />
-                                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 ${selectedSecurityUser.isBlocked ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                                        {selectedSecurityUser.isBlocked ? 'Acceso Bloqueado' : 'Usuario Activo'}
-                                    </div>
-                                </div>
-
-                                <div className="mb-6">
-                                    <h2 className="text-2xl font-black text-brand-black dark:text-white uppercase leading-none mb-1">{selectedSecurityUser.name}</h2>
-                                    <div className="flex items-center space-x-2 text-gray-400">
-                                        <span className="text-xs font-bold uppercase">{selectedSecurityUser.role || 'Streamer'}</span>
-                                        <span>•</span>
-                                        <span className="text-xs font-mono">{selectedSecurityUser.bigoId || 'Sin ID'}</span>
-                                    </div>
-                                </div>
-
-                                {/* Info Grid */}
-                                <div className="grid grid-cols-2 gap-3 mb-6">
-                                    <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5">
-                                        <div className="flex items-center space-x-2 mb-1 text-gray-400">
-                                            <Calendar size={12} />
-                                            <span className="text-[9px] font-black uppercase">Registro</span>
+                            {/* Content Scroll Area */}
+                            <div className="flex-1 overflow-y-auto scrollbar-hide bg-white dark:bg-[#121212]">
+                                <div className="px-6 pb-6">
+                                    
+                                    {/* Avatar Overlap */}
+                                    <div className="relative -mt-10 mb-4 flex justify-between items-end">
+                                        <div className="w-20 h-20 rounded-full p-1 bg-white dark:bg-[#121212]">
+                                            <img src={selectedSecurityUser.avatarUrl} alt="profile" className="w-full h-full rounded-full object-cover bg-gray-200" />
                                         </div>
-                                        <span className="text-xs font-bold text-brand-black dark:text-white">
-                                            {/* Simulate Date if unavailable */}
-                                            {selectedSecurityUser.createdAt ? new Date(selectedSecurityUser.createdAt).toLocaleDateString() : '12 Nov 2024'}
-                                        </span>
-                                    </div>
-                                    <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5">
-                                        <div className="flex items-center space-x-2 mb-1 text-gray-400">
-                                            <Activity size={12} />
-                                            <span className="text-[9px] font-black uppercase">Último Acceso</span>
+                                        <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-1 shadow-sm ${selectedSecurityUser.isBlocked ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                            {selectedSecurityUser.isBlocked ? 'Acceso Bloqueado' : 'Usuario Activo'}
                                         </div>
-                                        <span className="text-xs font-bold text-brand-black dark:text-white">Hace 2 horas</span>
                                     </div>
-                                </div>
 
-                                {/* Credentials Section */}
-                                <div className="mb-6 bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/5">
-                                    <h4 className="text-[10px] font-black uppercase text-gray-400 mb-3 flex items-center">
-                                        <Key size={12} className="mr-1.5" /> Credenciales y Seguridad
-                                    </h4>
-                                    <div className="flex justify-between items-center bg-white dark:bg-black p-3 rounded-lg border border-gray-100 dark:border-white/5">
-                                        <div>
-                                            <p className="text-[9px] font-bold text-gray-400 uppercase">Contraseña</p>
-                                            <p className="text-sm font-black tracking-[0.2em] text-brand-black dark:text-white">••••••••</p>
+                                    <div className="mb-6">
+                                        <h2 className="text-2xl font-black text-brand-black dark:text-white uppercase leading-none mb-1">{selectedSecurityUser.name}</h2>
+                                        <div className="flex items-center space-x-2 text-gray-400">
+                                            <span className="text-xs font-bold uppercase">{selectedSecurityUser.role || 'Streamer'}</span>
+                                            <span>•</span>
+                                            <span className="text-xs font-mono">{selectedSecurityUser.bigoId || 'Sin ID'}</span>
                                         </div>
-                                        <button 
-                                            onClick={() => alert("Se ha enviado un correo de restablecimiento de contraseña al usuario.")}
-                                            className="text-[10px] font-bold text-brand-purple hover:underline"
-                                        >
-                                            Restablecer
-                                        </button>
                                     </div>
-                                    <div className="mt-2 text-[9px] text-gray-400 flex items-center">
-                                        <Lock size={10} className="mr-1" />
-                                        <span>Encriptado extremo a extremo (No visible)</span>
-                                    </div>
-                                </div>
 
-                                {/* Activity History (Mock) */}
-                                <div className="mb-8">
-                                    <h4 className="text-[10px] font-black uppercase text-gray-400 mb-3 flex items-center">
-                                        <History size={12} className="mr-1.5" /> Historial de Navegación
-                                    </h4>
-                                    <div className="space-y-0 relative border-l border-gray-200 dark:border-white/10 ml-2">
-                                        {[
-                                            { action: 'Inicio de Sesión', time: '10:42 AM', icon: Smartphone },
-                                            { action: 'Visitó: Módulo Pagos', time: '10:45 AM', icon: FileText },
-                                            { action: 'Visitó: Calculadora', time: '10:50 AM', icon: Activity },
-                                            { action: 'Cierre de Sesión', time: '11:15 AM', icon: Lock },
-                                        ].map((log, idx) => (
-                                            <div key={idx} className="flex items-center mb-4 pl-4 relative group">
-                                                <div className="absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full bg-gray-300 dark:bg-white/20 border-2 border-white dark:border-black group-hover:bg-brand-purple transition-colors"></div>
-                                                <div className="flex-1">
-                                                    <p className="text-xs font-bold text-brand-black dark:text-white">{log.action}</p>
-                                                    <p className="text-[9px] text-gray-400">{log.time}</p>
-                                                </div>
+                                    {/* Real Data Grid */}
+                                    <div className="grid grid-cols-2 gap-3 mb-6">
+                                        <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5">
+                                            <div className="flex items-center space-x-2 mb-1 text-gray-400">
+                                                <Laptop size={12} />
+                                                <span className="text-[9px] font-black uppercase">Dispositivo</span>
                                             </div>
-                                        ))}
+                                            <span className="text-[10px] font-bold text-brand-black dark:text-white leading-tight block truncate">
+                                                {selectedSecurityUser.deviceInfo || 'Desconocido'}
+                                            </span>
+                                        </div>
+                                        <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5">
+                                            <div className="flex items-center space-x-2 mb-1 text-gray-400">
+                                                <Activity size={12} />
+                                                <span className="text-[9px] font-black uppercase">Último Acceso</span>
+                                            </div>
+                                            <span className="text-[10px] font-bold text-brand-black dark:text-white leading-tight block">
+                                                {selectedSecurityUser.lastLogin ? new Date(selectedSecurityUser.lastLogin).toLocaleString() : 'N/A'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Credentials Section */}
+                                    <div className="mb-6 bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/5">
+                                        <h4 className="text-[10px] font-black uppercase text-gray-400 mb-3 flex items-center">
+                                            <Key size={12} className="mr-1.5" /> Credenciales
+                                        </h4>
+                                        <div className="flex justify-between items-center bg-white dark:bg-black p-3 rounded-lg border border-gray-100 dark:border-white/5 shadow-sm">
+                                            <div>
+                                                <p className="text-[9px] font-bold text-gray-400 uppercase">Contraseña</p>
+                                                <p className="text-sm font-black tracking-[0.2em] text-brand-black dark:text-white">••••••••</p>
+                                            </div>
+                                            <button 
+                                                onClick={() => alert("Se ha enviado un correo de restablecimiento de contraseña al usuario.")}
+                                                className="text-[10px] font-bold text-brand-purple hover:underline"
+                                            >
+                                                Restablecer
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Real Logs History */}
+                                    <div className="mb-2">
+                                        <h4 className="text-[10px] font-black uppercase text-gray-400 mb-3 flex items-center">
+                                            <History size={12} className="mr-1.5" /> Registro de Actividad
+                                        </h4>
+                                        <div className="space-y-0 relative border-l border-gray-200 dark:border-white/10 ml-2">
+                                            {selectedSecurityUser.accessLogs && selectedSecurityUser.accessLogs.length > 0 ? (
+                                                selectedSecurityUser.accessLogs.slice().reverse().slice(0, 5).map((log: any, idx: number) => (
+                                                    <div key={idx} className="flex items-start mb-4 pl-4 relative group">
+                                                        <div className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-gray-300 dark:bg-white/20 border-2 border-white dark:border-black group-hover:bg-brand-purple transition-colors"></div>
+                                                        <div className="flex-1">
+                                                            <p className="text-xs font-bold text-brand-black dark:text-white">{log.action}</p>
+                                                            <p className="text-[9px] text-gray-400">{new Date(log.timestamp).toLocaleString()}</p>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-xs text-gray-400 pl-4 italic">No hay registros recientes.</p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-
-                                {/* SECURITY CONTROLS BAR */}
-                                <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-100 dark:border-white/5">
-                                    <button 
-                                        onClick={() => initiateSecurityAction(selectedSecurityUser.isBlocked ? 'unblock' : 'block', selectedSecurityUser.id)}
-                                        className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1 active:scale-95 transition-all ${
-                                            selectedSecurityUser.isBlocked 
-                                            ? 'bg-green-50 text-green-600 border border-green-200' 
-                                            : 'bg-red-50 text-red-600 border border-red-200'
-                                        }`}
-                                    >
-                                        {selectedSecurityUser.isBlocked ? <Unlock size={20} /> : <Lock size={20} />}
-                                        <span className="text-[9px] font-black uppercase">
-                                            {selectedSecurityUser.isBlocked ? 'Desbloquear' : 'Bloquear Acceso'}
-                                        </span>
-                                    </button>
-
-                                    <button 
-                                        onClick={() => initiateSecurityAction('reset_session', selectedSecurityUser.id)}
-                                        className="p-3 rounded-xl flex flex-col items-center justify-center gap-1 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 active:scale-95 transition-all border border-transparent hover:border-gray-300"
-                                    >
-                                        <RefreshCw size={20} />
-                                        <span className="text-[9px] font-black uppercase">Reset Sesión</span>
-                                    </button>
-
-                                    <button 
-                                        onClick={() => initiateSecurityAction(selectedSecurityUser.isAdmin ? 'remove_admin' : 'make_admin', selectedSecurityUser.id)}
-                                        className={`col-span-2 p-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all border ${
-                                            selectedSecurityUser.isAdmin
-                                            ? 'bg-gray-800 text-white border-gray-700'
-                                            : 'bg-white dark:bg-brand-dark-card text-brand-black dark:text-white border-gray-200 dark:border-white/10 shadow-sm'
-                                        }`}
-                                    >
-                                        {selectedSecurityUser.isAdmin ? <UserCheck size={16} /> : <Shield size={16} />}
-                                        <span className="text-[10px] font-black uppercase">
-                                            {selectedSecurityUser.isAdmin ? 'Revocar Permisos Admin' : 'Asignar Rol Administrador'}
-                                        </span>
-                                    </button>
-                                </div>
-
                             </div>
+
+                            {/* Footer Actions (Sticky Bottom) */}
+                            <div className="p-4 bg-white dark:bg-[#121212] border-t border-gray-100 dark:border-white/5 grid grid-cols-2 gap-3 shrink-0">
+                                <button 
+                                    onClick={() => initiateSecurityAction(selectedSecurityUser.isBlocked ? 'unblock' : 'block', selectedSecurityUser.id)}
+                                    className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1 active:scale-95 transition-all ${
+                                        selectedSecurityUser.isBlocked 
+                                        ? 'bg-green-50 text-green-600 border border-green-200' 
+                                        : 'bg-red-50 text-red-600 border border-red-200'
+                                    }`}
+                                >
+                                    {selectedSecurityUser.isBlocked ? <Unlock size={20} /> : <Lock size={20} />}
+                                    <span className="text-[9px] font-black uppercase">
+                                        {selectedSecurityUser.isBlocked ? 'Desbloquear' : 'Bloquear Acceso'}
+                                    </span>
+                                </button>
+
+                                <button 
+                                    onClick={() => initiateSecurityAction(selectedSecurityUser.isAdmin ? 'remove_admin' : 'make_admin', selectedSecurityUser.id)}
+                                    className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1 active:scale-95 transition-all border ${
+                                        selectedSecurityUser.isAdmin
+                                        ? 'bg-gray-800 text-white border-gray-700'
+                                        : 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 border-transparent'
+                                    }`}
+                                >
+                                    {selectedSecurityUser.isAdmin ? <UserCheck size={20} /> : <Shield size={20} />}
+                                    <span className="text-[9px] font-black uppercase">
+                                        {selectedSecurityUser.isAdmin ? 'Revocar Admin' : 'Hacer Admin'}
+                                    </span>
+                                </button>
+                            </div>
+
                         </div>
                     </div>
                 )}

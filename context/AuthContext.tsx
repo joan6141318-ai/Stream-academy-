@@ -7,10 +7,11 @@ import {
   updateProfile as updateAuthProfile,
   sendEmailVerification
 } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from '../firebaseConfig';
 import { ADMIN_EMAILS, DATA_VERSION } from '../constants';
+import { ActivityLog } from '../types';
 
 export interface User {
   id: string; // Firebase UID
@@ -21,6 +22,9 @@ export interface User {
   isAdmin?: boolean;
   isOnboardingComplete?: boolean;
   dataVersion?: number; // Para controlar migraciones
+  lastLogin?: string;
+  deviceInfo?: string;
+  accessLogs?: ActivityLog[];
 }
 
 interface AuthContextType {
@@ -145,6 +149,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userEmail = fbUser.email?.toLowerCase() || "";
       const isOfficialAdmin = ADMIN_EMAILS.includes(userEmail);
 
+      // Record Real Activity
+      const now = new Date();
+      const deviceString = navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Unknown Device';
+      
+      const newLog: ActivityLog = {
+          action: 'Inicio de Sesión',
+          timestamp: now.toISOString(),
+          device: deviceString
+      };
+
+      // Update Firestore with Real Data
+      if (db) {
+          try {
+              const userRef = doc(db, "users", fbUser.uid);
+              await setDoc(userRef, {
+                  lastLogin: now.toISOString(),
+                  deviceInfo: deviceString,
+                  // Use arrayUnion to add log without overwriting
+                  accessLogs: arrayUnion(newLog) 
+              }, { merge: true });
+          } catch (e) {
+              console.error("Error logging activity", e);
+          }
+      }
+
       // Optimistic User Set
       const instantUser: User = {
           id: fbUser.uid,
@@ -171,6 +200,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       sendEmailVerification(fbUser).catch(e => console.warn("Email verification error", e));
 
+      const now = new Date();
+      const deviceString = navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Unknown Device';
+
       const newUserProfile: User = {
         id: fbUser.uid,
         name: name,
@@ -179,7 +211,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: isOfficialAdmin ? "Administrador" : "Streamer Oficial",
         isAdmin: isOfficialAdmin,
         isOnboardingComplete: false,
-        dataVersion: DATA_VERSION
+        dataVersion: DATA_VERSION,
+        lastLogin: now.toISOString(),
+        deviceInfo: deviceString,
+        accessLogs: [{ action: 'Registro de Cuenta', timestamp: now.toISOString(), device: deviceString }]
       };
 
       setUser(newUserProfile);

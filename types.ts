@@ -53,6 +53,13 @@ export interface UserProfile {
   isAdmin?: boolean; 
 }
 
+// --- SECURITY & LOGS ---
+export interface ActivityLog {
+  action: string;
+  timestamp: string; // ISO String for easier storage/display
+  device: string;
+}
+
 // --- PK ARENA TYPES ---
 export interface PKEvent {
   id: string;
