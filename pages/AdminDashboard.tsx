@@ -134,7 +134,7 @@ const AdminDashboard: React.FC = () => {
       
       {/* --- NAV PILLS --- */}
       <div className="pt-[calc(3.5rem+env(safe-area-inset-top))] px-4 pb-4 bg-white dark:bg-black/95 sticky top-0 z-30 border-b border-gray-100 dark:border-white/5">
-        <div className="flex space-x-2 overflow-x-auto scrollbar-hide pb-2">
+        <div className="flex space-x-2 overflow-x-auto scrollbar-hide p-2">
             {[
                 { id: 'users', label: 'Emisores', icon: Users },
                 { id: 'pk', label: 'Arena PK', icon: Swords },
