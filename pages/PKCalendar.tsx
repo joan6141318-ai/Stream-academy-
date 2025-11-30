@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Calendar, Swords, Shield, ArrowRight, ChevronDown, ChevronUp, CheckCircle2, Clock, Check, History, XCircle, AlertCircle, CalendarCheck, Loader2 } from 'lucide-react';
@@ -27,11 +28,23 @@ const PKCalendar: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [myRequest, setMyRequest] = useState<RequestData | null>(null);
 
+  // Ref para el temporizador de notificación
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Fecha Actual Formateada
   const today = new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
 
   // Filtrar solicitudes del usuario actual
   const myRequestsHistory = pkRequests.filter(req => req.userId === user?.id);
+
+  // Limpiar temporizador al desmontar
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
 
   const handleRequestPK = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -55,6 +68,17 @@ const PKCalendar: React.FC = () => {
           setTimeout(() => {
               window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
           }, 500);
+
+          // Limpiar timer anterior si existe
+          if (timerRef.current) {
+            clearTimeout(timerRef.current);
+          }
+
+          // Ocultar confirmación después de 5 segundos
+          timerRef.current = setTimeout(() => {
+              setMyRequest(null);
+              timerRef.current = null;
+          }, 5000);
 
       } catch (error) {
           alert("Error al enviar la solicitud. Intenta de nuevo.");
@@ -344,11 +368,11 @@ const PKCalendar: React.FC = () => {
                                 <div>
                                     <div className="flex items-center space-x-2">
                                         <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${
-                                            req.status === 'approved' ? 'bg-green-100 text-green-700' :
-                                            req.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                                            'bg-amber-100 text-amber-700'
+                                            req.status === 'approved' ? 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400' :
+                                            req.status === 'rejected' ? 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400' :
+                                            'bg-amber-100 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400'
                                         }`}>
-                                            {req.status === 'pending' ? 'EN REVISIÓN' : (req.status === 'approved' ? 'AGENDADA' : 'RECHAZADA')}
+                                            {req.status === 'pending' ? 'EN ESPERA DE RESPUESTA' : (req.status === 'approved' ? 'AGENDADA' : 'RECHAZADA')}
                                         </span>
                                     </div>
                                     <h4 className="text-sm font-black text-brand-black dark:text-white uppercase mt-1">{req.date}</h4>
