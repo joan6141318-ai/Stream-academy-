@@ -25,6 +25,7 @@ export interface User {
   lastLogin?: string;
   deviceInfo?: string;
   accessLogs?: ActivityLog[];
+  isBlocked?: boolean;
 }
 
 interface AuthContextType {
@@ -86,14 +87,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     const dbData = userDoc.data();
                     
                     // --- MIGRATION LOGIC ---
-                    // Si el usuario tiene una versión de datos vieja O no tiene versión
-                    // Forzamos la actualización
                     const needsMigration = !dbData.dataVersion || dbData.dataVersion < DATA_VERSION;
 
                     if (needsMigration) {
-                        console.log("Migrating user profile to version", DATA_VERSION);
-                        
-                        // Reseteamos valores críticos
                         const updatedProfile = {
                             ...baseUser,
                             ...dbData,
@@ -103,16 +99,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             dataVersion: DATA_VERSION
                         };
                         
-                        // Guardar en DB inmediatamente
                         await setDoc(userDocRef, updatedProfile, { merge: true });
                         setUser(updatedProfile);
 
                     } else {
-                        // Usuario actualizado, cargar normal
                         setUser({ 
                             ...baseUser, 
                             ...dbData, 
-                            // Siempre reforzamos la seguridad del admin en memoria
                             isAdmin: isOfficialAdmin,
                             role: isOfficialAdmin ? "Administrador" : (dbData.role || "Streamer")
                         } as User);
@@ -146,47 +139,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const credential = await signInWithEmailAndPassword(auth, email, pass);
       const fbUser = credential.user;
-      const userEmail = fbUser.email?.toLowerCase() || "";
-      const isOfficialAdmin = ADMIN_EMAILS.includes(userEmail);
-
-      // Record Real Activity
-      const now = new Date();
-      const deviceString = navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Unknown Device';
       
+      // --- CAPTURA DE DATOS REALES DE SEGURIDAD ---
+      const now = new Date();
+      // Simple User Agent Parser for better readability
+      const ua = navigator.userAgent;
+      let deviceString = "Desconocido";
+      if (ua.includes("iPhone")) deviceString = "iPhone iOS";
+      else if (ua.includes("iPad")) deviceString = "iPadOS";
+      else if (ua.includes("Android")) deviceString = "Android Device";
+      else if (ua.includes("Windows")) deviceString = "PC Windows";
+      else if (ua.includes("Mac")) deviceString = "Macintosh";
+      else if (ua.includes("Linux")) deviceString = "Linux Desktop";
+
+      // Append Browser info
+      if (ua.includes("Chrome")) deviceString += " (Chrome)";
+      else if (ua.includes("Firefox")) deviceString += " (Firefox)";
+      else if (ua.includes("Safari")) deviceString += " (Safari)";
+
       const newLog: ActivityLog = {
-          action: 'Inicio de Sesión',
+          action: 'Inicio de Sesión Exitoso',
           timestamp: now.toISOString(),
-          device: deviceString
+          device: deviceString,
+          type: 'login'
       };
 
-      // Update Firestore with Real Data
+      // Update Firestore with Real Data (Using arrayUnion for append)
       if (db) {
           try {
               const userRef = doc(db, "users", fbUser.uid);
-              await setDoc(userRef, {
+              await updateDoc(userRef, {
                   lastLogin: now.toISOString(),
                   deviceInfo: deviceString,
-                  // Use arrayUnion to add log without overwriting
                   accessLogs: arrayUnion(newLog) 
-              }, { merge: true });
+              });
           } catch (e) {
               console.error("Error logging activity", e);
+              // Fallback if doc doesn't exist (edge case)
+              const userRef = doc(db, "users", fbUser.uid);
+              await setDoc(userRef, {
+                   lastLogin: now.toISOString(),
+                   deviceInfo: deviceString,
+                   accessLogs: [newLog]
+              }, { merge: true });
           }
       }
-
-      // Optimistic User Set
-      const instantUser: User = {
-          id: fbUser.uid,
-          name: fbUser.displayName || "Usuario",
-          email: userEmail,
-          avatarUrl: fbUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${fbUser.displayName || 'User'}`,
-          role: isOfficialAdmin ? "Administrador" : "Streamer",
-          isAdmin: isOfficialAdmin,
-          isOnboardingComplete: true // Will be checked against DB in next tick
-      };
-      
-      setUser(instantUser);
-      setLoading(false);
+      // UI state will be handled by onAuthStateChanged
   };
 
   // --- REGISTRO ---
@@ -201,7 +199,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       sendEmailVerification(fbUser).catch(e => console.warn("Email verification error", e));
 
       const now = new Date();
-      const deviceString = navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Unknown Device';
+      const deviceString = navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Web Browser';
 
       const newUserProfile: User = {
         id: fbUser.uid,
@@ -214,7 +212,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         dataVersion: DATA_VERSION,
         lastLogin: now.toISOString(),
         deviceInfo: deviceString,
-        accessLogs: [{ action: 'Registro de Cuenta', timestamp: now.toISOString(), device: deviceString }]
+        accessLogs: [{ action: 'Cuenta Creada', timestamp: now.toISOString(), device: deviceString, type: 'login' }]
       };
 
       setUser(newUserProfile);
@@ -236,40 +234,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
   };
 
-  // HYBRID UPLOAD STRATEGY: Storage -> Fallback to Base64 string
   const uploadPhoto = async (file: Blob, base64Fallback?: string): Promise<string> => {
       if (!user) throw new Error("No authenticated user");
       
-      // 1. Try Firebase Storage
       if (storage) {
           try {
               const storageRef = ref(storage, `avatars/${user.id}_profile.jpg`);
               await uploadBytes(storageRef, file);
               const downloadURL = await getDownloadURL(storageRef);
-              return `${downloadURL}?t=${new Date().getTime()}`; // Cache busting
+              return `${downloadURL}?t=${new Date().getTime()}`; 
           } catch (error) {
-              console.warn("Storage upload failed (permissions/network). Switching to Base64 fallback.", error);
+              console.warn("Storage upload failed. Switching to Base64 fallback.", error);
           }
       }
 
-      // 2. Fallback: Return the Base64 string directly
-      // This saves the image *inside* the text profile in Firestore
       if (base64Fallback) {
           return base64Fallback;
       }
 
-      throw new Error("No se pudo subir la imagen ni usar el respaldo.");
+      throw new Error("No se pudo subir la imagen.");
   };
 
   const updateProfile = async (data: Partial<User>) => {
     if (!user) return;
     
-    // Security Check: Prevent setting isAdmin via updateProfile unless email is whitelisted
+    // Security Check
     if (data.isAdmin !== undefined) {
         const isOfficialAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
         if (!isOfficialAdmin) {
-            delete data.isAdmin; // Remove attempt to gain admin rights
-            console.warn("Security Block: Attempt to set Admin privileges denied.");
+            delete data.isAdmin;
+        }
+    }
+
+    // Log Profile Changes
+    if (db) {
+        const now = new Date();
+        const deviceString = navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Web Browser';
+        
+        // If updating name or avatar, log it
+        if (data.name || data.avatarUrl) {
+             const log: ActivityLog = {
+                 action: 'Perfil Actualizado',
+                 timestamp: now.toISOString(),
+                 device: deviceString,
+                 type: 'profile_update'
+             };
+             try {
+                // We do this separately to avoid circular logic in state
+                const userRef = doc(db, "users", user.id);
+                await updateDoc(userRef, { accessLogs: arrayUnion(log) });
+             } catch(e) {}
         }
     }
     
@@ -293,7 +307,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         }
     } catch (e) {
-        console.warn("Profile sync warning (offline/network):", e);
+        console.warn("Profile sync warning:", e);
     }
   };
 

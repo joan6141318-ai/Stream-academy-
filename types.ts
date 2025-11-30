@@ -56,8 +56,9 @@ export interface UserProfile {
 // --- SECURITY & LOGS ---
 export interface ActivityLog {
   action: string;
-  timestamp: string; // ISO String for easier storage/display
+  timestamp: string; // ISO String
   device: string;
+  type?: 'login' | 'security_alert' | 'profile_update';
 }
 
 // --- PK ARENA TYPES ---
