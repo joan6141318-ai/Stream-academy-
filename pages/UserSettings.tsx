@@ -1,8 +1,10 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Bell, Lock, HelpCircle, ChevronRight, Camera, User, Mail, Moon, Save, Type, Shield, Grid, X, Smile, Check } from 'lucide-react';
+import { LogOut, Bell, Lock, HelpCircle, ChevronRight, Camera, User, Mail, Moon, Save, Type, Shield, Grid, X, Smile, Check, FileText } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
+import { PrivacyPolicyModal } from './PrivacyPolicyModal';
 
 // Avatares para selección rápida
 const AVATARS = [
@@ -67,6 +69,7 @@ const UserSettings: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -365,7 +368,17 @@ const UserSettings: React.FC = () => {
                 <LogOut size={16} className="mr-2" />
                 Cerrar Sesión
             </button>
-            <p className="text-center text-[10px] font-bold text-gray-300 dark:text-gray-600 mt-4 uppercase">
+            
+            {/* Legal Link */}
+            <button 
+                onClick={() => setShowPrivacy(true)}
+                className="w-full mt-4 text-center text-[9px] font-bold text-gray-400 hover:text-brand-purple uppercase tracking-widest transition-colors flex items-center justify-center space-x-1"
+            >
+                <FileText size={10} />
+                <span>Privacidad y Condiciones</span>
+            </button>
+
+            <p className="text-center text-[9px] font-bold text-gray-300 dark:text-gray-600 mt-2 uppercase">
                 StreamAgency v2.0 • Secure Build
             </p>
         </div>
@@ -419,6 +432,9 @@ const UserSettings: React.FC = () => {
             </div>
         </div>
       )}
+
+      {/* Privacy Modal */}
+      {showPrivacy && <PrivacyPolicyModal onClose={() => setShowPrivacy(false)} />}
 
     </div>
   );

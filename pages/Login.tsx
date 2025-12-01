@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, AlertCircle, WifiOff, Check, ShieldAlert } from 'lucide-react';
+import { Zap, AlertCircle, WifiOff, Check, ShieldAlert, FileText } from 'lucide-react';
 import { Button } from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 import { useContent, hashString } from '../context/ContentContext';
+import { PrivacyPolicyModal } from './PrivacyPolicyModal';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -25,6 +27,7 @@ const Login: React.FC = () => {
   const [isSecurityError, setIsSecurityError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   // EFECTO: Si el usuario ya está logueado, mandarlo a /welcome
   useEffect(() => {
@@ -247,11 +250,20 @@ const Login: React.FC = () => {
         </form>
       </div>
       
-      <div className="pb-6 text-center">
+      <div className="pb-6 text-center flex flex-col items-center gap-2">
+         <button 
+            onClick={() => setShowPrivacy(true)}
+            className="text-[9px] font-bold text-gray-300 hover:text-brand-purple dark:hover:text-white transition-colors uppercase tracking-widest flex items-center"
+         >
+            <FileText size={10} className="mr-1" />
+            Términos y Privacidad
+         </button>
          <p className="text-[9px] font-bold text-gray-200 dark:text-gray-800 uppercase tracking-widest">
            Secure Access • v2.2
          </p>
       </div>
+
+      {showPrivacy && <PrivacyPolicyModal onClose={() => setShowPrivacy(false)} />}
     </div>
   );
 };
