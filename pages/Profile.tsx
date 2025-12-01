@@ -1,12 +1,12 @@
 
-
 import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlayCircle, Shield, DollarSign, BarChart2, Zap, Star, Lock, Smartphone, BellRing, Trophy, TrendingUp, Video, ShieldCheck, HelpCircle, Gamepad2 } from 'lucide-react';
+import { PlayCircle, Shield, DollarSign, BarChart2, Zap, Star, Lock, Smartphone, BellRing, Trophy, TrendingUp, Video, ShieldCheck, HelpCircle, Gamepad2, FileText } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { useContent } from '../context/ContentContext';
 import * as LucideIcons from 'lucide-react';
+import { PrivacyPolicyModal } from './PrivacyPolicyModal';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -15,7 +15,8 @@ const Profile: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null); 
   const [activeIndex, setActiveIndex] = useState(0);
-  const [contentPadding, setContentPadding] = useState(0); 
+  const [contentPadding, setContentPadding] = useState(0);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   // Mapa de iconos estáticos para Banners (si se necesita)
   // Nota: Para banners dinámicos, idealmente guardaríamos el nombre del icono, pero por ahora usaremos lógica fallback
@@ -238,8 +239,23 @@ const Profile: React.FC = () => {
               </button>
             </div>
         </div>
+
+        {/* --- PRIVACY POLICY LINK (FOOTER) --- */}
+        <div className="pb-12 px-6 flex justify-center">
+            <button 
+                onClick={() => setShowPrivacy(true)}
+                className="text-[10px] font-bold text-gray-300 dark:text-gray-600 uppercase tracking-widest hover:text-brand-purple dark:hover:text-white transition-colors flex items-center space-x-1"
+            >
+                <FileText size={10} />
+                <span>Aviso de Privacidad y Términos</span>
+            </button>
+        </div>
         
       </div>
+
+      {/* PRIVACY MODAL */}
+      {showPrivacy && <PrivacyPolicyModal onClose={() => setShowPrivacy(false)} />}
+
     </div>
   );
 };
