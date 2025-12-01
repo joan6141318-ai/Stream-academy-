@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, BarChart2, Check, X, Send, Radio, Activity, Trophy, Save, Clock, Trash2, History, Calendar, Eye, Laptop, UserCheck, ShieldCheck, AlertTriangle, ChevronRight } from 'lucide-react';
+import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, BarChart2, Check, X, Send, Radio, Activity, Trophy, Save, Clock, Trash2, History, Calendar, Eye, Laptop, UserCheck, ShieldCheck, AlertTriangle, ChevronRight, Key, EyeOff } from 'lucide-react';
 import { collection, updateDoc, doc, onSnapshot, query, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Header } from '../components/Header';
 import { Button } from '../components/Button';
-import { useContent } from '../context/ContentContext';
+import { useContent, hashString } from '../context/ContentContext';
 import { PKSchedule, PKEvent, ActivityLog } from '../types';
 
 const AdminDashboard: React.FC = () => {
@@ -31,6 +31,11 @@ const AdminDashboard: React.FC = () => {
 
   // --- SECURITY STATES (REAL TIME FIX) ---
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  
+  // Agency Code Management State
+  const [newAgencyCode, setNewAgencyCode] = useState('');
+  const [showAgencyCode, setShowAgencyCode] = useState(false);
+  const [isUpdatingKey, setIsUpdatingKey] = useState(false);
   
   // Derivamos el usuario seleccionado en tiempo real
   const selectedSecurityUser = users.find(u => u.id === selectedUserId) || null;
@@ -80,6 +85,26 @@ const AdminDashboard: React.FC = () => {
     } catch (e) {
         alert("Error al actualizar estado de seguridad.");
     }
+  };
+
+  const handleUpdateAgencyCode = async () => {
+      if (!newAgencyCode.trim()) {
+          alert("La contraseña no puede estar vacía.");
+          return;
+      }
+      
+      setIsUpdatingKey(true);
+      try {
+          // Encrypt
+          const hashed = await hashString(newAgencyCode.trim().toLowerCase());
+          await updateHomeConfig({ agencyCodeHash: hashed });
+          alert("¡Código de Agencia actualizado exitosamente! Los nuevos usuarios deberán usar esta clave.");
+          setNewAgencyCode('');
+      } catch(e) {
+          alert("Error al actualizar clave.");
+      } finally {
+          setIsUpdatingKey(false);
+      }
   };
 
   const handleSendAlert = async () => {
@@ -184,12 +209,6 @@ const AdminDashboard: React.FC = () => {
   const DEFAULT_HASH = "a43c1b0aa53a0c908810c03ab1d7cb9922c2a05d605c567839356b20677275c5";
   const isDefaultAgencyCode = homeConfig?.agencyCodeHash === DEFAULT_HASH || !homeConfig?.agencyCodeHash;
 
-  // Direct navigation to fix security issue
-  const handleFixSecurity = () => {
-      navigate('/admin/editor');
-      alert('Ve a "Página principal de inicio" -> "Textos y Accesos" para cambiar el código.');
-  };
-
   return (
     <div className="flex flex-col h-full w-full bg-gray-50 dark:bg-black transition-colors duration-300">
       <Header title="Panel Admin" showBack onBack={() => navigate('/admin/selection')} />
@@ -293,10 +312,7 @@ const AdminDashboard: React.FC = () => {
 
                 {/* WARNING ALERT FOR DEFAULT PASSWORD */}
                 {isDefaultAgencyCode && (
-                    <button 
-                        onClick={handleFixSecurity}
-                        className="w-full bg-yellow-500/10 border border-yellow-500/50 p-4 rounded-2xl flex items-center justify-between gap-3 text-left group active:scale-[0.98] transition-all hover:bg-yellow-500/20"
-                    >
+                    <div className="w-full bg-yellow-500/10 border border-yellow-500/50 p-4 rounded-2xl flex items-center justify-between gap-3 text-left group">
                         <div className="flex items-start gap-3">
                             <AlertTriangle className="text-yellow-500 flex-shrink-0 mt-1" size={20} />
                             <div>
@@ -304,13 +320,51 @@ const AdminDashboard: React.FC = () => {
                                 <p className="text-[10px] text-yellow-600 dark:text-yellow-400 leading-relaxed font-medium">
                                     El "Código de Agencia" es inseguro ("moon").
                                     <br/>
-                                    <span className="block mt-1 font-bold underline decoration-yellow-500/50">Toque aquí para cambiarlo ahora.</span>
+                                    Utiliza el módulo de abajo para cambiarlo.
                                 </p>
                             </div>
                         </div>
-                        <ChevronRight className="text-yellow-500 opacity-50 group-hover:opacity-100" size={16} />
-                    </button>
+                    </div>
                 )}
+
+                {/* --- AGENCY CODE MANAGEMENT --- */}
+                <div className="bg-white dark:bg-brand-dark-card p-6 rounded-3xl border border-gray-100 dark:border-white/5">
+                    <div className="flex items-center space-x-2 mb-4">
+                        <div className="bg-brand-purple/10 p-2 rounded-lg">
+                            <Key className="text-brand-purple" size={20} />
+                        </div>
+                        <h3 className="text-sm font-black uppercase text-brand-black dark:text-white">Llave de Acceso (Registro)</h3>
+                    </div>
+                    
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase text-gray-400 block">Nueva Contraseña de Agencia</label>
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <input 
+                                    type={showAgencyCode ? "text" : "password"} 
+                                    value={newAgencyCode} 
+                                    onChange={(e) => setNewAgencyCode(e.target.value)}
+                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 text-sm font-black text-brand-black dark:text-white focus:border-brand-purple outline-none tracking-widest pr-10 placeholder:font-normal placeholder:tracking-normal"
+                                    placeholder="Nueva clave secreta"
+                                />
+                                <button onClick={() => setShowAgencyCode(!showAgencyCode)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-purple">
+                                    {showAgencyCode ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
+                            </div>
+                            <Button 
+                                onClick={handleUpdateAgencyCode} 
+                                disabled={isUpdatingKey || !newAgencyCode.trim()} 
+                                size="sm" 
+                                className="h-auto rounded-xl shadow-lg"
+                            >
+                                {isUpdatingKey ? '...' : <Save size={18} />}
+                            </Button>
+                        </div>
+                        <p className="text-[9px] text-gray-400 font-medium leading-tight">
+                            * Esta clave es necesaria para que nuevos usuarios creen una cuenta.
+                        </p>
+                    </div>
+                </div>
 
                 <div className="bg-white dark:bg-brand-dark-card p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center">
                     <Search size={18} className="text-gray-400 ml-2" />

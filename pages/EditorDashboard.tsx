@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Layers, Image, Type, Save, Layout, ChevronRight, Edit3, Palette, Type as TypeIcon, Link as LinkIcon, ExternalLink, ArrowUp, ArrowDown, Minus, Eye, X, Smartphone, BellRing, Trophy, TrendingUp, Video, Gamepad2, Star, ShieldCheck, HelpCircle, ChevronLeft, Droplet, CreditCard, Home, Images, Grid, PaintBucket, Lock, EyeOff } from 'lucide-react';
-import { useContent, hashString } from '../context/ContentContext';
+import { Layers, Image, Type, Save, Layout, ChevronRight, Edit3, Palette, Type as TypeIcon, Link as LinkIcon, ExternalLink, ArrowUp, ArrowDown, Minus, Eye, X, Smartphone, BellRing, Trophy, TrendingUp, Video, Gamepad2, Star, ShieldCheck, HelpCircle, ChevronLeft, Droplet, CreditCard, Home, Images, Grid, PaintBucket } from 'lucide-react';
+import { useContent } from '../context/ContentContext';
 import * as LucideIcons from 'lucide-react';
 import { TrainingResource } from '../types';
 
@@ -18,8 +18,6 @@ const EditorDashboard: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showFullPreview, setShowFullPreview] = useState(false);
   const [previewView, setPreviewView] = useState<'home' | 'detail'>('home'); 
-  const [showAgencyCode, setShowAgencyCode] = useState(false);
-  const [newAgencyCode, setNewAgencyCode] = useState(''); // State for new password input
 
   const [urlInput, setUrlInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -28,13 +26,9 @@ const EditorDashboard: React.FC = () => {
     if (editingItem && editingResourceIndex === null) {
         const currentImage = editingItem.type === 'banner' ? editingItem.image : editingItem.imageUrl;
         setUrlInput(currentImage || '');
-        // Reset password input when opening config
-        if (editingItem.type === 'config') setNewAgencyCode('');
     }
   }, [editingItem, activeCategory, editingResourceIndex]);
 
-  // ... (existing helper effects and functions: useEffect for preview, handleBack, openGallery, handleImageChange, etc.) ...
-  
   useEffect(() => {
       if (showFullPreview) {
           setPreviewView(isEditingResource ? 'detail' : 'home');
@@ -198,20 +192,11 @@ const EditorDashboard: React.FC = () => {
               };
               await updateBanner(String(editingItem.id), dataToSave);
           } else if (editingItem.type === 'config') {
-              // --- CONFIG SAVE LOGIC (WITH HASH) ---
               const dataToSave: any = {
                   welcomeText: editingItem.welcomeText,
                   modulesTitle: editingItem.modulesTitle,
                   modulesSubtitle: editingItem.modulesSubtitle,
-                  // No change to agencyCodeHash unless newAgencyCode is provided
               };
-              
-              if (newAgencyCode.trim()) {
-                  // Encrypt the new code
-                  const hashed = await hashString(newAgencyCode.trim().toLowerCase());
-                  dataToSave.agencyCodeHash = hashed;
-              }
-
               await updateHomeConfig(dataToSave);
           } else if (editingItem.type === 'module') {
                if (isStyleOnlyMode) {
@@ -232,7 +217,6 @@ const EditorDashboard: React.FC = () => {
           alert("¡Actualizado! Los cambios ya son visibles en la App.");
           setEditingItem(null);
           setEditingResourceIndex(null);
-          setNewAgencyCode('');
       } catch (e) {
           console.error(e);
           alert("Error al guardar cambios. Verifica tu conexión.");
@@ -247,7 +231,6 @@ const EditorDashboard: React.FC = () => {
       return Icon || LucideIcons.Folder;
   };
 
-  // ... (renderCategoryList, renderItemList functions remain largely same, skipping for brevity, handled by React merge) ...
   const renderCategoryList = () => (
     <div className="grid grid-cols-1 gap-4 animate-fade-in">
         <button 
@@ -306,7 +289,7 @@ const EditorDashboard: React.FC = () => {
                         </h2>
                     </div>
                     <button 
-                        onClick={() => setEditingItem({ id: 'home_config', title: 'Configuración General', subtitle: 'Textos y Accesos', type: 'config', ...homeConfig })}
+                        onClick={() => setEditingItem({ id: 'home_config', title: 'Configuración General', subtitle: 'Textos Principales', type: 'config', ...homeConfig })}
                         className="w-full bg-white dark:bg-brand-dark-card p-3 rounded-xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center space-x-4 active:scale-[0.99] transition-all text-left group"
                     >
                          <div className="w-16 h-16 rounded-lg bg-brand-black dark:bg-white/10 flex items-center justify-center text-white">
@@ -314,10 +297,10 @@ const EditorDashboard: React.FC = () => {
                          </div>
                         <div className="flex-1 min-w-0">
                             <h4 className="text-xs font-black text-brand-black dark:text-white uppercase truncate mb-1">
-                                Textos y Accesos
+                                Textos Principales
                             </h4>
                             <p className="text-[10px] text-gray-400 font-medium line-clamp-2">
-                                Saludos, títulos y código de agencia.
+                                Saludos, títulos y textos de bienvenida.
                             </p>
                         </div>
                         <ChevronRight size={16} className="text-gray-300" />
@@ -425,7 +408,6 @@ const EditorDashboard: React.FC = () => {
     const currentStyle = isEditingResource ? (currentResource.style || {}) : editingItem.style;
 
     if (isStyleOnlyMode) {
-        // ... (Style only logic same as before, simplified for diff)
         const Icon = getIconComponent(currentStyle.iconName || 'Folder');
         return (
             <div className="animate-slide-up space-y-6">
@@ -499,7 +481,7 @@ const EditorDashboard: React.FC = () => {
                 <>
                 <div className="flex items-center justify-between text-brand-purple border-b border-gray-100 dark:border-white/5 pb-2"><div className="flex items-center space-x-2"><LinkIcon size={16} /><h3 className="text-xs font-black uppercase">Enlace de Imagen (URL)</h3></div><ExternalLink size={12} className="opacity-50" /></div>
                 <div className="bg-purple-50 dark:bg-purple-900/10 p-3 rounded-lg border border-purple-100 dark:border-purple-900/20"><div className="flex gap-2"><input type="text" value={urlInput} onChange={handleUrlInputChange} className="w-full bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-xs font-mono text-gray-600 dark:text-gray-300 focus:border-brand-purple outline-none shadow-inner" placeholder="https://i.imgur.com/..." /><button onClick={openGallery} className="bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 p-3 rounded-lg text-gray-500 hover:text-brand-purple transition-colors flex-shrink-0 shadow-sm" title="Subir archivo desde dispositivo"><Image size={18} /></button></div></div>
-                <div><label className="text-[10px] font-black uppercase text-gray-400 mb-2 block">Ajustar Posición de Imagen</label><div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-lg border border-gray-200 dark:border-white/10"><button onClick={() => handleImagePosition('object-top')} className={`flex-1 flex flex-col items-center justify-center py-2 rounded-md transition-all ${currentPos === 'object-top' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-purple border border-gray-200 dark:border-white/10' : 'text-gray-400 hover:text-gray-600'}`}><ArrowUp size={16} /><span className="text-[9px] font-bold mt-1">Arriba</span></button><button onClick={() => handleImagePosition('object-center')} className={`flex-1 flex flex-col items-center justify-center py-2 rounded-md transition-all ${currentPos === 'object-center' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-purple border border-gray-200 dark:border-white/10' : 'text-gray-400 hover:text-gray-600'}`}><Minus size={16} /><span className="text-[9px] font-bold mt-1">Centro</span></button><button onClick={() => handleImagePosition('object-bottom')} className={`flex-1 flex flex-col items-center justify-center py-2 rounded-md transition-all ${currentPos === 'object-bottom' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-purple border border-gray-200 dark:border-white/10' : 'text-gray-400 hover:text-gray-600'}`}><ArrowDown size={16} /><span className="text-[9px] font-bold mt-1">Abajo</span></button></div></div>
+                <div><label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Ajustar Posición de Imagen</label><div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-lg border border-gray-200 dark:border-white/10"><button onClick={() => handleImagePosition('object-top')} className={`flex-1 flex flex-col items-center justify-center py-2 rounded-md transition-all ${currentPos === 'object-top' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-purple border border-gray-200 dark:border-white/10' : 'text-gray-400 hover:text-gray-600'}`}><ArrowUp size={16} /><span className="text-[9px] font-bold mt-1">Arriba</span></button><button onClick={() => handleImagePosition('object-center')} className={`flex-1 flex flex-col items-center justify-center py-2 rounded-md transition-all ${currentPos === 'object-center' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-purple border border-gray-200 dark:border-white/10' : 'text-gray-400 hover:text-gray-600'}`}><Minus size={16} /><span className="text-[9px] font-bold mt-1">Centro</span></button><button onClick={() => handleImagePosition('object-bottom')} className={`flex-1 flex flex-col items-center justify-center py-2 rounded-md transition-all ${currentPos === 'object-bottom' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-purple border border-gray-200 dark:border-white/10' : 'text-gray-400 hover:text-gray-600'}`}><ArrowDown size={16} /><span className="text-[9px] font-bold mt-1">Abajo</span></button></div></div>
                 </>
             )}
 
@@ -515,23 +497,6 @@ const EditorDashboard: React.FC = () => {
                     <div><label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Saludo de Bienvenida</label><input type="text" value={editingItem.welcomeText || ''} onChange={(e) => setEditingItem({...editingItem, welcomeText: e.target.value})} className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-bold dark:text-white focus:border-brand-purple outline-none" placeholder="Ej: Bienvenido de nuevo," /></div>
                     <div><label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Título de Sección Módulos</label><input type="text" value={editingItem.modulesTitle || ''} onChange={(e) => setEditingItem({...editingItem, modulesTitle: e.target.value})} className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-bold dark:text-white focus:border-brand-purple outline-none" placeholder="Ej: Módulos de Capacitación" /></div>
                     <div><label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Subtítulo de Sección</label><textarea value={editingItem.modulesSubtitle || ''} onChange={(e) => setEditingItem({...editingItem, modulesSubtitle: e.target.value})} rows={2} className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-medium dark:text-white focus:border-brand-purple outline-none resize-none" placeholder="Ej: Elige el módulo relacionado con tu duda" /></div>
-                    
-                    {/* NEW: Agency Code Editor with Encryption Logic */}
-                    <div className="pt-4 border-t border-gray-100 dark:border-white/5 mt-4">
-                        <div className="flex items-center space-x-2 text-brand-purple mb-3"><Lock size={16} /><h3 className="text-xs font-black uppercase">Seguridad de Acceso</h3></div>
-                        <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Nuevo Código de Agencia (Registro)</label>
-                        <div className="relative">
-                            <input 
-                                type={showAgencyCode ? "text" : "password"} 
-                                value={newAgencyCode} 
-                                onChange={(e) => setNewAgencyCode(e.target.value)}
-                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-black text-brand-black dark:text-white focus:border-brand-purple outline-none tracking-widest pr-10 placeholder:font-normal"
-                                placeholder={editingItem.agencyCodeHash ? "•••••• (Oculto)" : "Establecer contraseña"}
-                            />
-                            <button onClick={() => setShowAgencyCode(!showAgencyCode)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-purple">{showAgencyCode ? <EyeOff size={16} /> : <Eye size={16} />}</button>
-                        </div>
-                        <p className="text-[9px] text-gray-400 mt-1">Déjalo vacío para mantener el actual. Al guardar, se encriptará automáticamente.</p>
-                    </div>
                 </>
             )}
 
