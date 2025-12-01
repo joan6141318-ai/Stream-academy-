@@ -1,6 +1,6 @@
 
-// Nombre del caché - Actualizado a v15 para forzar recarga por error de importación
-const CACHE_NAME = 'stream-agency-v15-hotfix-rel';
+// Nombre del caché - Actualizado a v16 para forzar recarga por actualización de seguridad
+const CACHE_NAME = 'stream-agency-v16-realtime-secure';
 
 // Archivos vitales para que la app arranque offline
 const ASSETS_TO_CACHE = [

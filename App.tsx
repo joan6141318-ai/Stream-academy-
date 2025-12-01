@@ -28,7 +28,7 @@ import AccessDenied from './pages/AccessDenied';
 import { MainLayout } from './components/MainLayout';
 import { InstallPrompt } from './components/InstallPrompt';
 
-// System Version: v15.1.0 - Access Control Update
+// System Version: v16.0.0 - Realtime Security Core
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -67,9 +67,9 @@ const AppContent: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const location = useLocation();
 
-  // --- 1. GLOBAL BLOCKED USER CHECK ---
+  // --- 1. GLOBAL BLOCKED USER CHECK (KILL SWITCH) ---
   // If user is blocked, redirect to /access-denied immediately.
-  // Allow Login page so they can logout/switch accounts.
+  // This reacts instantly to AuthContext updates from Firestore onSnapshot.
   if (!authLoading && user?.isBlocked) {
       const isAccessDeniedPage = location.pathname === '/access-denied';
       const isLoginPage = location.pathname === '/';
