@@ -507,17 +507,55 @@ const AdminDashboard: React.FC = () => {
 
                 {/* 4. LOCKDOWN VIEW */}
                 {securityView === 'lockdown' && (
-                    <div className="space-y-6 animate-slide-up">
-                        <div className="flex items-center space-x-2 mb-4">
+                    <div className="space-y-8 animate-slide-up">
+                        <div className="flex items-center space-x-2 mb-2">
                             <button onClick={() => setSecurityView('menu')} className="bg-gray-100 dark:bg-white/10 p-2 rounded-lg text-gray-500 hover:text-brand-black dark:hover:text-white transition-colors">
                                 <ArrowLeft size={18} />
                             </button>
                             <h2 className="text-lg font-black uppercase text-brand-black dark:text-white">Protocolo Emergencia</h2>
                         </div>
 
-                        {/* --- MAINTENANCE PREVIEW CARD (NO IMAGE - PURE CSS & ICONS) --- */}
-                        {homeConfig.maintenanceMode && (
-                            <div className="relative overflow-hidden bg-white dark:bg-brand-dark-card p-8 rounded-3xl shadow-2xl border border-gray-100 dark:border-white/5 mb-8 animate-fade-in group">
+                        {/* --- MAIN LOCKDOWN CONTROL CARD (TOP) --- */}
+                        <div className={`p-8 rounded-3xl shadow-2xl relative overflow-hidden transition-all duration-500 z-20 ${homeConfig.maintenanceMode ? 'bg-red-700 shadow-red-900/50' : 'bg-white dark:bg-brand-dark-card border border-gray-100 dark:border-white/5'}`}>
+                            {homeConfig.maintenanceMode && <Shield className="absolute -right-6 -bottom-6 text-white/10 rotate-[-15deg]" size={200} />}
+                            
+                            <div className="relative z-10 flex flex-col items-center text-center">
+                                <div className={`p-4 rounded-full mb-6 backdrop-blur-sm ${homeConfig.maintenanceMode ? 'bg-white/20 text-white' : 'bg-red-50 dark:bg-red-900/20 text-red-600'}`}>
+                                    <Ban size={48} strokeWidth={1.5} />
+                                </div>
+                                
+                                <h2 className={`text-2xl font-black uppercase mb-2 ${homeConfig.maintenanceMode ? 'text-white' : 'text-brand-black dark:text-white'}`}>
+                                    {homeConfig.maintenanceMode ? 'SISTEMA CERRADO' : 'SISTEMA ACTIVO'}
+                                </h2>
+                                
+                                <p className={`text-xs font-medium mb-8 leading-relaxed max-w-[280px] ${homeConfig.maintenanceMode ? 'text-white/80' : 'text-gray-500'}`}>
+                                    {homeConfig.maintenanceMode 
+                                        ? "El acceso público está restringido. Solo los administradores pueden ingresar a la plataforma." 
+                                        : "Si activas el Lockdown, todos los usuarios (excepto administradores) serán expulsados inmediatamente a la pantalla de mantenimiento."}
+                                </p>
+
+                                <div className="w-full">
+                                    {homeConfig.maintenanceMode ? (
+                                        <button onClick={() => handleGlobalBlock(false)} className="w-full bg-white text-red-700 h-14 rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center shadow-lg active:scale-95 transition-transform">
+                                            <Unlock size={16} className="mr-2" /> RESTAURAR ACCESO PÚBLICO
+                                        </button>
+                                    ) : (
+                                        <button onClick={() => handleGlobalBlock(true)} className="w-full bg-red-600 text-white h-14 rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center shadow-lg active:scale-95 transition-transform hover:bg-red-700">
+                                            <Lock size={16} className="mr-2" /> ACTIVAR LOCKDOWN TOTAL
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* --- MAINTENANCE PREVIEW CARD (BOTTOM - SEPARATE) --- */}
+                        <div className="relative group">
+                            <div className="flex items-center space-x-2 mb-3 px-2">
+                                <Eye size={14} className="text-brand-purple" />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Vista Previa para Usuarios</span>
+                            </div>
+
+                            <div className={`relative overflow-hidden bg-white dark:bg-brand-dark-card p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-white/5 transition-all duration-500 ${!homeConfig.maintenanceMode ? 'opacity-60 grayscale-[0.5] scale-[0.98]' : 'scale-100 opacity-100 ring-2 ring-brand-purple/20'}`}>
                                 {/* Background Decor */}
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-purple/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
 
@@ -550,45 +588,12 @@ const AdminDashboard: React.FC = () => {
                                     </p>
 
                                     {/* Status Badge */}
-                                    <div className="inline-flex items-center space-x-2 bg-brand-black dark:bg-white text-white dark:text-black px-4 py-1.5 rounded-full shadow-lg">
-                                        <div className="w-2 h-2 bg-brand-purple rounded-full animate-pulse"></div>
+                                    <div className={`inline-flex items-center space-x-2 px-4 py-1.5 rounded-full shadow-lg transition-colors ${homeConfig.maintenanceMode ? 'bg-brand-black dark:bg-white text-white dark:text-black' : 'bg-gray-100 dark:bg-white/10 text-gray-400'}`}>
+                                        <div className={`w-2 h-2 rounded-full ${homeConfig.maintenanceMode ? 'bg-brand-purple animate-pulse' : 'bg-gray-400'}`}></div>
                                         <span className="text-[10px] font-black uppercase tracking-widest">
-                                            Trabajando
+                                            {homeConfig.maintenanceMode ? 'Visible al Público' : 'Vista Previa (Oculto)'}
                                         </span>
                                     </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* --- MAIN LOCKDOWN CONTROL CARD --- */}
-                        <div className={`p-8 rounded-3xl shadow-2xl relative overflow-hidden transition-all duration-500 ${homeConfig.maintenanceMode ? 'bg-red-700 shadow-red-900/50' : 'bg-white dark:bg-brand-dark-card border border-gray-100 dark:border-white/5'}`}>
-                            {homeConfig.maintenanceMode && <Shield className="absolute -right-6 -bottom-6 text-white/10 rotate-[-15deg]" size={200} />}
-                            
-                            <div className="relative z-10 flex flex-col items-center text-center">
-                                <div className={`p-4 rounded-full mb-6 backdrop-blur-sm ${homeConfig.maintenanceMode ? 'bg-white/20 text-white' : 'bg-red-50 dark:bg-red-900/20 text-red-600'}`}>
-                                    <Ban size={48} strokeWidth={1.5} />
-                                </div>
-                                
-                                <h2 className={`text-2xl font-black uppercase mb-2 ${homeConfig.maintenanceMode ? 'text-white' : 'text-brand-black dark:text-white'}`}>
-                                    {homeConfig.maintenanceMode ? 'SISTEMA CERRADO' : 'SISTEMA ACTIVO'}
-                                </h2>
-                                
-                                <p className={`text-xs font-medium mb-8 leading-relaxed max-w-[280px] ${homeConfig.maintenanceMode ? 'text-white/80' : 'text-gray-500'}`}>
-                                    {homeConfig.maintenanceMode 
-                                        ? "El acceso público está restringido. Solo los administradores pueden ingresar a la plataforma." 
-                                        : "Si activas el Lockdown, todos los usuarios (excepto administradores) serán expulsados inmediatamente a la pantalla de mantenimiento."}
-                                </p>
-
-                                <div className="w-full">
-                                    {homeConfig.maintenanceMode ? (
-                                        <button onClick={() => handleGlobalBlock(false)} className="w-full bg-white text-red-700 h-14 rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center shadow-lg active:scale-95 transition-transform">
-                                            <Unlock size={16} className="mr-2" /> RESTAURAR ACCESO PÚBLICO
-                                        </button>
-                                    ) : (
-                                        <button onClick={() => handleGlobalBlock(true)} className="w-full bg-red-600 text-white h-14 rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center shadow-lg active:scale-95 transition-transform hover:bg-red-700">
-                                            <Lock size={16} className="mr-2" /> ACTIVAR LOCKDOWN TOTAL
-                                        </button>
-                                    )}
                                 </div>
                             </div>
                         </div>
@@ -712,216 +717,6 @@ const AdminDashboard: React.FC = () => {
                             <div className="p-4 bg-gray-50 dark:bg-[#0f0f0f] border-t border-gray-200 dark:border-white/10 shrink-0">
                                 <button onClick={() => initiateSecurityAction('reset_session', selectedSecurityUser.id)} className="w-full py-2 text-[9px] font-bold text-gray-400 uppercase tracking-widest hover:text-red-500 transition-colors">Cerrar Sesión en todos los dispositivos</button>
                             </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-        )}
-
-        {/* --- TAB: ARENA PK --- */}
-        {activeTab === 'pk' && localSchedule && (
-            <div className="space-y-6 animate-slide-up">
-                
-                {/* Sub-Nav Toggle */}
-                <div className="bg-gray-100 dark:bg-white/5 p-1 rounded-xl flex">
-                    <button 
-                        onClick={() => setPkView('assign')}
-                        className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${pkView === 'assign' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-black dark:text-white' : 'text-gray-400'}`}
-                    >
-                        Programar
-                    </button>
-                    <button 
-                        onClick={() => setPkView('requests')}
-                        className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${pkView === 'requests' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-black dark:text-white' : 'text-gray-400'}`}
-                    >
-                        Solicitudes ({pkRequests.length})
-                    </button>
-                </div>
-
-                {pkView === 'assign' ? (
-                    <div className="space-y-6">
-                         
-                         {/* POTENCIAL EDITOR */}
-                         <div className="bg-white dark:bg-brand-dark-card p-4 rounded-3xl border border-gray-100 dark:border-white/5">
-                             <div className="flex items-center space-x-2 mb-4 border-b border-gray-100 dark:border-white/5 pb-2">
-                                 <div className="bg-brand-black text-white p-1.5 rounded"><Swords size={16} /></div>
-                                 <h3 className="text-sm font-black uppercase">PK Potencial</h3>
-                             </div>
-                             
-                             <div className="space-y-3">
-                                {localSchedule.potential.map((event, idx) => (
-                                    <div key={event.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5 flex items-center justify-between gap-3">
-                                        <div className="flex flex-col items-center justify-center bg-white dark:bg-black/20 p-2 rounded-lg min-w-[60px]">
-                                            <Clock size={12} className="text-gray-400 mb-1"/>
-                                            <span className="text-[9px] font-black text-brand-black dark:text-white whitespace-nowrap text-center leading-tight">
-                                                08:00<br/>08:15 PM
-                                            </span>
-                                        </div>
-                                        
-                                        <div className="flex-1 flex items-center gap-2">
-                                            <input 
-                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-brand-purple text-center uppercase" 
-                                                placeholder="ID EMISOR"
-                                                value={event.id1}
-                                                onChange={(e) => handleScheduleChange('potential', idx, 'id1', e.target.value)}
-                                            />
-                                            <span className="text-[10px] font-black text-gray-300">VS</span>
-                                            <input 
-                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-brand-purple text-center uppercase" 
-                                                placeholder="ID OPONENTE"
-                                                value={event.id2}
-                                                onChange={(e) => handleScheduleChange('potential', idx, 'id2', e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                             </div>
-
-                             {/* BOTÓN PUBLICAR PARA POTENCIAL */}
-                             <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
-                                 <Button onClick={saveSchedule} fullWidth variant="black" className="shadow-lg h-12 text-xs">
-                                     <Save size={16} className="mr-2" /> Publicar Cambios (Potencial)
-                                 </Button>
-                             </div>
-                         </div>
-
-                         {/* SUPERSMASH EDITOR */}
-                         <div className="bg-white dark:bg-brand-dark-card p-4 rounded-3xl border border-gray-100 dark:border-white/5">
-                             <div className="flex items-center space-x-2 mb-4 border-b border-gray-100 dark:border-white/5 pb-2">
-                                 <div className="bg-orange-500 text-white p-1.5 rounded"><Swords size={16} /></div>
-                                 <h3 className="text-sm font-black uppercase">PK Supersmash</h3>
-                             </div>
-                             
-                             <div className="space-y-3">
-                                {localSchedule.supersmash.map((event, idx) => (
-                                    <div key={event.id} className="bg-orange-50 dark:bg-orange-900/10 p-3 rounded-xl border border-orange-100 dark:border-orange-900/20 flex items-center justify-between gap-3">
-                                        <div className="flex flex-col items-center justify-center bg-white dark:bg-black/20 p-2 rounded-lg min-w-[60px]">
-                                            <Clock size={12} className="text-orange-400 mb-1"/>
-                                            <span className="text-[9px] font-black text-brand-black dark:text-white whitespace-nowrap text-center leading-tight">
-                                                08:00<br/>08:15 PM
-                                            </span>
-                                        </div>
-                                        
-                                        <div className="flex-1 flex items-center gap-2">
-                                            <input 
-                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-orange-500 text-center uppercase" 
-                                                placeholder="ID EMISOR"
-                                                value={event.id1}
-                                                onChange={(e) => handleScheduleChange('supersmash', idx, 'id1', e.target.value)}
-                                            />
-                                            <span className="text-[10px] font-black text-orange-300">VS</span>
-                                            <input 
-                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-orange-500 text-center uppercase" 
-                                                placeholder="ID OPONENTE"
-                                                value={event.id2}
-                                                onChange={(e) => handleScheduleChange('supersmash', idx, 'id2', e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                             </div>
-
-                             {/* BOTÓN PUBLICAR PARA SUPERSMASH */}
-                             <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
-                                 <Button onClick={saveSchedule} fullWidth variant="black" className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg h-12 text-xs border-transparent">
-                                     <Save size={16} className="mr-2" /> Publicar Cambios (Supersmash)
-                                 </Button>
-                             </div>
-                         </div>
-                    </div>
-                ) : (
-                    <div className="space-y-6">
-                        
-                        {/* 1. LISTA DE PENDIENTES */}
-                        <div>
-                            <h3 className="text-xs font-black uppercase tracking-widest text-brand-black dark:text-white mb-3 flex items-center">
-                                <Bell className="mr-2 text-brand-purple" size={14} /> 
-                                Nuevas Solicitudes ({pendingRequests.length})
-                            </h3>
-                            
-                            {pendingRequests.length === 0 ? (
-                                <div className="text-center py-6 border border-dashed border-gray-200 dark:border-white/10 rounded-xl">
-                                    <p className="text-[10px] font-bold uppercase text-gray-400">Sin pendientes</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {pendingRequests.map((req) => (
-                                        <div key={req.id} className="bg-white dark:bg-brand-dark-card p-4 rounded-2xl shadow-sm border-l-4 border-l-brand-purple border-y border-r border-gray-100 dark:border-white/5 flex flex-col gap-3">
-                                            
-                                            {/* Header Date Highlighting */}
-                                            <div className="flex justify-between items-center border-b border-gray-50 dark:border-white/5 pb-2">
-                                                <div className="flex items-center space-x-2 bg-gray-900 text-white dark:bg-white dark:text-black px-3 py-1.5 rounded-lg shadow-md transform -translate-y-1">
-                                                    <Calendar size={14} className="stroke-[2.5]"/>
-                                                    <span className="text-xs font-black uppercase tracking-tight">{req.date}</span>
-                                                </div>
-                                                <div className="bg-brand-purple/10 px-2 py-0.5 rounded text-[9px] font-black text-brand-purple uppercase">Pendiente</div>
-                                            </div>
-
-                                            <div className="flex justify-between items-end">
-                                                <div>
-                                                    <h3 className="text-lg font-black uppercase text-brand-black dark:text-white leading-none">ID: {req.bigoId}</h3>
-                                                    <p className="text-[10px] text-gray-400 mt-1 font-bold">Solicita Batalla PK</p>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <button onClick={() => handleRejectRequest(req.id)} className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-400 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors border border-transparent hover:border-red-100">
-                                                        <X size={18} strokeWidth={2.5} />
-                                                    </button>
-                                                    <button onClick={() => handleApproveRequest(req.id)} className="w-10 h-10 rounded-xl bg-brand-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-lg active:scale-95 transition-transform">
-                                                        <Check size={18} strokeWidth={3} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* 2. HISTORIAL DE PROCESADAS */}
-                        <div>
-                            <div className="flex items-center justify-between mt-8 mb-4 pt-6 border-t border-gray-100 dark:border-white/5">
-                                <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center">
-                                    <History className="mr-2" size={14} /> 
-                                    Historial de Solicitudes
-                                </h3>
-                                <span className="text-[9px] font-bold bg-gray-100 dark:bg-white/10 px-2 py-1 rounded text-gray-500">
-                                    {historyRequests.length}
-                                </span>
-                            </div>
-
-                            {historyRequests.length === 0 ? (
-                                <div className="text-center py-10 opacity-50">
-                                    <History size={32} className="mx-auto mb-2 text-gray-300" />
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase">Historial vacío</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {historyRequests.map((req) => (
-                                        <div key={req.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl flex items-center justify-between border border-transparent hover:bg-white dark:hover:bg-brand-dark-card hover:shadow-sm hover:border-gray-100 dark:hover:border-white/10 transition-all group">
-                                            <div className="flex-1 min-w-0 pr-4">
-                                                <div className="flex items-center space-x-2 mb-1">
-                                                    <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${req.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                                        {req.status === 'approved' ? 'AGENDADA' : 'RECHAZADA'}
-                                                    </span>
-                                                    <div className="flex items-center text-[9px] font-bold text-gray-400">
-                                                        <Calendar size={10} className="mr-1" />
-                                                        {req.date}
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase truncate">ID: {req.bigoId}</span>
-                                                </div>
-                                            </div>
-                                            <button 
-                                                onClick={() => handleDeleteRequest(req.id)}
-                                                className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-white/10 transition-all shadow-sm bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 group-hover:border-red-100"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
                         </div>
                     </div>
                 )}
