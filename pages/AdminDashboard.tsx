@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, BarChart2, Check, X, Send, Radio, Activity, Trophy, Save, Clock, Trash2, History, Calendar, Eye, Laptop, UserCheck, ShieldCheck, AlertTriangle, ChevronRight, Key, EyeOff, Grid, ArrowLeft, UserX, Fingerprint, ArrowRight, Settings, Wrench } from 'lucide-react';
+import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, BarChart2, Check, X, Send, Radio, Activity, Trophy, Save, Clock, Trash2, History, Calendar, Eye, Laptop, UserCheck, ShieldCheck, AlertTriangle, ChevronRight, Key, EyeOff, Grid, ArrowLeft, UserX, Fingerprint, ArrowRight, Settings, Wrench, Bot } from 'lucide-react';
 import { collection, updateDoc, doc, onSnapshot, query, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Header } from '../components/Header';
@@ -515,42 +515,52 @@ const AdminDashboard: React.FC = () => {
                             <h2 className="text-lg font-black uppercase text-brand-black dark:text-white">Protocolo Emergencia</h2>
                         </div>
 
-                        {/* --- NEW: MAINTENANCE PREVIEW CARD (ANIMATED) --- */}
+                        {/* --- MAINTENANCE PREVIEW CARD (NO IMAGE - PURE CSS & ICONS) --- */}
                         {homeConfig.maintenanceMode && (
-                            <div className="bg-white dark:bg-brand-dark-card border border-gray-100 dark:border-white/5 p-6 rounded-3xl shadow-xl mb-6 text-center relative overflow-hidden animate-fade-in">
-                                {/* Background Gradient Line */}
-                                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-orange-400 via-red-500 to-orange-400 animate-pulse"></div>
+                            <div className="relative overflow-hidden bg-white dark:bg-brand-dark-card p-8 rounded-3xl shadow-2xl border border-gray-100 dark:border-white/5 mb-8 animate-fade-in group">
+                                {/* Background Decor */}
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-purple/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
 
-                                <div className="relative z-10">
-                                    <div className="mb-4 relative inline-block">
-                                        {/* 3D Character Working */}
-                                        <img
-                                            src="https://i.postimg.cc/kXyMw4gQ/casual-life-3d-boy-sitting-at-the-desk-with-laptop-and-coffee.png"
-                                            alt="Working"
-                                            className="w-40 h-40 object-contain mx-auto animate-[bounce_3s_infinite]"
-                                        />
-                                        {/* Floating Badge */}
-                                        <div className="absolute -right-2 -top-2 bg-orange-500 text-white p-2 rounded-full shadow-lg border-2 border-white dark:border-brand-dark-card">
-                                            <Settings size={16} className="animate-[spin_4s_linear_infinite]" />
+                                <div className="relative z-10 flex flex-col items-center">
+                                    {/* CSS CHARACTER COMPOSITION */}
+                                    <div className="relative mb-6">
+                                        {/* Main Body */}
+                                        <div className="w-24 h-24 bg-gradient-to-br from-brand-black to-gray-800 dark:from-white dark:to-gray-200 rounded-2xl flex items-center justify-center shadow-2xl shadow-purple-500/20 animate-[bounce_3s_infinite] relative z-10">
+                                            <Bot size={48} className="text-white dark:text-black" strokeWidth={1.5} />
+                                            {/* Face/Screen Glow */}
+                                            <div className="absolute inset-0 bg-brand-purple/20 rounded-2xl blur-lg -z-10"></div>
+                                        </div>
+
+                                        {/* Floating Gear */}
+                                        <div className="absolute -top-4 -right-4 bg-brand-purple text-white p-2 rounded-full shadow-lg animate-[spin_4s_linear_infinite] z-20 border-2 border-white dark:border-black">
+                                            <Settings size={16} />
+                                        </div>
+
+                                        {/* Floating Wrench */}
+                                        <div className="absolute -bottom-2 -left-4 bg-white dark:bg-brand-dark-card text-brand-black dark:text-white p-2 rounded-full shadow-lg animate-pulse z-20 border border-gray-100 dark:border-white/10">
+                                            <Wrench size={16} />
                                         </div>
                                     </div>
 
-                                    <h3 className="text-xl font-black uppercase text-brand-black dark:text-white mb-2 tracking-tight">
-                                        Mantenimiento en Progreso
+                                    <h3 className="text-2xl font-black uppercase text-brand-black dark:text-white mb-2 tracking-tighter">
+                                        Mantenimiento
                                     </h3>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium max-w-[250px] mx-auto leading-relaxed">
-                                        "Disculpa las molestias, pronto todo volverá a la normalidad."
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 font-medium max-w-xs text-center leading-relaxed mb-4">
+                                        "Estamos mejorando tu experiencia. Disculpa las molestias, pronto volveremos."
                                     </p>
-                                    <div className="mt-4 inline-flex items-center space-x-2 bg-orange-50 dark:bg-orange-900/10 px-3 py-1 rounded-full border border-orange-100 dark:border-orange-500/20">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
-                                        <span className="text-[9px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">
-                                            TRABAJANDO
+
+                                    {/* Status Badge */}
+                                    <div className="inline-flex items-center space-x-2 bg-brand-black dark:bg-white text-white dark:text-black px-4 py-1.5 rounded-full shadow-lg">
+                                        <div className="w-2 h-2 bg-brand-purple rounded-full animate-pulse"></div>
+                                        <span className="text-[10px] font-black uppercase tracking-widest">
+                                            Trabajando
                                         </span>
                                     </div>
                                 </div>
                             </div>
                         )}
 
+                        {/* --- MAIN LOCKDOWN CONTROL CARD --- */}
                         <div className={`p-8 rounded-3xl shadow-2xl relative overflow-hidden transition-all duration-500 ${homeConfig.maintenanceMode ? 'bg-red-700 shadow-red-900/50' : 'bg-white dark:bg-brand-dark-card border border-gray-100 dark:border-white/5'}`}>
                             {homeConfig.maintenanceMode && <Shield className="absolute -right-6 -bottom-6 text-white/10 rotate-[-15deg]" size={200} />}
                             
