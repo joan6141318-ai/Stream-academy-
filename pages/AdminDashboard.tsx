@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, BarChart2, Check, X, Send, Radio, Activity, Trophy, Save, Clock, Trash2, History, Calendar, Eye, Laptop, UserCheck, ShieldCheck, AlertTriangle, ChevronRight, Key, EyeOff } from 'lucide-react';
+import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, BarChart2, Check, X, Send, Radio, Activity, Trophy, Save, Clock, Trash2, History, Calendar, Eye, Laptop, UserCheck, ShieldCheck, AlertTriangle, ChevronRight, Key, EyeOff, Grid, ArrowLeft, UserX, Fingerprint, ArrowRight } from 'lucide-react';
 import { collection, updateDoc, doc, onSnapshot, query, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Header } from '../components/Header';
@@ -15,6 +15,9 @@ const AdminDashboard: React.FC = () => {
   // Tabs Principales
   const [activeTab, setActiveTab] = useState<'users' | 'pk' | 'security' | 'comms' | 'data'>('users');
   
+  // Security Sub-Navigation State
+  const [securityView, setSecurityView] = useState<'menu' | 'access_control' | 'agency_key' | 'lockdown'>('menu');
+
   // Sub-tabs para PK
   const [pkView, setPkView] = useState<'assign' | 'requests'>('assign');
 
@@ -29,7 +32,7 @@ const AdminDashboard: React.FC = () => {
   const [alertMessage, setAlertMessage] = useState('');
   const [isSendingAlert, setIsSendingAlert] = useState(false);
 
-  // --- SECURITY STATES (REAL TIME FIX) ---
+  // --- SECURITY STATES ---
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   
   // Agency Code Management State
@@ -37,7 +40,6 @@ const AdminDashboard: React.FC = () => {
   const [showAgencyCode, setShowAgencyCode] = useState(false);
   const [isUpdatingKey, setIsUpdatingKey] = useState(false);
   
-  // Derivamos el usuario seleccionado en tiempo real
   const selectedSecurityUser = users.find(u => u.id === selectedUserId) || null;
 
   // Sync Local PK State
@@ -205,7 +207,7 @@ const AdminDashboard: React.FC = () => {
   const pendingRequests = pkRequests.filter(req => req.status === 'pending');
   const historyRequests = pkRequests.filter(req => req.status !== 'pending');
 
-  // Check for default agency code risk (Using Hash Comparison for 'moon')
+  // Check for default agency code risk
   const DEFAULT_HASH = "a43c1b0aa53a0c908810c03ab1d7cb9922c2a05d605c567839356b20677275c5";
   const isDefaultAgencyCode = homeConfig?.agencyCodeHash === DEFAULT_HASH || !homeConfig?.agencyCodeHash;
 
@@ -213,13 +215,13 @@ const AdminDashboard: React.FC = () => {
     <div className="flex flex-col h-full w-full bg-gray-50 dark:bg-black transition-colors duration-300">
       <Header title="Panel Admin" showBack onBack={() => navigate('/admin/selection')} />
       
-      {/* Nav Tabs */}
+      {/* Nav Tabs - Only show if in main menu of Security or other tabs */}
       <div className="pt-[calc(3.5rem+env(safe-area-inset-top))] px-4 pb-4 bg-white dark:bg-black/95 sticky top-0 z-30 border-b border-gray-100 dark:border-white/5">
         <div className="flex space-x-2 overflow-x-auto scrollbar-hide p-4">
             {[
                 { id: 'users', label: 'Emisores', icon: Users },
                 { id: 'pk', label: 'Arena PK', icon: Swords },
-                { id: 'security', label: 'Seguridad', icon: Shield },
+                { id: 'security', label: 'Centro de Mando', icon: Shield }, // Renamed Label
                 { id: 'comms', label: 'Push', icon: Bell },
                 { id: 'data', label: 'Data', icon: BarChart2 },
             ].map((tab) => {
@@ -228,7 +230,7 @@ const AdminDashboard: React.FC = () => {
                 return (
                     <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id as any)}
+                        onClick={() => { setActiveTab(tab.id as any); setSecurityView('menu'); }}
                         className={`flex items-center space-x-2 px-4 py-2.5 rounded-full border transition-all duration-300 whitespace-nowrap ${
                             isActive 
                             ? 'bg-brand-black dark:bg-white text-white dark:text-black border-transparent shadow-lg transform scale-105' 
@@ -245,7 +247,7 @@ const AdminDashboard: React.FC = () => {
 
       <div className="flex-1 overflow-y-auto scrollbar-hide p-4 pb-24">
 
-        {/* --- TAB: USUARIOS --- */}
+        {/* --- TAB: USUARIOS (Legacy/Quick View) --- */}
         {activeTab === 'users' && (
             <div className="space-y-4 animate-slide-up">
                 <div className="bg-white dark:bg-brand-dark-card p-2 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center sticky top-0 z-20">
@@ -296,179 +298,280 @@ const AdminDashboard: React.FC = () => {
             </div>
         )}
 
-        {/* --- TAB: SEGURIDAD --- */}
+        {/* --- TAB: CENTRO DE MANDO (SEGURIDAD) --- */}
         {activeTab === 'security' && (
-            <div className="space-y-6 animate-slide-up">
+            <div className="space-y-6 animate-slide-up h-full flex flex-col">
                 
-                <div className="flex items-center justify-between mb-2">
-                     <div>
-                        <h2 className="text-2xl font-black uppercase text-brand-black dark:text-white leading-none">Centro de Mando</h2>
-                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mt-1">Gestión de Accesos en Tiempo Real</p>
-                     </div>
-                     <div className="bg-brand-black dark:bg-white/10 p-2 rounded-lg text-white">
-                         <ShieldCheck size={24} />
-                     </div>
-                </div>
-
-                {/* WARNING ALERT FOR DEFAULT PASSWORD */}
-                {isDefaultAgencyCode && (
-                    <div className="w-full bg-yellow-500/10 border border-yellow-500/50 p-4 rounded-2xl flex items-center justify-between gap-3 text-left group">
-                        <div className="flex items-start gap-3">
-                            <AlertTriangle className="text-yellow-500 flex-shrink-0 mt-1" size={20} />
+                {/* 1. MENU VIEW (GRID) */}
+                {securityView === 'menu' && (
+                    <div className="space-y-6 animate-fade-in">
+                        {/* Header Section */}
+                        <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="text-xs font-black text-yellow-500 uppercase mb-1">Riesgo Detectado</h3>
-                                <p className="text-[10px] text-yellow-600 dark:text-yellow-400 leading-relaxed font-medium">
-                                    El "Código de Agencia" es inseguro ("moon").
-                                    <br/>
-                                    Utiliza el módulo de abajo para cambiarlo.
-                                </p>
+                                <h2 className="text-2xl font-black uppercase text-brand-black dark:text-white leading-none">Centro de Mando</h2>
+                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mt-1">Seguridad & Auditoría</p>
+                            </div>
+                            <div className="w-10 h-10 bg-brand-black dark:bg-white rounded-xl flex items-center justify-center shadow-lg">
+                                <ShieldCheck size={20} className="text-white dark:text-black" />
+                            </div>
+                        </div>
+
+                        {/* Security Alert Banner */}
+                        {isDefaultAgencyCode && (
+                            <button 
+                                onClick={() => setSecurityView('agency_key')}
+                                className="w-full bg-yellow-500/10 border border-yellow-500/50 p-4 rounded-2xl flex items-center justify-between gap-3 text-left group active:scale-[0.98] transition-transform"
+                            >
+                                <div className="flex items-start gap-3">
+                                    <div className="bg-yellow-500/20 p-2 rounded-lg">
+                                        <AlertTriangle className="text-yellow-600 dark:text-yellow-500" size={20} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xs font-black text-yellow-600 dark:text-yellow-500 uppercase mb-1">Acción Requerida</h3>
+                                        <p className="text-[10px] text-yellow-700/80 dark:text-yellow-400/80 leading-relaxed font-medium">
+                                            Tu "Llave de Registro" es la predeterminada. Cámbiala ahora para evitar accesos no autorizados.
+                                        </p>
+                                    </div>
+                                </div>
+                                <ChevronRight className="text-yellow-500 opacity-50" size={16} />
+                            </button>
+                        )}
+
+                        {/* MODULES GRID */}
+                        <div className="grid grid-cols-2 gap-4">
+                            
+                            {/* Card 1: Control de Accesos */}
+                            <button 
+                                onClick={() => setSecurityView('access_control')}
+                                className="bg-gradient-to-br from-blue-600 to-cyan-600 p-5 rounded-2xl shadow-xl shadow-blue-500/20 text-left relative overflow-hidden group active:scale-[0.98] transition-all h-40 flex flex-col justify-between"
+                            >
+                                <div className="relative z-10">
+                                    <div className="bg-white/20 w-fit p-2 rounded-lg mb-3 backdrop-blur-md">
+                                        <Users className="text-white" size={20} />
+                                    </div>
+                                    <h3 className="text-sm font-black text-white uppercase leading-tight mb-1">Gestión de<br/>Accesos</h3>
+                                    <p className="text-[9px] text-white/80 font-medium">Permitir o denegar entrada a la App.</p>
+                                </div>
+                                <div className="absolute right-4 bottom-4 bg-white/10 p-1.5 rounded-full backdrop-blur-sm">
+                                    <ArrowRight className="text-white" size={14} />
+                                </div>
+                                <UserX className="absolute -right-4 -bottom-4 text-white/10 rotate-[-15deg] group-hover:scale-110 transition-transform" size={100} />
+                            </button>
+
+                            {/* Card 2: Llave de Acceso */}
+                            <button 
+                                onClick={() => setSecurityView('agency_key')}
+                                className="bg-gradient-to-br from-purple-600 to-fuchsia-600 p-5 rounded-2xl shadow-xl shadow-purple-500/20 text-left relative overflow-hidden group active:scale-[0.98] transition-all h-40 flex flex-col justify-between"
+                            >
+                                <div className="relative z-10">
+                                    <div className="bg-white/20 w-fit p-2 rounded-lg mb-3 backdrop-blur-md">
+                                        <Key className="text-white" size={20} />
+                                    </div>
+                                    <h3 className="text-sm font-black text-white uppercase leading-tight mb-1">Llave de<br/>Registro</h3>
+                                    <p className="text-[9px] text-white/80 font-medium">Editar contraseña de nuevos ingresos.</p>
+                                </div>
+                                <div className="absolute right-4 bottom-4 bg-white/10 p-1.5 rounded-full backdrop-blur-sm">
+                                    <ArrowRight className="text-white" size={14} />
+                                </div>
+                                <Fingerprint className="absolute -right-4 -bottom-4 text-white/10 rotate-[15deg] group-hover:scale-110 transition-transform" size={100} />
+                            </button>
+
+                            {/* Card 3: Emergencia (Lockdown) - Full Width */}
+                            <button 
+                                onClick={() => setSecurityView('lockdown')}
+                                className="col-span-2 bg-gradient-to-r from-red-600 to-rose-700 p-5 rounded-2xl shadow-xl shadow-red-500/20 text-left relative overflow-hidden group active:scale-[0.98] transition-all flex items-center justify-between"
+                            >
+                                <div className="relative z-10 flex items-center gap-4">
+                                    <div className="bg-white/20 p-3 rounded-xl backdrop-blur-md">
+                                        <Shield className="text-white" size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-black text-white uppercase leading-none mb-1">Protocolo de Emergencia</h3>
+                                        <p className="text-[9px] text-white/80 font-medium">Zona de Peligro / Lockdown Global</p>
+                                    </div>
+                                </div>
+                                <div className="bg-white/10 px-3 py-1 rounded-full border border-white/20">
+                                    <span className="text-[9px] font-black text-white uppercase tracking-widest">CONFIGURAR</span>
+                                </div>
+                                <Ban className="absolute right-10 -top-10 text-white/10 group-hover:rotate-12 transition-transform" size={120} />
+                            </button>
+
+                            {/* Card 4: System Status */}
+                            <div className="col-span-2 bg-white dark:bg-brand-dark-card p-5 rounded-2xl border border-gray-100 dark:border-white/5 flex items-center justify-between shadow-sm">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-3 h-3 rounded-full ${homeConfig.maintenanceMode ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}></div>
+                                    <div>
+                                        <h3 className="text-xs font-black text-brand-black dark:text-white uppercase">Estado del Sistema</h3>
+                                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">{homeConfig.maintenanceMode ? 'MANTENIMIENTO ACTIVO' : 'OPERATIVO'}</p>
+                                    </div>
+                                </div>
+                                <Activity size={18} className="text-gray-300" />
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* --- AGENCY CODE MANAGEMENT --- */}
-                <div className="bg-white dark:bg-brand-dark-card p-6 rounded-3xl border border-gray-100 dark:border-white/5">
-                    <div className="flex items-center space-x-2 mb-4">
-                        <div className="bg-brand-purple/10 p-2 rounded-lg">
-                            <Key className="text-brand-purple" size={20} />
+                {/* 2. ACCESS CONTROL VIEW (USERS LIST) */}
+                {securityView === 'access_control' && (
+                    <div className="space-y-4 animate-slide-up h-full flex flex-col">
+                        <div className="flex items-center space-x-2 mb-2">
+                            <button onClick={() => setSecurityView('menu')} className="bg-gray-100 dark:bg-white/10 p-2 rounded-lg text-gray-500 hover:text-brand-black dark:hover:text-white transition-colors">
+                                <ArrowLeft size={18} />
+                            </button>
+                            <h2 className="text-lg font-black uppercase text-brand-black dark:text-white">Gestión de Accesos</h2>
                         </div>
-                        <h3 className="text-sm font-black uppercase text-brand-black dark:text-white">Llave de Acceso (Registro)</h3>
-                    </div>
-                    
-                    <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase text-gray-400 block">Nueva Contraseña de Agencia</label>
-                        <div className="flex gap-2">
-                            <div className="relative flex-1">
-                                <input 
-                                    type={showAgencyCode ? "text" : "password"} 
-                                    value={newAgencyCode} 
-                                    onChange={(e) => setNewAgencyCode(e.target.value)}
-                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 text-sm font-black text-brand-black dark:text-white focus:border-brand-purple outline-none tracking-widest pr-10 placeholder:font-normal placeholder:tracking-normal"
-                                    placeholder="Nueva clave secreta"
-                                />
-                                <button onClick={() => setShowAgencyCode(!showAgencyCode)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-purple">
-                                    {showAgencyCode ? <EyeOff size={16} /> : <Eye size={16} />}
+
+                        {/* Search Bar */}
+                        <div className="bg-white dark:bg-brand-dark-card p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center sticky top-0 z-20">
+                            <Search size={18} className="text-gray-400 ml-2" />
+                            <input 
+                                type="text" 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                placeholder="Buscar usuario para gestionar acceso..." 
+                                className="bg-transparent border-none text-sm font-bold w-full ml-3 focus:outline-none dark:text-white placeholder-gray-300" 
+                            />
+                        </div>
+
+                        {/* Users List */}
+                        <div className="grid gap-3 pb-safe">
+                            {filteredUsers.map((u) => (
+                                <button 
+                                    key={u.id}
+                                    onClick={() => setSelectedUserId(u.id)}
+                                    className="bg-white dark:bg-brand-dark-card p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center justify-between group active:scale-[0.99] transition-all hover:border-brand-purple/30 text-left"
+                                >
+                                    <div className="flex items-center space-x-3">
+                                        <div className="relative">
+                                            <img src={u.avatarUrl} alt="av" className="w-10 h-10 rounded-full object-cover grayscale group-hover:grayscale-0 transition-all" />
+                                            {/* Status Dot */}
+                                            <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-black ${u.isBlocked ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-black text-brand-black dark:text-white leading-none mb-0.5">{u.name}</h3>
+                                            <p className="text-[10px] text-gray-400 font-mono">{u.email}</p>
+                                            {u.isBlocked && <span className="text-[8px] font-black text-red-500 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded mt-1 inline-block">ACCESO DENEGADO</span>}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        {u.isBlocked ? <Lock size={16} className="text-red-400" /> : <Unlock size={16} className="text-green-400" />}
+                                    </div>
                                 </button>
-                            </div>
-                            <Button 
-                                onClick={handleUpdateAgencyCode} 
-                                disabled={isUpdatingKey || !newAgencyCode.trim()} 
-                                size="sm" 
-                                className="h-auto rounded-xl shadow-lg"
-                            >
-                                {isUpdatingKey ? '...' : <Save size={18} />}
-                            </Button>
+                            ))}
                         </div>
-                        <p className="text-[9px] text-gray-400 font-medium leading-tight">
-                            * Esta clave es necesaria para que nuevos usuarios creen una cuenta.
-                        </p>
                     </div>
-                </div>
+                )}
 
-                <div className="bg-white dark:bg-brand-dark-card p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center">
-                    <Search size={18} className="text-gray-400 ml-2" />
-                    <input 
-                        type="text" 
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Buscar usuario para auditar..." 
-                        className="bg-transparent border-none text-sm font-bold w-full ml-3 focus:outline-none dark:text-white placeholder-gray-300" 
-                    />
-                </div>
-
-                {/* DANGER ZONE - REAL LOCKDOWN */}
-                <div className={`p-6 rounded-3xl shadow-xl relative overflow-hidden transition-all duration-500 ${homeConfig.maintenanceMode ? 'bg-red-700 shadow-red-900/50' : 'bg-white dark:bg-brand-dark-card border border-gray-100 dark:border-white/5'}`}>
-                    {homeConfig.maintenanceMode && <Shield className="absolute -right-6 -bottom-6 text-white/10 rotate-[-15deg]" size={150} />}
-                    
-                    <div className="relative z-10">
+                {/* 3. AGENCY KEY VIEW */}
+                {securityView === 'agency_key' && (
+                    <div className="space-y-6 animate-slide-up">
                         <div className="flex items-center space-x-2 mb-4">
-                            <div className={`${homeConfig.maintenanceMode ? 'bg-white/20 text-white' : 'bg-red-100 text-red-600'} p-2 rounded-lg backdrop-blur-sm`}><Ban size={24} /></div>
-                            <h2 className={`text-xl font-black uppercase ${homeConfig.maintenanceMode ? 'text-white' : 'text-brand-black dark:text-white'}`}>Zona de Peligro</h2>
+                            <button onClick={() => setSecurityView('menu')} className="bg-gray-100 dark:bg-white/10 p-2 rounded-lg text-gray-500 hover:text-brand-black dark:hover:text-white transition-colors">
+                                <ArrowLeft size={18} />
+                            </button>
+                            <h2 className="text-lg font-black uppercase text-brand-black dark:text-white">Llave de Registro</h2>
                         </div>
-                        <p className={`text-xs font-medium mb-6 leading-relaxed max-w-[250px] ${homeConfig.maintenanceMode ? 'text-white/80' : 'text-gray-500'}`}>
-                            {homeConfig.maintenanceMode 
-                                ? "EL SISTEMA ESTÁ BLOQUEADO. Nadie puede acceder excepto administradores." 
-                                : "Acciones irreversibles. El botón 'Lockdown' expulsará a todos los usuarios no administradores inmediatamente."}
-                        </p>
 
-                        <div className="space-y-3">
-                            {homeConfig.maintenanceMode ? (
-                                <button onClick={() => handleGlobalBlock(false)} className="w-full bg-white text-red-700 p-4 rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center shadow-lg active:scale-95 transition-transform">
-                                    <Unlock size={14} className="mr-2" /> RESTAURAR ACCESO PÚBLICO
-                                </button>
-                            ) : (
-                                <button onClick={() => handleGlobalBlock(true)} className="w-full bg-red-600 text-white p-4 rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center shadow-lg active:scale-95 transition-transform hover:bg-red-700">
-                                    <Lock size={14} className="mr-2" /> ACTIVAR LOCKDOWN TOTAL
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Status Indicator */}
-                <div className="bg-white dark:bg-brand-dark-card p-6 rounded-3xl border border-gray-100 dark:border-white/5">
-                    <div className="flex items-center space-x-2 mb-4">
-                        <Activity className="text-gray-400" size={20} />
-                        <h3 className="text-sm font-black uppercase text-brand-black dark:text-white">Estado del Sistema</h3>
-                    </div>
-                    <div className="space-y-4">
-                         <div className="flex items-start space-x-3">
-                             <div className={`w-2.5 h-2.5 rounded-full mt-1.5 animate-pulse ${homeConfig.maintenanceMode ? 'bg-red-500' : 'bg-green-500'}`}></div>
-                             <div>
-                                 <p className="text-xs font-bold text-brand-black dark:text-white">{homeConfig.maintenanceMode ? 'MODO MANTENIMIENTO ACTIVO' : 'SISTEMA ESTABLE'}</p>
-                                 <p className="text-[10px] text-gray-400">{homeConfig.maintenanceMode ? 'Acceso restringido a usuarios.' : 'Todos los servicios operando correctamente.'}</p>
-                             </div>
-                         </div>
-                    </div>
-                </div>
-
-                <div className="grid gap-3">
-                    {filteredUsers.map((u) => (
-                        <button 
-                            key={u.id}
-                            onClick={() => setSelectedUserId(u.id)}
-                            className="bg-white dark:bg-brand-dark-card p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center justify-between group active:scale-[0.99] transition-all hover:border-brand-purple/30 text-left"
-                        >
-                            <div className="flex items-center space-x-3">
-                                <div className="relative">
-                                    <img src={u.avatarUrl} alt="av" className="w-10 h-10 rounded-full object-cover grayscale group-hover:grayscale-0 transition-all" />
-                                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-black ${u.isBlocked ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                        <div className="bg-white dark:bg-brand-dark-card p-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-xl relative overflow-hidden">
+                            {/* Visual Header */}
+                            <div className="flex justify-center mb-6">
+                                <div className="w-20 h-20 bg-purple-50 dark:bg-purple-900/20 rounded-full flex items-center justify-center border-4 border-white dark:border-[#121212] shadow-2xl">
+                                    <Key className="text-brand-purple" size={32} />
                                 </div>
+                            </div>
+
+                            <div className="space-y-4">
                                 <div>
-                                    <h3 className="text-sm font-black text-brand-black dark:text-white leading-none mb-0.5">{u.name}</h3>
-                                    <p className="text-[10px] text-gray-400 font-mono">{u.email}</p>
+                                    <label className="text-[10px] font-black uppercase text-gray-400 block mb-2 text-center tracking-widest">Nueva Contraseña</label>
+                                    <div className="relative">
+                                        <input 
+                                            type={showAgencyCode ? "text" : "password"} 
+                                            value={newAgencyCode} 
+                                            onChange={(e) => setNewAgencyCode(e.target.value)}
+                                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-4 text-center text-lg font-black text-brand-black dark:text-white focus:border-brand-purple outline-none tracking-widest placeholder:font-medium placeholder:tracking-normal placeholder:text-gray-300"
+                                            placeholder="Escribe aquí..."
+                                        />
+                                        <button onClick={() => setShowAgencyCode(!showAgencyCode)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-purple p-2">
+                                            {showAgencyCode ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <Button 
+                                    onClick={handleUpdateAgencyCode} 
+                                    disabled={isUpdatingKey || !newAgencyCode.trim()} 
+                                    fullWidth
+                                    className="h-14 rounded-xl shadow-lg mt-4"
+                                >
+                                    {isUpdatingKey ? 'Encriptando y Guardando...' : 'Actualizar Llave'}
+                                </Button>
+
+                                <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-500/20 mt-4">
+                                    <p className="text-[10px] text-blue-600 dark:text-blue-400 font-medium leading-relaxed text-center">
+                                        Esta clave será solicitada obligatoriamente a cualquier persona que intente crear una cuenta nueva en la plataforma.
+                                    </p>
                                 </div>
                             </div>
-                            <div className="flex items-center space-x-2">
-                                <Eye size={16} className="text-gray-300 group-hover:text-brand-purple" />
-                            </div>
-                        </button>
-                    ))}
-                </div>
+                        </div>
+                    </div>
+                )}
 
-                {/* --- FIXED USER DOSSIER MODAL (CLEAN DESIGN - NO HEADER STRIP) --- */}
+                {/* 4. LOCKDOWN VIEW */}
+                {securityView === 'lockdown' && (
+                    <div className="space-y-6 animate-slide-up">
+                        <div className="flex items-center space-x-2 mb-4">
+                            <button onClick={() => setSecurityView('menu')} className="bg-gray-100 dark:bg-white/10 p-2 rounded-lg text-gray-500 hover:text-brand-black dark:hover:text-white transition-colors">
+                                <ArrowLeft size={18} />
+                            </button>
+                            <h2 className="text-lg font-black uppercase text-brand-black dark:text-white">Protocolo Emergencia</h2>
+                        </div>
+
+                        <div className={`p-8 rounded-3xl shadow-2xl relative overflow-hidden transition-all duration-500 ${homeConfig.maintenanceMode ? 'bg-red-700 shadow-red-900/50' : 'bg-white dark:bg-brand-dark-card border border-gray-100 dark:border-white/5'}`}>
+                            {homeConfig.maintenanceMode && <Shield className="absolute -right-6 -bottom-6 text-white/10 rotate-[-15deg]" size={200} />}
+                            
+                            <div className="relative z-10 flex flex-col items-center text-center">
+                                <div className={`p-4 rounded-full mb-6 backdrop-blur-sm ${homeConfig.maintenanceMode ? 'bg-white/20 text-white' : 'bg-red-50 dark:bg-red-900/20 text-red-600'}`}>
+                                    <Ban size={48} strokeWidth={1.5} />
+                                </div>
+                                
+                                <h2 className={`text-2xl font-black uppercase mb-2 ${homeConfig.maintenanceMode ? 'text-white' : 'text-brand-black dark:text-white'}`}>
+                                    {homeConfig.maintenanceMode ? 'SISTEMA CERRADO' : 'SISTEMA ACTIVO'}
+                                </h2>
+                                
+                                <p className={`text-xs font-medium mb-8 leading-relaxed max-w-[280px] ${homeConfig.maintenanceMode ? 'text-white/80' : 'text-gray-500'}`}>
+                                    {homeConfig.maintenanceMode 
+                                        ? "El acceso público está restringido. Solo los administradores pueden ingresar a la plataforma." 
+                                        : "Si activas el Lockdown, todos los usuarios (excepto administradores) serán expulsados inmediatamente a la pantalla de mantenimiento."}
+                                </p>
+
+                                <div className="w-full">
+                                    {homeConfig.maintenanceMode ? (
+                                        <button onClick={() => handleGlobalBlock(false)} className="w-full bg-white text-red-700 h-14 rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center shadow-lg active:scale-95 transition-transform">
+                                            <Unlock size={16} className="mr-2" /> RESTAURAR ACCESO PÚBLICO
+                                        </button>
+                                    ) : (
+                                        <button onClick={() => handleGlobalBlock(true)} className="w-full bg-red-600 text-white h-14 rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center shadow-lg active:scale-95 transition-transform hover:bg-red-700">
+                                            <Lock size={16} className="mr-2" /> ACTIVAR LOCKDOWN TOTAL
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* --- DOSSIER MODAL (Global for Security Tab) --- */}
                 {selectedSecurityUser && (
                     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
-                        {/* 1. SOLID BACKDROP */}
                         <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setSelectedUserId(null)}></div>
-
-                        {/* 2. CARD CONTAINER */}
                         <div className="relative w-full max-w-lg bg-white dark:bg-[#121212] rounded-[2rem] overflow-hidden shadow-2xl border border-gray-200 dark:border-white/10 flex flex-col h-auto max-h-[85vh] animate-slide-up">
                             
-                            {/* FLOATING CLOSE BUTTON */}
-                            <button 
-                                onClick={() => setSelectedUserId(null)} 
-                                className="absolute top-4 right-4 z-50 bg-gray-100 dark:bg-white/10 text-brand-black dark:text-white p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/20 transition-colors shadow-sm"
-                            >
+                            <button onClick={() => setSelectedUserId(null)} className="absolute top-4 right-4 z-50 bg-gray-100 dark:bg-white/10 text-brand-black dark:text-white p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/20 transition-colors shadow-sm">
                                 <X size={20} />
                             </button>
 
-                            {/* Scrollable Content */}
                             <div className="flex-1 overflow-y-auto scrollbar-hide bg-white dark:bg-[#121212] relative pt-12">
                                 <div className="px-6 pb-6">
-                                    
-                                    {/* Profile Info - Centered */}
                                     <div className="flex flex-col items-center mb-6">
                                         <div className="relative">
                                             <div className="w-28 h-28 rounded-full p-1 bg-white dark:bg-[#121212] shadow-2xl border-4 border-gray-50 dark:border-white/5">
@@ -478,7 +581,6 @@ const AdminDashboard: React.FC = () => {
                                                 {selectedSecurityUser.isBlocked ? 'BLOQUEADO' : 'ACTIVO'}
                                             </div>
                                         </div>
-                                        
                                         <h2 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none mt-4 text-center">{selectedSecurityUser.name}</h2>
                                         <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400 mt-2">
                                             <ShieldCheck size={14} />
@@ -488,7 +590,37 @@ const AdminDashboard: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    {/* Live Data Grid */}
+                                    {/* Action Buttons inside Dossier */}
+                                    <div className="grid grid-cols-2 gap-3 mb-6">
+                                        <button 
+                                            onClick={() => initiateSecurityAction(selectedSecurityUser.isBlocked ? 'unblock' : 'block', selectedSecurityUser.id)}
+                                            className={`p-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm ${
+                                                selectedSecurityUser.isBlocked 
+                                                ? 'bg-white text-green-600 border border-green-200 hover:bg-green-50' 
+                                                : 'bg-white text-red-600 border border-red-200 hover:bg-red-50'
+                                            }`}
+                                        >
+                                            {selectedSecurityUser.isBlocked ? <Unlock size={18} /> : <Lock size={18} />}
+                                            <span className="text-[10px] font-black uppercase">
+                                                {selectedSecurityUser.isBlocked ? 'Permitir Acceso' : 'Denegar Acceso'}
+                                            </span>
+                                        </button>
+
+                                        <button 
+                                            onClick={() => initiateSecurityAction(selectedSecurityUser.isAdmin ? 'remove_admin' : 'make_admin', selectedSecurityUser.id)}
+                                            className={`p-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm border ${
+                                                selectedSecurityUser.isAdmin
+                                                ? 'bg-brand-black text-white border-transparent'
+                                                : 'bg-white text-brand-black border-gray-200 hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            {selectedSecurityUser.isAdmin ? <UserCheck size={18} /> : <Shield size={18} />}
+                                            <span className="text-[10px] font-black uppercase">
+                                                {selectedSecurityUser.isAdmin ? 'Quitar Admin' : 'Hacer Admin'}
+                                            </span>
+                                        </button>
+                                    </div>
+
                                     <div className="grid grid-cols-2 gap-3 mb-6">
                                         <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/5">
                                             <div className="flex items-center space-x-2 mb-2 text-gray-400">
@@ -510,7 +642,6 @@ const AdminDashboard: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    {/* Real-time Logs History */}
                                     <div className="mb-2">
                                         <h4 className="text-[10px] font-black uppercase text-gray-400 mb-4 flex items-center">
                                             <History size={14} className="mr-2" /> Historial de Actividad
@@ -533,82 +664,26 @@ const AdminDashboard: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Actions Footer (Sticky at bottom of card) */}
                             <div className="p-4 bg-gray-50 dark:bg-[#0f0f0f] border-t border-gray-200 dark:border-white/10 shrink-0">
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button 
-                                        onClick={() => initiateSecurityAction(selectedSecurityUser.isBlocked ? 'unblock' : 'block', selectedSecurityUser.id)}
-                                        className={`p-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm ${
-                                            selectedSecurityUser.isBlocked 
-                                            ? 'bg-white text-green-600 border border-green-200 hover:bg-green-50' 
-                                            : 'bg-white text-red-600 border border-red-200 hover:bg-red-50'
-                                        }`}
-                                    >
-                                        {selectedSecurityUser.isBlocked ? <Unlock size={18} /> : <Lock size={18} />}
-                                        <span className="text-[10px] font-black uppercase">
-                                            {selectedSecurityUser.isBlocked ? 'Desbloquear' : 'Bloquear'}
-                                        </span>
-                                    </button>
-
-                                    <button 
-                                        onClick={() => initiateSecurityAction(selectedSecurityUser.isAdmin ? 'remove_admin' : 'make_admin', selectedSecurityUser.id)}
-                                        className={`p-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm border ${
-                                            selectedSecurityUser.isAdmin
-                                            ? 'bg-brand-black text-white border-transparent'
-                                            : 'bg-white text-brand-black border-gray-200 hover:bg-gray-100'
-                                        }`}
-                                    >
-                                        {selectedSecurityUser.isAdmin ? <UserCheck size={18} /> : <Shield size={18} />}
-                                        <span className="text-[10px] font-black uppercase">
-                                            {selectedSecurityUser.isAdmin ? 'Quitar Admin' : 'Hacer Admin'}
-                                        </span>
-                                    </button>
-                                </div>
-                                <button 
-                                    onClick={() => initiateSecurityAction('reset_session', selectedSecurityUser.id)}
-                                    className="w-full mt-3 py-2 text-[9px] font-bold text-gray-400 uppercase tracking-widest hover:text-red-500 transition-colors"
-                                >
-                                    Cerrar Sesión en todos los dispositivos
-                                </button>
+                                <button onClick={() => initiateSecurityAction('reset_session', selectedSecurityUser.id)} className="w-full py-2 text-[9px] font-bold text-gray-400 uppercase tracking-widest hover:text-red-500 transition-colors">Cerrar Sesión en todos los dispositivos</button>
                             </div>
-
                         </div>
                     </div>
                 )}
             </div>
         )}
 
-        {/* ... (Other tabs remain unchanged) ... */}
+        {/* ... (Other tabs remain largely unchanged, just ensuring structure) ... */}
         {activeTab === 'pk' && localSchedule && (
             <div className="space-y-6 animate-slide-up">
-                
-                {/* Sub-Nav Toggle */}
-                <div className="bg-gray-100 dark:bg-white/5 p-1 rounded-xl flex">
-                    <button 
-                        onClick={() => setPkView('assign')}
-                        className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${pkView === 'assign' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-black dark:text-white' : 'text-gray-400'}`}
-                    >
-                        Programar
-                    </button>
-                    <button 
-                        onClick={() => setPkView('requests')}
-                        className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${pkView === 'requests' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-black dark:text-white' : 'text-gray-400'}`}
-                    >
-                        Solicitudes ({pkRequests.length})
-                    </button>
-                </div>
-
+                <div className="bg-gray-100 dark:bg-white/5 p-1 rounded-xl flex"><button onClick={() => setPkView('assign')} className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${pkView === 'assign' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-black dark:text-white' : 'text-gray-400'}`}>Programar</button><button onClick={() => setPkView('requests')} className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${pkView === 'requests' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-black dark:text-white' : 'text-gray-400'}`}>Solicitudes ({pkRequests.length})</button></div>
                 {pkView === 'assign' ? (
                     <div className="space-y-6">
-                         {/* PK Editor Code... */}
-                         {/* ... */}
                          <div className="bg-white dark:bg-brand-dark-card p-4 rounded-3xl border border-gray-100 dark:border-white/5"><div className="flex items-center space-x-2 mb-4 border-b border-gray-100 dark:border-white/5 pb-2"><div className="bg-brand-black text-white p-1.5 rounded"><Swords size={16} /></div><h3 className="text-sm font-black uppercase">PK Potencial</h3></div><div className="space-y-3">{localSchedule.potential.map((event, idx) => (<div key={event.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5 flex items-center justify-between gap-3"><div className="flex flex-col items-center justify-center bg-white dark:bg-black/20 p-2 rounded-lg min-w-[60px]"><Clock size={12} className="text-gray-400 mb-1"/><span className="text-[9px] font-black text-brand-black dark:text-white whitespace-nowrap text-center leading-tight">08:00<br/>08:15 PM</span></div><div className="flex-1 flex items-center gap-2"><input className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-brand-purple text-center uppercase" placeholder="ID EMISOR" value={event.id1} onChange={(e) => handleScheduleChange('potential', idx, 'id1', e.target.value)} /><span className="text-[10px] font-black text-gray-300">VS</span><input className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-brand-purple text-center uppercase" placeholder="ID OPONENTE" value={event.id2} onChange={(e) => handleScheduleChange('potential', idx, 'id2', e.target.value)} /></div></div>))}</div><div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5"><Button onClick={saveSchedule} fullWidth variant="black" className="shadow-lg h-12 text-xs"><Save size={16} className="mr-2" /> Publicar Cambios (Potencial)</Button></div></div>
                          <div className="bg-white dark:bg-brand-dark-card p-4 rounded-3xl border border-gray-100 dark:border-white/5"><div className="flex items-center space-x-2 mb-4 border-b border-gray-100 dark:border-white/5 pb-2"><div className="bg-orange-500 text-white p-1.5 rounded"><Swords size={16} /></div><h3 className="text-sm font-black uppercase">PK Supersmash</h3></div><div className="space-y-3">{localSchedule.supersmash.map((event, idx) => (<div key={event.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5 flex items-center justify-between gap-3"><div className="flex flex-col items-center justify-center bg-white dark:bg-black/20 p-2 rounded-lg min-w-[60px]"><Clock size={12} className="text-gray-400 mb-1"/><span className="text-[9px] font-black text-brand-black dark:text-white whitespace-nowrap text-center leading-tight">08:00<br/>08:15 PM</span></div><div className="flex-1 flex items-center gap-2"><input className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-orange-500 text-center uppercase" placeholder="ID EMISOR" value={event.id1} onChange={(e) => handleScheduleChange('supersmash', idx, 'id1', e.target.value)} /><span className="text-[10px] font-black text-gray-300">VS</span><input className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-orange-500 text-center uppercase" placeholder="ID OPONENTE" value={event.id2} onChange={(e) => handleScheduleChange('supersmash', idx, 'id2', e.target.value)} /></div></div>))}</div><div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5"><Button onClick={saveSchedule} fullWidth variant="black" className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg h-12 text-xs border-transparent"><Save size={16} className="mr-2" /> Publicar Cambios (Supersmash)</Button></div></div>
                     </div>
                 ) : (
                     <div className="space-y-6">
-                        {/* Requests List ... */}
                         <div><h3 className="text-xs font-black uppercase tracking-widest text-brand-black dark:text-white mb-3 flex items-center"><Bell className="mr-2 text-brand-purple" size={14} /> Nuevas Solicitudes ({pendingRequests.length})</h3>{pendingRequests.length === 0 ? (<div className="text-center py-6 border border-dashed border-gray-200 dark:border-white/10 rounded-xl"><p className="text-[10px] font-bold uppercase text-gray-400">Sin pendientes</p></div>) : (<div className="space-y-3">{pendingRequests.map((req) => (<div key={req.id} className="bg-white dark:bg-brand-dark-card p-4 rounded-2xl shadow-sm border-l-4 border-l-brand-purple border-y border-r border-gray-100 dark:border-white/5 flex flex-col gap-3"><div className="flex justify-between items-center border-b border-gray-50 dark:border-white/5 pb-2"><div className="flex items-center space-x-2 bg-gray-900 text-white dark:bg-white dark:text-black px-3 py-1.5 rounded-lg shadow-md transform -translate-y-1"><Calendar size={14} className="stroke-[2.5]"/><span className="text-xs font-black uppercase tracking-tight">{req.date}</span></div><div className="bg-brand-purple/10 px-2 py-0.5 rounded text-[9px] font-black text-brand-purple uppercase">Pendiente</div></div><div className="flex justify-between items-end"><div><h3 className="text-lg font-black uppercase text-brand-black dark:text-white leading-none">ID: {req.bigoId}</h3><p className="text-[10px] text-gray-400 mt-1 font-bold">Solicita Batalla PK</p></div><div className="flex gap-2"><button onClick={() => handleRejectRequest(req.id)} className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-400 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors border border-transparent hover:border-red-100"><X size={18} strokeWidth={2.5} /></button><button onClick={() => handleApproveRequest(req.id)} className="w-10 h-10 rounded-xl bg-brand-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-lg active:scale-95 transition-transform"><Check size={18} strokeWidth={3} /></button></div></div></div>))}</div>)}</div>
                         <div><div className="flex items-center justify-between mt-8 mb-4 pt-6 border-t border-gray-100 dark:border-white/5"><h3 className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center"><History className="mr-2" size={14} /> Historial de Solicitudes</h3><span className="text-[9px] font-bold bg-gray-100 dark:bg-white/10 px-2 py-1 rounded text-gray-500">{historyRequests.length}</span></div>{historyRequests.length === 0 ? (<div className="text-center py-10 opacity-50"><History size={32} className="mx-auto mb-2 text-gray-300" /><p className="text-[10px] text-gray-400 font-bold uppercase">Historial vacío</p></div>) : (<div className="space-y-3">{historyRequests.map((req) => (<div key={req.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl flex items-center justify-between border border-transparent hover:bg-white dark:hover:bg-brand-dark-card hover:shadow-sm hover:border-gray-100 dark:hover:border-white/10 transition-all group"><div className="flex-1 min-w-0 pr-4"><div className="flex items-center space-x-2 mb-1"><span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${req.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{req.status === 'approved' ? 'AGENDADA' : 'RECHAZADA'}</span><div className="flex items-center text-[9px] font-bold text-gray-400"><Calendar size={10} className="mr-1" />{req.date}</div></div><div className="flex items-center justify-between"><span className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase truncate">ID: {req.bigoId}</span></div></div><button onClick={() => handleDeleteRequest(req.id)} className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-white/10 transition-all shadow-sm bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 group-hover:border-red-100"><Trash2 size={16} /></button></div>))}</div>)}</div>
                     </div>
