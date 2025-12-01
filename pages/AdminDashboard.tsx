@@ -197,6 +197,19 @@ const AdminDashboard: React.FC = () => {
       }
   };
 
+  const handleClearLogs = async (userId: string) => {
+      if (!window.confirm("¿Estás seguro de borrar todo el historial de actividad de este usuario? Esta acción no se puede deshacer.")) return;
+      if (!db) return;
+
+      try {
+          const userRef = doc(db, "users", userId);
+          await updateDoc(userRef, { accessLogs: [] });
+      } catch (e) {
+          console.error(e);
+          alert("Error al resetear el historial.");
+      }
+  };
+
 
   const filteredUsers = users.filter(u => 
       u.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -643,9 +656,19 @@ const AdminDashboard: React.FC = () => {
                                     </div>
 
                                     <div className="mb-2">
-                                        <h4 className="text-[10px] font-black uppercase text-gray-400 mb-4 flex items-center">
-                                            <History size={14} className="mr-2" /> Historial de Actividad
-                                        </h4>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h4 className="text-[10px] font-black uppercase text-gray-400 flex items-center">
+                                                <History size={14} className="mr-2" /> Historial de Actividad
+                                            </h4>
+                                            <button 
+                                                onClick={() => handleClearLogs(selectedSecurityUser.id)}
+                                                className="flex items-center space-x-1 text-[9px] font-bold text-red-400 hover:text-red-500 transition-colors uppercase tracking-wider bg-red-50 dark:bg-red-900/10 px-2 py-1 rounded-md"
+                                            >
+                                                <Trash2 size={10} />
+                                                <span>Reseteo de historial</span>
+                                            </button>
+                                        </div>
+                                        
                                         <div className="space-y-4 relative border-l-2 border-gray-100 dark:border-white/10 ml-2.5 pb-2">
                                             {selectedSecurityUser.accessLogs && selectedSecurityUser.accessLogs.length > 0 ? (
                                                 selectedSecurityUser.accessLogs.slice().reverse().slice(0, 10).map((log: ActivityLog, idx: number) => (
