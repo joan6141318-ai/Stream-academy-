@@ -24,10 +24,11 @@ import EditorDashboard from './pages/EditorDashboard';
 import WelcomeIntermediate from './pages/WelcomeIntermediate';
 import PKCalendar from './pages/PKCalendar'; 
 import MaintenanceMode from './pages/MaintenanceMode';
+import AccessDenied from './pages/AccessDenied';
 import { MainLayout } from './components/MainLayout';
 import { InstallPrompt } from './components/InstallPrompt';
 
-// System Version: v15.0.0 - CRITICAL CACHE FIX
+// System Version: v15.1.0 - Access Control Update
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -63,18 +64,30 @@ const AdminRoute = ({ children }: { children?: React.ReactNode }) => {
 
 const AppContent: React.FC = () => {
   const { homeConfig, loading: contentLoading } = useContent();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const location = useLocation();
 
-  // --- GLOBAL SECURITY GUARD ---
+  // --- 1. GLOBAL BLOCKED USER CHECK ---
+  // If user is blocked, redirect to /access-denied immediately.
+  // Allow Login page so they can logout/switch accounts.
+  if (!authLoading && user?.isBlocked) {
+      const isAccessDeniedPage = location.pathname === '/access-denied';
+      const isLoginPage = location.pathname === '/';
+      
+      if (!isAccessDeniedPage && !isLoginPage) {
+          return <Navigate to="/access-denied" replace />;
+      }
+  }
+
+  // --- 2. GLOBAL MAINTENANCE GUARD ---
   // If maintenance mode is active AND user is not admin, redirect to maintenance page.
-  // Exception: Allow Login page to allow admins to sign in.
   if (!contentLoading && homeConfig?.maintenanceMode) {
       const isMaintenancePage = location.pathname === '/maintenance';
       const isLoginPage = location.pathname === '/';
+      const isBlockedPage = location.pathname === '/access-denied';
       
-      // If user is not admin and trying to access anything but maintenance or login
-      if (!user?.isAdmin && !isMaintenancePage && !isLoginPage) {
+      // If user is not admin and trying to access anything but permitted pages
+      if (!user?.isAdmin && !isMaintenancePage && !isLoginPage && !isBlockedPage) {
           return <Navigate to="/maintenance" replace />;
       }
   }
@@ -88,8 +101,11 @@ const AppContent: React.FC = () => {
         {/* Public Route */}
         <Route path="/" element={<Login />} />
         
-        {/* GLOBAL LOCKDOWN PAGE - Explicit Relative Import */}
+        {/* GLOBAL LOCKDOWN PAGE */}
         <Route path="/maintenance" element={<MaintenanceMode />} />
+
+        {/* BLOCKED USER PAGE */}
+        <Route path="/access-denied" element={<AccessDenied />} />
 
         {/* New Intermediate Page */}
         <Route path="/welcome" element={
