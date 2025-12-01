@@ -26,8 +26,8 @@ const AdminDashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Local State for PK Editing
-  const [localSchedule, setLocalSchedule] = useState<PKSchedule | null>(null);
+  // Local State for PK Editing - INITIALIZED IMMEDIATELY
+  const [localSchedule, setLocalSchedule] = useState<PKSchedule | null>(pkSchedule);
 
   // Estados Formularios
   const [alertMessage, setAlertMessage] = useState('');
@@ -43,7 +43,7 @@ const AdminDashboard: React.FC = () => {
   
   const selectedSecurityUser = users.find(u => u.id === selectedUserId) || null;
 
-  // Sync Local PK State
+  // Sync Local PK State if context updates
   useEffect(() => {
       if (pkSchedule) {
           setLocalSchedule(pkSchedule);
@@ -712,6 +712,216 @@ const AdminDashboard: React.FC = () => {
                             <div className="p-4 bg-gray-50 dark:bg-[#0f0f0f] border-t border-gray-200 dark:border-white/10 shrink-0">
                                 <button onClick={() => initiateSecurityAction('reset_session', selectedSecurityUser.id)} className="w-full py-2 text-[9px] font-bold text-gray-400 uppercase tracking-widest hover:text-red-500 transition-colors">Cerrar Sesión en todos los dispositivos</button>
                             </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        )}
+
+        {/* --- TAB: ARENA PK --- */}
+        {activeTab === 'pk' && localSchedule && (
+            <div className="space-y-6 animate-slide-up">
+                
+                {/* Sub-Nav Toggle */}
+                <div className="bg-gray-100 dark:bg-white/5 p-1 rounded-xl flex">
+                    <button 
+                        onClick={() => setPkView('assign')}
+                        className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${pkView === 'assign' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-black dark:text-white' : 'text-gray-400'}`}
+                    >
+                        Programar
+                    </button>
+                    <button 
+                        onClick={() => setPkView('requests')}
+                        className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${pkView === 'requests' ? 'bg-white dark:bg-brand-dark-card shadow-sm text-brand-black dark:text-white' : 'text-gray-400'}`}
+                    >
+                        Solicitudes ({pkRequests.length})
+                    </button>
+                </div>
+
+                {pkView === 'assign' ? (
+                    <div className="space-y-6">
+                         
+                         {/* POTENCIAL EDITOR */}
+                         <div className="bg-white dark:bg-brand-dark-card p-4 rounded-3xl border border-gray-100 dark:border-white/5">
+                             <div className="flex items-center space-x-2 mb-4 border-b border-gray-100 dark:border-white/5 pb-2">
+                                 <div className="bg-brand-black text-white p-1.5 rounded"><Swords size={16} /></div>
+                                 <h3 className="text-sm font-black uppercase">PK Potencial</h3>
+                             </div>
+                             
+                             <div className="space-y-3">
+                                {localSchedule.potential.map((event, idx) => (
+                                    <div key={event.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5 flex items-center justify-between gap-3">
+                                        <div className="flex flex-col items-center justify-center bg-white dark:bg-black/20 p-2 rounded-lg min-w-[60px]">
+                                            <Clock size={12} className="text-gray-400 mb-1"/>
+                                            <span className="text-[9px] font-black text-brand-black dark:text-white whitespace-nowrap text-center leading-tight">
+                                                08:00<br/>08:15 PM
+                                            </span>
+                                        </div>
+                                        
+                                        <div className="flex-1 flex items-center gap-2">
+                                            <input 
+                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-brand-purple text-center uppercase" 
+                                                placeholder="ID EMISOR"
+                                                value={event.id1}
+                                                onChange={(e) => handleScheduleChange('potential', idx, 'id1', e.target.value)}
+                                            />
+                                            <span className="text-[10px] font-black text-gray-300">VS</span>
+                                            <input 
+                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-brand-purple text-center uppercase" 
+                                                placeholder="ID OPONENTE"
+                                                value={event.id2}
+                                                onChange={(e) => handleScheduleChange('potential', idx, 'id2', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                             </div>
+
+                             {/* BOTÓN PUBLICAR PARA POTENCIAL */}
+                             <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
+                                 <Button onClick={saveSchedule} fullWidth variant="black" className="shadow-lg h-12 text-xs">
+                                     <Save size={16} className="mr-2" /> Publicar Cambios (Potencial)
+                                 </Button>
+                             </div>
+                         </div>
+
+                         {/* SUPERSMASH EDITOR */}
+                         <div className="bg-white dark:bg-brand-dark-card p-4 rounded-3xl border border-gray-100 dark:border-white/5">
+                             <div className="flex items-center space-x-2 mb-4 border-b border-gray-100 dark:border-white/5 pb-2">
+                                 <div className="bg-orange-500 text-white p-1.5 rounded"><Swords size={16} /></div>
+                                 <h3 className="text-sm font-black uppercase">PK Supersmash</h3>
+                             </div>
+                             
+                             <div className="space-y-3">
+                                {localSchedule.supersmash.map((event, idx) => (
+                                    <div key={event.id} className="bg-orange-50 dark:bg-orange-900/10 p-3 rounded-xl border border-orange-100 dark:border-orange-900/20 flex items-center justify-between gap-3">
+                                        <div className="flex flex-col items-center justify-center bg-white dark:bg-black/20 p-2 rounded-lg min-w-[60px]">
+                                            <Clock size={12} className="text-orange-400 mb-1"/>
+                                            <span className="text-[9px] font-black text-brand-black dark:text-white whitespace-nowrap text-center leading-tight">
+                                                08:00<br/>08:15 PM
+                                            </span>
+                                        </div>
+                                        
+                                        <div className="flex-1 flex items-center gap-2">
+                                            <input 
+                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-orange-500 text-center uppercase" 
+                                                placeholder="ID EMISOR"
+                                                value={event.id1}
+                                                onChange={(e) => handleScheduleChange('supersmash', idx, 'id1', e.target.value)}
+                                            />
+                                            <span className="text-[10px] font-black text-orange-300">VS</span>
+                                            <input 
+                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-orange-500 text-center uppercase" 
+                                                placeholder="ID OPONENTE"
+                                                value={event.id2}
+                                                onChange={(e) => handleScheduleChange('supersmash', idx, 'id2', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                             </div>
+
+                             {/* BOTÓN PUBLICAR PARA SUPERSMASH */}
+                             <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
+                                 <Button onClick={saveSchedule} fullWidth variant="black" className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg h-12 text-xs border-transparent">
+                                     <Save size={16} className="mr-2" /> Publicar Cambios (Supersmash)
+                                 </Button>
+                             </div>
+                         </div>
+                    </div>
+                ) : (
+                    <div className="space-y-6">
+                        
+                        {/* 1. LISTA DE PENDIENTES */}
+                        <div>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-brand-black dark:text-white mb-3 flex items-center">
+                                <Bell className="mr-2 text-brand-purple" size={14} /> 
+                                Nuevas Solicitudes ({pendingRequests.length})
+                            </h3>
+                            
+                            {pendingRequests.length === 0 ? (
+                                <div className="text-center py-6 border border-dashed border-gray-200 dark:border-white/10 rounded-xl">
+                                    <p className="text-[10px] font-bold uppercase text-gray-400">Sin pendientes</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {pendingRequests.map((req) => (
+                                        <div key={req.id} className="bg-white dark:bg-brand-dark-card p-4 rounded-2xl shadow-sm border-l-4 border-l-brand-purple border-y border-r border-gray-100 dark:border-white/5 flex flex-col gap-3">
+                                            
+                                            {/* Header Date Highlighting */}
+                                            <div className="flex justify-between items-center border-b border-gray-50 dark:border-white/5 pb-2">
+                                                <div className="flex items-center space-x-2 bg-gray-900 text-white dark:bg-white dark:text-black px-3 py-1.5 rounded-lg shadow-md transform -translate-y-1">
+                                                    <Calendar size={14} className="stroke-[2.5]"/>
+                                                    <span className="text-xs font-black uppercase tracking-tight">{req.date}</span>
+                                                </div>
+                                                <div className="bg-brand-purple/10 px-2 py-0.5 rounded text-[9px] font-black text-brand-purple uppercase">Pendiente</div>
+                                            </div>
+
+                                            <div className="flex justify-between items-end">
+                                                <div>
+                                                    <h3 className="text-lg font-black uppercase text-brand-black dark:text-white leading-none">ID: {req.bigoId}</h3>
+                                                    <p className="text-[10px] text-gray-400 mt-1 font-bold">Solicita Batalla PK</p>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => handleRejectRequest(req.id)} className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-400 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors border border-transparent hover:border-red-100">
+                                                        <X size={18} strokeWidth={2.5} />
+                                                    </button>
+                                                    <button onClick={() => handleApproveRequest(req.id)} className="w-10 h-10 rounded-xl bg-brand-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-lg active:scale-95 transition-transform">
+                                                        <Check size={18} strokeWidth={3} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 2. HISTORIAL DE PROCESADAS */}
+                        <div>
+                            <div className="flex items-center justify-between mt-8 mb-4 pt-6 border-t border-gray-100 dark:border-white/5">
+                                <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center">
+                                    <History className="mr-2" size={14} /> 
+                                    Historial de Solicitudes
+                                </h3>
+                                <span className="text-[9px] font-bold bg-gray-100 dark:bg-white/10 px-2 py-1 rounded text-gray-500">
+                                    {historyRequests.length}
+                                </span>
+                            </div>
+
+                            {historyRequests.length === 0 ? (
+                                <div className="text-center py-10 opacity-50">
+                                    <History size={32} className="mx-auto mb-2 text-gray-300" />
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase">Historial vacío</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {historyRequests.map((req) => (
+                                        <div key={req.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl flex items-center justify-between border border-transparent hover:bg-white dark:hover:bg-brand-dark-card hover:shadow-sm hover:border-gray-100 dark:hover:border-white/10 transition-all group">
+                                            <div className="flex-1 min-w-0 pr-4">
+                                                <div className="flex items-center space-x-2 mb-1">
+                                                    <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${req.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                        {req.status === 'approved' ? 'AGENDADA' : 'RECHAZADA'}
+                                                    </span>
+                                                    <div className="flex items-center text-[9px] font-bold text-gray-400">
+                                                        <Calendar size={10} className="mr-1" />
+                                                        {req.date}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase truncate">ID: {req.bigoId}</span>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={() => handleDeleteRequest(req.id)}
+                                                className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-white/10 transition-all shadow-sm bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 group-hover:border-red-100"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
