@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { UserX, MessageCircle, LogOut } from 'lucide-react';
+import { UserX, MessageCircle, LogOut, Shield, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -22,8 +22,34 @@ const AccessDenied: React.FC = () => {
 
       <div className="relative z-10 text-center max-w-sm flex flex-col items-center">
           
-          <div className="w-24 h-24 bg-red-50 dark:bg-red-900/10 rounded-full flex items-center justify-center mb-6 shadow-lg border border-red-100 dark:border-red-900/30">
-              <UserX size={40} className="text-red-500" strokeWidth={1.5} />
+          {/* --- ICONO PREMIUM REDISEÑADO --- */}
+          <div className="relative mb-8 group">
+              {/* Outer Glow Ring */}
+              <div className="absolute -inset-4 bg-red-500/20 rounded-full blur-xl animate-pulse"></div>
+              
+              {/* Main Container */}
+              <div className="relative w-28 h-28 bg-white dark:bg-[#121212] rounded-full flex items-center justify-center shadow-2xl border-4 border-red-50 dark:border-red-900/10 z-10">
+                  {/* Inner Gradient Circle */}
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-inner relative overflow-hidden">
+                      {/* Glossy Reflection */}
+                      <div className="absolute top-0 left-0 w-full h-1/2 bg-white/10 rounded-t-full"></div>
+                      
+                      {/* Main Icon */}
+                      <UserX size={40} className="text-white drop-shadow-md relative z-10" strokeWidth={2} />
+                      
+                      {/* Background Pattern inside circle */}
+                      <div className="absolute inset-0 opacity-20">
+                          <Shield size={80} className="absolute -bottom-4 -right-4 text-black rotate-[-15deg]" />
+                      </div>
+                  </div>
+              </div>
+
+              {/* Floating Lock Badge */}
+              <div className="absolute bottom-0 right-0 z-20 bg-white dark:bg-black p-1.5 rounded-full shadow-lg border border-gray-100 dark:border-white/10">
+                  <div className="bg-red-600 rounded-full p-1.5 text-white">
+                      <Lock size={12} strokeWidth={3} />
+                  </div>
+              </div>
           </div>
 
           <h1 className="text-2xl font-black text-brand-black dark:text-white uppercase tracking-tighter mb-4 leading-none">
