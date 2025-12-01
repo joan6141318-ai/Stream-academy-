@@ -17,20 +17,20 @@ const AccessDenied: React.FC = () => {
     <div className="flex flex-col h-screen w-full bg-white dark:bg-black items-center justify-center p-8 relative overflow-hidden transition-colors duration-300">
       
       {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+      <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-purple/5 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none"></div>
 
       <div className="relative z-10 text-center max-w-sm flex flex-col items-center">
           
-          {/* --- ICONO PREMIUM REDISEÑADO --- */}
+          {/* --- ICONO PREMIUM REDISEÑADO (Purple/White Aesthetic) --- */}
           <div className="relative mb-8 group">
               {/* Outer Glow Ring */}
-              <div className="absolute -inset-4 bg-red-500/20 rounded-full blur-xl animate-pulse"></div>
+              <div className="absolute -inset-4 bg-brand-purple/20 rounded-full blur-xl animate-pulse"></div>
               
               {/* Main Container */}
-              <div className="relative w-28 h-28 bg-white dark:bg-[#121212] rounded-full flex items-center justify-center shadow-2xl border-4 border-red-50 dark:border-red-900/10 z-10">
+              <div className="relative w-28 h-28 bg-white dark:bg-[#121212] rounded-full flex items-center justify-center shadow-2xl border-4 border-white dark:border-white/10 z-10">
                   {/* Inner Gradient Circle */}
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-inner relative overflow-hidden">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-brand-purple to-fuchsia-600 flex items-center justify-center shadow-inner relative overflow-hidden">
                       {/* Glossy Reflection */}
                       <div className="absolute top-0 left-0 w-full h-1/2 bg-white/10 rounded-t-full"></div>
                       
@@ -46,7 +46,7 @@ const AccessDenied: React.FC = () => {
 
               {/* Floating Lock Badge */}
               <div className="absolute bottom-0 right-0 z-20 bg-white dark:bg-black p-1.5 rounded-full shadow-lg border border-gray-100 dark:border-white/10">
-                  <div className="bg-red-600 rounded-full p-1.5 text-white">
+                  <div className="bg-brand-purple rounded-full p-1.5 text-white">
                       <Lock size={12} strokeWidth={3} />
                   </div>
               </div>
