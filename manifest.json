@@ -1,3 +1,4 @@
+
 {
   "name": "StreamAgency Pro",
   "short_name": "StreamAgency",
@@ -8,6 +9,7 @@
   "background_color": "#ffffff",
   "theme_color": "#7c3aed",
   "orientation": "portrait",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "https://i.postimg.cc/65zvGzJL/IMG_20251102_060134.png",

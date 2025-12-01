@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, AlertCircle, WifiOff, Check } from 'lucide-react';
+import { Zap, AlertCircle, WifiOff, Check, ShieldAlert } from 'lucide-react';
 import { Button } from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 import { useContent, hashString } from '../context/ContentContext';
@@ -22,6 +22,7 @@ const Login: React.FC = () => {
 
   const [error, setError] = useState<string | null>(null);
   const [isNetworkError, setIsNetworkError] = useState(false);
+  const [isSecurityError, setIsSecurityError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -37,6 +38,7 @@ const Login: React.FC = () => {
     setError(null);
     setAgencyError(null); 
     setIsNetworkError(false);
+    setIsSecurityError(false);
     setter(value);
   };
 
@@ -45,6 +47,7 @@ const Login: React.FC = () => {
     setError(null);
     setAgencyError(null);
     setIsNetworkError(false);
+    setIsSecurityError(false);
     setIsSubmitting(true);
 
     try {
@@ -87,7 +90,11 @@ const Login: React.FC = () => {
           console.error("Firebase Auth Error:", errorCode, errorMessage);
       }
 
-      if (errorCode === 'auth/invalid-credential' || errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password') {
+      // --- MANEJO DE ERRORES ---
+      if (errorMessage.includes('requests-from-referer') || errorMessage.includes('blocked')) {
+         setError("Acceso bloqueado por Seguridad: Este dominio no está autorizado en Google Cloud. Usa el sitio oficial.");
+         setIsSecurityError(true);
+      } else if (errorCode === 'auth/invalid-credential' || errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password') {
         setError("Usuario o contraseña incorrectos. Si es tu primera vez, selecciona 'Crear Cuenta'.");
       } else if (errorCode === 'auth/email-already-in-use') {
         setError("Este correo ya está registrado. Cambiando a inicio de sesión...");
@@ -127,10 +134,18 @@ const Login: React.FC = () => {
         </div>
 
         {error && (
-          <div className={`mb-6 p-4 border-l-4 flex items-start animate-fade-in ${isNetworkError ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-500' : 'bg-red-50 dark:bg-red-900/20 border-red-500'}`}>
-            {isNetworkError ? <WifiOff size={16} className="text-orange-500 mr-2 flex-shrink-0 mt-0.5" /> : <AlertCircle size={16} className="text-red-500 mr-2 flex-shrink-0 mt-0.5" />}
+          <div className={`mb-6 p-4 border-l-4 flex items-start animate-fade-in ${isSecurityError ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-600' : isNetworkError ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-500' : 'bg-red-50 dark:bg-red-900/20 border-red-500'}`}>
+            {isSecurityError ? (
+                <ShieldAlert size={16} className="text-purple-600 mr-2 flex-shrink-0 mt-0.5" />
+            ) : isNetworkError ? (
+                <WifiOff size={16} className="text-orange-500 mr-2 flex-shrink-0 mt-0.5" />
+            ) : (
+                <AlertCircle size={16} className="text-red-500 mr-2 flex-shrink-0 mt-0.5" />
+            )}
             <div>
-                <p className={`text-[10px] font-bold uppercase tracking-wide leading-tight ${isNetworkError ? 'text-orange-600 dark:text-orange-400' : 'text-red-500'}`}>{error}</p>
+                <p className={`text-[10px] font-bold uppercase tracking-wide leading-tight ${isSecurityError ? 'text-purple-700 dark:text-purple-300' : isNetworkError ? 'text-orange-600 dark:text-orange-400' : 'text-red-500'}`}>
+                    {error}
+                </p>
             </div>
           </div>
         )}

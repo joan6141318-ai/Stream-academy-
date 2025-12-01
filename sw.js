@@ -1,5 +1,6 @@
-// Nombre del caché - Actualizado a v6 para reactivar instalación PWA
-const CACHE_NAME = 'stream-agency-v6';
+
+// Nombre del caché - Actualizado a v15 para forzar recarga por error de importación
+const CACHE_NAME = 'stream-agency-v15-hotfix-rel';
 
 // Archivos vitales para que la app arranque offline
 const ASSETS_TO_CACHE = [
@@ -26,6 +27,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })

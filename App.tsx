@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { ContentProvider } from './context/ContentContext';
+import { ContentProvider, useContent } from './context/ContentContext';
 import Login from './pages/Login';
 import Onboarding from './pages/Onboarding'; 
 import OnboardingSetup from './pages/OnboardingSetup'; 
@@ -22,7 +23,11 @@ import AdminSelection from './pages/AdminSelection';
 import EditorDashboard from './pages/EditorDashboard'; 
 import WelcomeIntermediate from './pages/WelcomeIntermediate';
 import PKCalendar from './pages/PKCalendar'; 
+import MaintenanceMode from './pages/MaintenanceMode';
 import { MainLayout } from './components/MainLayout';
+import { InstallPrompt } from './components/InstallPrompt';
+
+// System Version: v15.0.0 - CRITICAL CACHE FIX
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -57,11 +62,34 @@ const AdminRoute = ({ children }: { children?: React.ReactNode }) => {
 };
 
 const AppContent: React.FC = () => {
+  const { homeConfig, loading: contentLoading } = useContent();
+  const { user } = useAuth();
+  const location = useLocation();
+
+  // --- GLOBAL SECURITY GUARD ---
+  // If maintenance mode is active AND user is not admin, redirect to maintenance page.
+  // Exception: Allow Login page to allow admins to sign in.
+  if (!contentLoading && homeConfig?.maintenanceMode) {
+      const isMaintenancePage = location.pathname === '/maintenance';
+      const isLoginPage = location.pathname === '/';
+      
+      // If user is not admin and trying to access anything but maintenance or login
+      if (!user?.isAdmin && !isMaintenancePage && !isLoginPage) {
+          return <Navigate to="/maintenance" replace />;
+      }
+  }
+
   return (
     <div className="w-full h-[100dvh] bg-white text-brand-black dark:bg-black dark:text-white overflow-hidden relative flex flex-col transition-colors duration-300">
+      {/* PWA INSTALL PROMPT - Visible on all pages if installable */}
+      <InstallPrompt />
+
       <Routes>
         {/* Public Route */}
         <Route path="/" element={<Login />} />
+        
+        {/* GLOBAL LOCKDOWN PAGE - Explicit Relative Import */}
+        <Route path="/maintenance" element={<MaintenanceMode />} />
 
         {/* New Intermediate Page */}
         <Route path="/welcome" element={
