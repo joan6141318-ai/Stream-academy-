@@ -1,8 +1,6 @@
-
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, BarChart2, Check, X, Send, Radio, Activity, Trophy, Save, Clock, Trash2, History, Calendar, Eye, FileText, Key, RefreshCw, Smartphone, AlertTriangle, UserCheck, ShieldCheck, Laptop, AlertOctagon } from 'lucide-react';
+import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, BarChart2, Check, X, Send, Radio, Activity, Trophy, Save, Clock, Trash2, History, Calendar, Eye, Laptop, UserCheck, ShieldCheck, AlertTriangle, ChevronRight } from 'lucide-react';
 import { collection, updateDoc, doc, onSnapshot, query, arrayUnion } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Header } from '../components/Header';
@@ -12,7 +10,7 @@ import { PKSchedule, PKEvent, ActivityLog } from '../types';
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { pkSchedule, updatePKSchedule, pkRequests, updatePKRequestStatus, deletePKRequest } = useContent();
+  const { pkSchedule, updatePKSchedule, pkRequests, updatePKRequestStatus, deletePKRequest, homeConfig, updateHomeConfig } = useContent();
   
   // Tabs Principales
   const [activeTab, setActiveTab] = useState<'users' | 'pk' | 'security' | 'comms' | 'data'>('users');
@@ -31,12 +29,11 @@ const AdminDashboard: React.FC = () => {
   const [alertMessage, setAlertMessage] = useState('');
   const [isSendingAlert, setIsSendingAlert] = useState(false);
 
-  // --- SECURITY STATES ---
-  const [selectedSecurityUser, setSelectedSecurityUser] = useState<any | null>(null);
-  const [securityPin, setSecurityPin] = useState('');
-  const [showSecurityPinModal, setShowSecurityPinModal] = useState(false);
-  const [pendingSecurityAction, setPendingSecurityAction] = useState<{ type: 'block' | 'unblock' | 'reset_session' | 'make_admin' | 'remove_admin', userId: string } | null>(null);
-  const [pinError, setPinError] = useState(false);
+  // --- SECURITY STATES (REAL TIME FIX) ---
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  
+  // Derivamos el usuario seleccionado en tiempo real
+  const selectedSecurityUser = users.find(u => u.id === selectedUserId) || null;
 
   // Sync Local PK State
   useEffect(() => {
@@ -49,44 +46,45 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     if (!db) return;
     
-    // Using onSnapshot for Real-Time Updates
+    // Listen to users collection
     const q = query(collection(db, "users"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const usersList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setUsers(usersList);
         setIsLoading(false);
-
-        // If a user is currently selected in the modal, update their data in real-time too
-        if (selectedSecurityUser) {
-            const updatedSelectedUser = usersList.find(u => u.id === selectedSecurityUser.id);
-            if (updatedSelectedUser) {
-                setSelectedSecurityUser(updatedSelectedUser);
-            }
-        }
     }, (error) => {
         console.error("Error listening to users:", error);
         setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [selectedSecurityUser?.id]); // Re-attach if selected user changes to ensure consistency
+  }, []);
 
   // --- ACTIONS ---
 
   const handleBlockUser = async (userId: string, currentStatus: boolean) => {
     if (!db) return;
     try {
-      // Optimistic UI update handled by onSnapshot
       await updateDoc(doc(db, "users", userId), { isBlocked: !currentStatus });
     } catch (e) {
       alert("Error al actualizar estado");
     }
   };
 
+  // --- GLOBAL LOCKDOWN LOGIC ---
+  const handleGlobalBlock = async (block: boolean) => {
+    if (!window.confirm(`¿CONFIRMAR PROTOCOLO DE SEGURIDAD: ${block ? 'LOCKDOWN TOTAL' : 'RESTAURAR ACCESO'}?`)) return;
+    try {
+        await updateHomeConfig({ maintenanceMode: block });
+        alert(block ? "SISTEMA BLOQUEADO. Solo Admins tienen acceso." : "SISTEMA RESTAURADO. Acceso público permitido.");
+    } catch (e) {
+        alert("Error al actualizar estado de seguridad.");
+    }
+  };
+
   const handleSendAlert = async () => {
     if (!alertMessage.trim()) return;
     setIsSendingAlert(true);
-    // Simulate push notification send
     setTimeout(() => {
         alert("Mensaje Push enviado exitosamente.");
         setAlertMessage('');
@@ -125,22 +123,11 @@ const AdminDashboard: React.FC = () => {
 
   // --- SECURITY LOGIC ---
 
-  const initiateSecurityAction = (type: 'block' | 'unblock' | 'reset_session' | 'make_admin' | 'remove_admin', userId: string) => {
-      setPendingSecurityAction({ type, userId });
-      setSecurityPin('');
-      setPinError(false);
-      setShowSecurityPinModal(true);
-  };
-
-  const confirmSecurityAction = async () => {
-      if (securityPin !== '3926') {
-          setPinError(true);
-          return;
-      }
+  const initiateSecurityAction = async (type: 'block' | 'unblock' | 'reset_session' | 'make_admin' | 'remove_admin', userId: string) => {
+      if (!window.confirm("¿Confirmar acción de seguridad?")) return;
       
-      if (!pendingSecurityAction || !db) return;
+      if (!db) return;
 
-      const { type, userId } = pendingSecurityAction;
       const userRef = doc(db, "users", userId);
       const now = new Date().toISOString();
       let logAction = "";
@@ -176,9 +163,6 @@ const AdminDashboard: React.FC = () => {
                  accessLogs: arrayUnion(newLog)
              });
           }
-          
-          setShowSecurityPinModal(false);
-          setPendingSecurityAction(null);
 
       } catch (error) {
           console.error(error);
@@ -195,6 +179,16 @@ const AdminDashboard: React.FC = () => {
 
   const pendingRequests = pkRequests.filter(req => req.status === 'pending');
   const historyRequests = pkRequests.filter(req => req.status !== 'pending');
+
+  // Check for default agency code risk (Using Hash Comparison for 'moon')
+  const DEFAULT_HASH = "a43c1b0aa53a0c908810c03ab1d7cb9922c2a05d605c567839356b20677275c5";
+  const isDefaultAgencyCode = homeConfig?.agencyCodeHash === DEFAULT_HASH || !homeConfig?.agencyCodeHash;
+
+  // Direct navigation to fix security issue
+  const handleFixSecurity = () => {
+      navigate('/admin/editor');
+      alert('Ve a "Página principal de inicio" -> "Textos y Accesos" para cambiar el código.');
+  };
 
   return (
     <div className="flex flex-col h-full w-full bg-gray-50 dark:bg-black transition-colors duration-300">
@@ -283,7 +277,7 @@ const AdminDashboard: React.FC = () => {
             </div>
         )}
 
-        {/* --- TAB: SEGURIDAD (FIXED MODAL & REAL DATA) --- */}
+        {/* --- TAB: SEGURIDAD --- */}
         {activeTab === 'security' && (
             <div className="space-y-6 animate-slide-up">
                 
@@ -297,22 +291,89 @@ const AdminDashboard: React.FC = () => {
                      </div>
                 </div>
 
+                {/* WARNING ALERT FOR DEFAULT PASSWORD */}
+                {isDefaultAgencyCode && (
+                    <button 
+                        onClick={handleFixSecurity}
+                        className="w-full bg-yellow-500/10 border border-yellow-500/50 p-4 rounded-2xl flex items-center justify-between gap-3 text-left group active:scale-[0.98] transition-all hover:bg-yellow-500/20"
+                    >
+                        <div className="flex items-start gap-3">
+                            <AlertTriangle className="text-yellow-500 flex-shrink-0 mt-1" size={20} />
+                            <div>
+                                <h3 className="text-xs font-black text-yellow-500 uppercase mb-1">Riesgo Detectado</h3>
+                                <p className="text-[10px] text-yellow-600 dark:text-yellow-400 leading-relaxed font-medium">
+                                    El "Código de Agencia" es inseguro ("moon").
+                                    <br/>
+                                    <span className="block mt-1 font-bold underline decoration-yellow-500/50">Toque aquí para cambiarlo ahora.</span>
+                                </p>
+                            </div>
+                        </div>
+                        <ChevronRight className="text-yellow-500 opacity-50 group-hover:opacity-100" size={16} />
+                    </button>
+                )}
+
                 <div className="bg-white dark:bg-brand-dark-card p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center">
                     <Search size={18} className="text-gray-400 ml-2" />
                     <input 
                         type="text" 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Buscar usuario..." 
+                        placeholder="Buscar usuario para auditar..." 
                         className="bg-transparent border-none text-sm font-bold w-full ml-3 focus:outline-none dark:text-white placeholder-gray-300" 
                     />
+                </div>
+
+                {/* DANGER ZONE - REAL LOCKDOWN */}
+                <div className={`p-6 rounded-3xl shadow-xl relative overflow-hidden transition-all duration-500 ${homeConfig.maintenanceMode ? 'bg-red-700 shadow-red-900/50' : 'bg-white dark:bg-brand-dark-card border border-gray-100 dark:border-white/5'}`}>
+                    {homeConfig.maintenanceMode && <Shield className="absolute -right-6 -bottom-6 text-white/10 rotate-[-15deg]" size={150} />}
+                    
+                    <div className="relative z-10">
+                        <div className="flex items-center space-x-2 mb-4">
+                            <div className={`${homeConfig.maintenanceMode ? 'bg-white/20 text-white' : 'bg-red-100 text-red-600'} p-2 rounded-lg backdrop-blur-sm`}><Ban size={24} /></div>
+                            <h2 className={`text-xl font-black uppercase ${homeConfig.maintenanceMode ? 'text-white' : 'text-brand-black dark:text-white'}`}>Zona de Peligro</h2>
+                        </div>
+                        <p className={`text-xs font-medium mb-6 leading-relaxed max-w-[250px] ${homeConfig.maintenanceMode ? 'text-white/80' : 'text-gray-500'}`}>
+                            {homeConfig.maintenanceMode 
+                                ? "EL SISTEMA ESTÁ BLOQUEADO. Nadie puede acceder excepto administradores." 
+                                : "Acciones irreversibles. El botón 'Lockdown' expulsará a todos los usuarios no administradores inmediatamente."}
+                        </p>
+
+                        <div className="space-y-3">
+                            {homeConfig.maintenanceMode ? (
+                                <button onClick={() => handleGlobalBlock(false)} className="w-full bg-white text-red-700 p-4 rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center shadow-lg active:scale-95 transition-transform">
+                                    <Unlock size={14} className="mr-2" /> RESTAURAR ACCESO PÚBLICO
+                                </button>
+                            ) : (
+                                <button onClick={() => handleGlobalBlock(true)} className="w-full bg-red-600 text-white p-4 rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center shadow-lg active:scale-95 transition-transform hover:bg-red-700">
+                                    <Lock size={14} className="mr-2" /> ACTIVAR LOCKDOWN TOTAL
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Status Indicator */}
+                <div className="bg-white dark:bg-brand-dark-card p-6 rounded-3xl border border-gray-100 dark:border-white/5">
+                    <div className="flex items-center space-x-2 mb-4">
+                        <Activity className="text-gray-400" size={20} />
+                        <h3 className="text-sm font-black uppercase text-brand-black dark:text-white">Estado del Sistema</h3>
+                    </div>
+                    <div className="space-y-4">
+                         <div className="flex items-start space-x-3">
+                             <div className={`w-2.5 h-2.5 rounded-full mt-1.5 animate-pulse ${homeConfig.maintenanceMode ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                             <div>
+                                 <p className="text-xs font-bold text-brand-black dark:text-white">{homeConfig.maintenanceMode ? 'MODO MANTENIMIENTO ACTIVO' : 'SISTEMA ESTABLE'}</p>
+                                 <p className="text-[10px] text-gray-400">{homeConfig.maintenanceMode ? 'Acceso restringido a usuarios.' : 'Todos los servicios operando correctamente.'}</p>
+                             </div>
+                         </div>
+                    </div>
                 </div>
 
                 <div className="grid gap-3">
                     {filteredUsers.map((u) => (
                         <button 
                             key={u.id}
-                            onClick={() => setSelectedSecurityUser(u)}
+                            onClick={() => setSelectedUserId(u.id)}
                             className="bg-white dark:bg-brand-dark-card p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center justify-between group active:scale-[0.99] transition-all hover:border-brand-purple/30 text-left"
                         >
                             <div className="flex items-center space-x-3">
@@ -332,45 +393,40 @@ const AdminDashboard: React.FC = () => {
                     ))}
                 </div>
 
-                {/* --- FIXED USER DOSSIER MODAL --- */}
+                {/* --- FIXED USER DOSSIER MODAL (CLEAN DESIGN - NO HEADER STRIP) --- */}
                 {selectedSecurityUser && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
-                        {/* Overlay click to close */}
-                        <div className="absolute inset-0" onClick={() => setSelectedSecurityUser(null)}></div>
+                    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+                        {/* 1. SOLID BACKDROP */}
+                        <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setSelectedUserId(null)}></div>
 
-                        {/* Centered Card */}
-                        <div className="relative w-full max-w-lg bg-white dark:bg-[#121212] rounded-[2rem] overflow-hidden shadow-2xl border border-gray-200 dark:border-white/10 flex flex-col max-h-[90vh]">
+                        {/* 2. CARD CONTAINER */}
+                        <div className="relative w-full max-w-lg bg-white dark:bg-[#121212] rounded-[2rem] overflow-hidden shadow-2xl border border-gray-200 dark:border-white/10 flex flex-col h-auto max-h-[85vh] animate-slide-up">
                             
-                            {/* Header (Fixed) */}
-                            <div className="h-24 bg-gradient-to-r from-gray-900 to-black relative shrink-0">
-                                <button 
-                                    onClick={() => setSelectedSecurityUser(null)} 
-                                    className="absolute top-4 right-4 bg-white/20 text-white p-2 rounded-full hover:bg-white/30 transition-colors backdrop-blur-md z-10"
-                                >
-                                    <X size={18} />
-                                </button>
-                                {/* Decorative Pattern */}
-                                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-brand-purple via-transparent to-transparent"></div>
-                            </div>
+                            {/* FLOATING CLOSE BUTTON */}
+                            <button 
+                                onClick={() => setSelectedUserId(null)} 
+                                className="absolute top-4 right-4 z-50 bg-gray-100 dark:bg-white/10 text-brand-black dark:text-white p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/20 transition-colors shadow-sm"
+                            >
+                                <X size={20} />
+                            </button>
 
                             {/* Scrollable Content */}
-                            <div className="flex-1 overflow-y-auto scrollbar-hide bg-white dark:bg-[#121212]">
+                            <div className="flex-1 overflow-y-auto scrollbar-hide bg-white dark:bg-[#121212] relative pt-12">
                                 <div className="px-6 pb-6">
                                     
-                                    {/* Avatar Overlap */}
-                                    <div className="relative -mt-10 mb-4 flex justify-between items-end pointer-events-none">
-                                        <div className="w-24 h-24 rounded-full p-1 bg-white dark:bg-[#121212] shadow-lg">
-                                            <img src={selectedSecurityUser.avatarUrl} alt="profile" className="w-full h-full rounded-full object-cover bg-gray-200" />
+                                    {/* Profile Info - Centered */}
+                                    <div className="flex flex-col items-center mb-6">
+                                        <div className="relative">
+                                            <div className="w-28 h-28 rounded-full p-1 bg-white dark:bg-[#121212] shadow-2xl border-4 border-gray-50 dark:border-white/5">
+                                                <img src={selectedSecurityUser.avatarUrl} alt="profile" className="w-full h-full rounded-full object-cover bg-gray-200" />
+                                            </div>
+                                            <div className={`absolute bottom-0 right-0 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg border-2 border-white dark:border-[#121212] ${selectedSecurityUser.isBlocked ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
+                                                {selectedSecurityUser.isBlocked ? 'BLOQUEADO' : 'ACTIVO'}
+                                            </div>
                                         </div>
-                                        <div className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 shadow-sm ${selectedSecurityUser.isBlocked ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
-                                            {selectedSecurityUser.isBlocked ? 'BLOQUEADO' : 'ACTIVO'}
-                                        </div>
-                                    </div>
-
-                                    {/* User Details */}
-                                    <div className="mb-6">
-                                        <h2 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none mb-2">{selectedSecurityUser.name}</h2>
-                                        <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
+                                        
+                                        <h2 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none mt-4 text-center">{selectedSecurityUser.name}</h2>
+                                        <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400 mt-2">
                                             <ShieldCheck size={14} />
                                             <span className="text-xs font-bold uppercase">{selectedSecurityUser.role || 'Streamer'}</span>
                                             <span>•</span>
@@ -385,7 +441,7 @@ const AdminDashboard: React.FC = () => {
                                                 <Laptop size={14} />
                                                 <span className="text-[9px] font-black uppercase tracking-wider">Dispositivo</span>
                                             </div>
-                                            <span className="text-[11px] font-bold text-brand-black dark:text-white leading-tight block">
+                                            <span className="text-[11px] font-bold text-brand-black dark:text-white leading-tight block line-clamp-2">
                                                 {selectedSecurityUser.deviceInfo || 'Desconocido'}
                                             </span>
                                         </div>
@@ -395,33 +451,8 @@ const AdminDashboard: React.FC = () => {
                                                 <span className="text-[9px] font-black uppercase tracking-wider">Última Sesión</span>
                                             </div>
                                             <span className="text-[11px] font-bold text-brand-black dark:text-white leading-tight block">
-                                                {selectedSecurityUser.lastLogin ? new Date(selectedSecurityUser.lastLogin).toLocaleString() : 'N/A'}
+                                                {selectedSecurityUser.lastLogin ? new Date(selectedSecurityUser.lastLogin).toLocaleDateString() : 'N/A'}
                                             </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Credentials */}
-                                    <div className="mb-6 bg-gray-50 dark:bg-white/5 p-5 rounded-2xl border border-gray-100 dark:border-white/5">
-                                        <h4 className="text-[10px] font-black uppercase text-gray-400 mb-4 flex items-center">
-                                            <Key size={14} className="mr-2" /> Credenciales y Seguridad
-                                        </h4>
-                                        <div className="flex justify-between items-center bg-white dark:bg-black p-3 rounded-lg border border-gray-100 dark:border-white/5 shadow-sm">
-                                            <div>
-                                                <p className="text-[9px] font-bold text-gray-400 uppercase mb-0.5">Password</p>
-                                                <div className="flex space-x-1">
-                                                    <div className="w-2 h-2 bg-brand-black dark:bg-white rounded-full"></div>
-                                                    <div className="w-2 h-2 bg-brand-black dark:bg-white rounded-full"></div>
-                                                    <div className="w-2 h-2 bg-brand-black dark:bg-white rounded-full"></div>
-                                                    <div className="w-2 h-2 bg-brand-black dark:bg-white rounded-full"></div>
-                                                    <div className="w-2 h-2 bg-brand-black dark:bg-white rounded-full"></div>
-                                                </div>
-                                            </div>
-                                            <button 
-                                                onClick={() => alert("Función de reseteo enviada.")}
-                                                className="text-[10px] font-bold text-brand-purple bg-brand-purple/10 px-3 py-1.5 rounded-md hover:bg-brand-purple hover:text-white transition-colors"
-                                            >
-                                                Resetear
-                                            </button>
                                         </div>
                                     </div>
 
@@ -449,7 +480,7 @@ const AdminDashboard: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Actions Footer (Sticky) */}
+                            {/* Actions Footer (Sticky at bottom of card) */}
                             <div className="p-4 bg-gray-50 dark:bg-[#0f0f0f] border-t border-gray-200 dark:border-white/10 shrink-0">
                                 <div className="grid grid-cols-2 gap-3">
                                     <button 
@@ -516,258 +547,26 @@ const AdminDashboard: React.FC = () => {
 
                 {pkView === 'assign' ? (
                     <div className="space-y-6">
-                         
-                         {/* POTENCIAL EDITOR */}
-                         <div className="bg-white dark:bg-brand-dark-card p-4 rounded-3xl border border-gray-100 dark:border-white/5">
-                             <div className="flex items-center space-x-2 mb-4 border-b border-gray-100 dark:border-white/5 pb-2">
-                                 <div className="bg-brand-black text-white p-1.5 rounded"><Swords size={16} /></div>
-                                 <h3 className="text-sm font-black uppercase">PK Potencial</h3>
-                             </div>
-                             
-                             <div className="space-y-3">
-                                {localSchedule.potential.map((event, idx) => (
-                                    <div key={event.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5 flex items-center justify-between gap-3">
-                                        <div className="flex flex-col items-center justify-center bg-white dark:bg-black/20 p-2 rounded-lg min-w-[60px]">
-                                            <Clock size={12} className="text-gray-400 mb-1"/>
-                                            <span className="text-[9px] font-black text-brand-black dark:text-white whitespace-nowrap text-center leading-tight">
-                                                08:00<br/>08:15 PM
-                                            </span>
-                                        </div>
-                                        
-                                        <div className="flex-1 flex items-center gap-2">
-                                            <input 
-                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-brand-purple text-center uppercase" 
-                                                placeholder="ID EMISOR"
-                                                value={event.id1}
-                                                onChange={(e) => handleScheduleChange('potential', idx, 'id1', e.target.value)}
-                                            />
-                                            <span className="text-[10px] font-black text-gray-300">VS</span>
-                                            <input 
-                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-brand-purple text-center uppercase" 
-                                                placeholder="ID OPONENTE"
-                                                value={event.id2}
-                                                onChange={(e) => handleScheduleChange('potential', idx, 'id2', e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                             </div>
-
-                             <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
-                                 <Button onClick={saveSchedule} fullWidth variant="black" className="shadow-lg h-12 text-xs">
-                                     <Save size={16} className="mr-2" /> Publicar Cambios (Potencial)
-                                 </Button>
-                             </div>
-                         </div>
-
-                         {/* SUPERSMASH EDITOR */}
-                         <div className="bg-white dark:bg-brand-dark-card p-4 rounded-3xl border border-gray-100 dark:border-white/5">
-                             <div className="flex items-center space-x-2 mb-4 border-b border-gray-100 dark:border-white/5 pb-2">
-                                 <div className="bg-orange-500 text-white p-1.5 rounded"><Swords size={16} /></div>
-                                 <h3 className="text-sm font-black uppercase">PK Supersmash</h3>
-                             </div>
-                             
-                             <div className="space-y-3">
-                                {localSchedule.supersmash.map((event, idx) => (
-                                    <div key={event.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5 flex items-center justify-between gap-3">
-                                        <div className="flex flex-col items-center justify-center bg-white dark:bg-black/20 p-2 rounded-lg min-w-[60px]">
-                                            <Clock size={12} className="text-gray-400 mb-1"/>
-                                            <span className="text-[9px] font-black text-brand-black dark:text-white whitespace-nowrap text-center leading-tight">
-                                                08:00<br/>08:15 PM
-                                            </span>
-                                        </div>
-                                        
-                                        <div className="flex-1 flex items-center gap-2">
-                                            <input 
-                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-brand-purple text-center uppercase" 
-                                                placeholder="ID EMISOR"
-                                                value={event.id1}
-                                                onChange={(e) => handleScheduleChange('supersmash', idx, 'id1', e.target.value)}
-                                            />
-                                            <span className="text-[10px] font-black text-gray-300">VS</span>
-                                            <input 
-                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-brand-purple text-center uppercase" 
-                                                placeholder="ID OPONENTE"
-                                                value={event.id2}
-                                                onChange={(e) => handleScheduleChange('supersmash', idx, 'id2', e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                             </div>
-
-                             <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
-                                 <Button onClick={saveSchedule} fullWidth variant="black" className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg h-12 text-xs border-transparent">
-                                     <Save size={16} className="mr-2" /> Publicar Cambios (Supersmash)
-                                 </Button>
-                             </div>
-                         </div>
+                         {/* PK Editor Code... */}
+                         {/* ... */}
+                         <div className="bg-white dark:bg-brand-dark-card p-4 rounded-3xl border border-gray-100 dark:border-white/5"><div className="flex items-center space-x-2 mb-4 border-b border-gray-100 dark:border-white/5 pb-2"><div className="bg-brand-black text-white p-1.5 rounded"><Swords size={16} /></div><h3 className="text-sm font-black uppercase">PK Potencial</h3></div><div className="space-y-3">{localSchedule.potential.map((event, idx) => (<div key={event.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5 flex items-center justify-between gap-3"><div className="flex flex-col items-center justify-center bg-white dark:bg-black/20 p-2 rounded-lg min-w-[60px]"><Clock size={12} className="text-gray-400 mb-1"/><span className="text-[9px] font-black text-brand-black dark:text-white whitespace-nowrap text-center leading-tight">08:00<br/>08:15 PM</span></div><div className="flex-1 flex items-center gap-2"><input className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-brand-purple text-center uppercase" placeholder="ID EMISOR" value={event.id1} onChange={(e) => handleScheduleChange('potential', idx, 'id1', e.target.value)} /><span className="text-[10px] font-black text-gray-300">VS</span><input className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-brand-purple text-center uppercase" placeholder="ID OPONENTE" value={event.id2} onChange={(e) => handleScheduleChange('potential', idx, 'id2', e.target.value)} /></div></div>))}</div><div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5"><Button onClick={saveSchedule} fullWidth variant="black" className="shadow-lg h-12 text-xs"><Save size={16} className="mr-2" /> Publicar Cambios (Potencial)</Button></div></div>
+                         <div className="bg-white dark:bg-brand-dark-card p-4 rounded-3xl border border-gray-100 dark:border-white/5"><div className="flex items-center space-x-2 mb-4 border-b border-gray-100 dark:border-white/5 pb-2"><div className="bg-orange-500 text-white p-1.5 rounded"><Swords size={16} /></div><h3 className="text-sm font-black uppercase">PK Supersmash</h3></div><div className="space-y-3">{localSchedule.supersmash.map((event, idx) => (<div key={event.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5 flex items-center justify-between gap-3"><div className="flex flex-col items-center justify-center bg-white dark:bg-black/20 p-2 rounded-lg min-w-[60px]"><Clock size={12} className="text-gray-400 mb-1"/><span className="text-[9px] font-black text-brand-black dark:text-white whitespace-nowrap text-center leading-tight">08:00<br/>08:15 PM</span></div><div className="flex-1 flex items-center gap-2"><input className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-orange-500 text-center uppercase" placeholder="ID EMISOR" value={event.id1} onChange={(e) => handleScheduleChange('supersmash', idx, 'id1', e.target.value)} /><span className="text-[10px] font-black text-gray-300">VS</span><input className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-orange-500 text-center uppercase" placeholder="ID OPONENTE" value={event.id2} onChange={(e) => handleScheduleChange('supersmash', idx, 'id2', e.target.value)} /></div></div>))}</div><div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5"><Button onClick={saveSchedule} fullWidth variant="black" className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg h-12 text-xs border-transparent"><Save size={16} className="mr-2" /> Publicar Cambios (Supersmash)</Button></div></div>
                     </div>
                 ) : (
                     <div className="space-y-6">
-                        <div>
-                            <h3 className="text-xs font-black uppercase tracking-widest text-brand-black dark:text-white mb-3 flex items-center">
-                                <Bell className="mr-2 text-brand-purple" size={14} /> 
-                                Nuevas Solicitudes ({pendingRequests.length})
-                            </h3>
-                            
-                            {pendingRequests.length === 0 ? (
-                                <div className="text-center py-6 border border-dashed border-gray-200 dark:border-white/10 rounded-xl">
-                                    <p className="text-[10px] font-bold uppercase text-gray-400">Sin pendientes</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {pendingRequests.map((req) => (
-                                        <div key={req.id} className="bg-white dark:bg-brand-dark-card p-4 rounded-2xl shadow-sm border-l-4 border-l-brand-purple border-y border-r border-gray-100 dark:border-white/5 flex flex-col gap-3">
-                                            <div className="flex justify-between items-center border-b border-gray-50 dark:border-white/5 pb-2">
-                                                <div className="flex items-center space-x-2 bg-gray-100 dark:bg-white/10 px-2.5 py-1.5 rounded-lg shadow-sm">
-                                                    <Calendar size={14} className="text-gray-500 dark:text-gray-300 stroke-[2.5]"/>
-                                                    <span className="text-xs font-black text-brand-black dark:text-white uppercase tracking-tight">{req.date}</span>
-                                                </div>
-                                                <div className="bg-brand-purple/10 px-2 py-0.5 rounded text-[9px] font-black text-brand-purple uppercase">
-                                                    Pendiente
-                                                </div>
-                                            </div>
-
-                                            <div className="flex justify-between items-end">
-                                                <div>
-                                                    <h3 className="text-lg font-black uppercase text-brand-black dark:text-white leading-none">ID: {req.bigoId}</h3>
-                                                    <p className="text-[10px] text-gray-400 mt-1 font-bold">Solicita Batalla PK</p>
-                                                </div>
-                                                
-                                                <div className="flex gap-2">
-                                                    <button onClick={() => handleRejectRequest(req.id)} className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-400 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors border border-transparent hover:border-red-100" title="Rechazar">
-                                                        <X size={18} strokeWidth={2.5} />
-                                                    </button>
-                                                    <button onClick={() => handleApproveRequest(req.id)} className="w-10 h-10 rounded-xl bg-brand-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-lg active:scale-95 transition-transform" title="Agendar (Aprobar)">
-                                                        <Check size={18} strokeWidth={3} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        <div>
-                            <div className="flex items-center justify-between mt-8 mb-4 pt-6 border-t border-gray-100 dark:border-white/5">
-                                <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center">
-                                    <History className="mr-2" size={14} /> 
-                                    Historial de Solicitudes
-                                </h3>
-                                <span className="text-[9px] font-bold bg-gray-100 dark:bg-white/10 px-2 py-1 rounded text-gray-500">{historyRequests.length}</span>
-                            </div>
-
-                            {historyRequests.length === 0 ? (
-                                <div className="text-center py-10 opacity-50">
-                                    <History size={32} className="mx-auto mb-2 text-gray-300" />
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase">Historial vacío</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {historyRequests.map((req) => (
-                                        <div key={req.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl flex items-center justify-between border border-transparent hover:bg-white dark:hover:bg-brand-dark-card hover:shadow-sm hover:border-gray-100 dark:hover:border-white/10 transition-all group">
-                                            <div className="flex-1 min-w-0 pr-4">
-                                                <div className="flex items-center space-x-2 mb-1">
-                                                    <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${
-                                                        req.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                                                    }`}>
-                                                        {req.status === 'approved' ? 'AGENDADA' : 'RECHAZADA'}
-                                                    </span>
-                                                    <div className="flex items-center text-[9px] font-bold text-gray-400">
-                                                        <Calendar size={10} className="mr-1" />
-                                                        {req.date}
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase truncate">ID: {req.bigoId}</span>
-                                                </div>
-                                            </div>
-                                            
-                                            <button 
-                                                onClick={() => handleDeleteRequest(req.id)}
-                                                className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-white/10 transition-all shadow-sm bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 group-hover:border-red-100"
-                                                title="Eliminar registro"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
+                        {/* Requests List ... */}
+                        <div><h3 className="text-xs font-black uppercase tracking-widest text-brand-black dark:text-white mb-3 flex items-center"><Bell className="mr-2 text-brand-purple" size={14} /> Nuevas Solicitudes ({pendingRequests.length})</h3>{pendingRequests.length === 0 ? (<div className="text-center py-6 border border-dashed border-gray-200 dark:border-white/10 rounded-xl"><p className="text-[10px] font-bold uppercase text-gray-400">Sin pendientes</p></div>) : (<div className="space-y-3">{pendingRequests.map((req) => (<div key={req.id} className="bg-white dark:bg-brand-dark-card p-4 rounded-2xl shadow-sm border-l-4 border-l-brand-purple border-y border-r border-gray-100 dark:border-white/5 flex flex-col gap-3"><div className="flex justify-between items-center border-b border-gray-50 dark:border-white/5 pb-2"><div className="flex items-center space-x-2 bg-gray-900 text-white dark:bg-white dark:text-black px-3 py-1.5 rounded-lg shadow-md transform -translate-y-1"><Calendar size={14} className="stroke-[2.5]"/><span className="text-xs font-black uppercase tracking-tight">{req.date}</span></div><div className="bg-brand-purple/10 px-2 py-0.5 rounded text-[9px] font-black text-brand-purple uppercase">Pendiente</div></div><div className="flex justify-between items-end"><div><h3 className="text-lg font-black uppercase text-brand-black dark:text-white leading-none">ID: {req.bigoId}</h3><p className="text-[10px] text-gray-400 mt-1 font-bold">Solicita Batalla PK</p></div><div className="flex gap-2"><button onClick={() => handleRejectRequest(req.id)} className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-400 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors border border-transparent hover:border-red-100"><X size={18} strokeWidth={2.5} /></button><button onClick={() => handleApproveRequest(req.id)} className="w-10 h-10 rounded-xl bg-brand-black dark:bg-white text-white dark:text-black flex items-center justify-center shadow-lg active:scale-95 transition-transform"><Check size={18} strokeWidth={3} /></button></div></div></div>))}</div>)}</div>
+                        <div><div className="flex items-center justify-between mt-8 mb-4 pt-6 border-t border-gray-100 dark:border-white/5"><h3 className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center"><History className="mr-2" size={14} /> Historial de Solicitudes</h3><span className="text-[9px] font-bold bg-gray-100 dark:bg-white/10 px-2 py-1 rounded text-gray-500">{historyRequests.length}</span></div>{historyRequests.length === 0 ? (<div className="text-center py-10 opacity-50"><History size={32} className="mx-auto mb-2 text-gray-300" /><p className="text-[10px] text-gray-400 font-bold uppercase">Historial vacío</p></div>) : (<div className="space-y-3">{historyRequests.map((req) => (<div key={req.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl flex items-center justify-between border border-transparent hover:bg-white dark:hover:bg-brand-dark-card hover:shadow-sm hover:border-gray-100 dark:hover:border-white/10 transition-all group"><div className="flex-1 min-w-0 pr-4"><div className="flex items-center space-x-2 mb-1"><span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${req.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{req.status === 'approved' ? 'AGENDADA' : 'RECHAZADA'}</span><div className="flex items-center text-[9px] font-bold text-gray-400"><Calendar size={10} className="mr-1" />{req.date}</div></div><div className="flex items-center justify-between"><span className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase truncate">ID: {req.bigoId}</span></div></div><button onClick={() => handleDeleteRequest(req.id)} className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-white/10 transition-all shadow-sm bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 group-hover:border-red-100"><Trash2 size={16} /></button></div>))}</div>)}</div>
                     </div>
                 )}
             </div>
         )}
 
-        {/* --- OTHER TABS (COMMS, DATA) REMAIN UNCHANGED FOR BREVITY --- */}
-        
-        {activeTab === 'comms' && (
-            <div className="space-y-6 animate-slide-up">
-                 <div className="bg-white dark:bg-brand-dark-card p-6 rounded-3xl shadow-lg border border-gray-100 dark:border-white/5 relative overflow-hidden">
-                    <div className="relative z-10">
-                        <div className="flex items-center space-x-2 mb-6">
-                            <div className="bg-amber-500/10 p-2 rounded-lg"><Radio className="text-amber-500" size={20} /></div>
-                            <h2 className="text-lg font-black uppercase text-brand-black dark:text-white">Difusión Global</h2>
-                        </div>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-[9px] font-black uppercase text-gray-400 mb-2 block">Mensaje de Alerta / Push</label>
-                                <textarea 
-                                    value={alertMessage}
-                                    onChange={(e) => setAlertMessage(e.target.value)}
-                                    className="w-full h-32 bg-gray-50 dark:bg-white/5 border-none rounded-xl p-4 text-sm font-medium dark:text-white focus:ring-2 ring-amber-500/20 outline-none resize-none placeholder-gray-400"
-                                    placeholder="Escribe el mensaje..."
-                                />
-                            </div>
-                            <Button 
-                                onClick={handleSendAlert} 
-                                disabled={isSendingAlert || !alertMessage}
-                                fullWidth 
-                                className={`bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20 mt-2 ${isSendingAlert ? 'opacity-70' : ''}`}
-                            >
-                                {isSendingAlert ? 'Enviando...' : 'Enviar Notificación'} <Send size={16} className="ml-2" />
-                            </Button>
-                        </div>
-                    </div>
-                 </div>
-            </div>
-        )}
+        {/* COMMS & DATA TABS (Existing content) */}
+        {activeTab === 'comms' && (<div className="space-y-6 animate-slide-up"><div className="bg-white dark:bg-brand-dark-card p-6 rounded-3xl shadow-lg border border-gray-100 dark:border-white/5 relative overflow-hidden"><div className="relative z-10"><div className="flex items-center space-x-2 mb-6"><div className="bg-amber-500/10 p-2 rounded-lg"><Radio className="text-amber-500" size={20} /></div><h2 className="text-lg font-black uppercase text-brand-black dark:text-white">Difusión Global</h2></div><div className="space-y-4"><div><label className="text-[9px] font-black uppercase text-gray-400 mb-2 block">Mensaje de Alerta / Push</label><textarea value={alertMessage} onChange={(e) => setAlertMessage(e.target.value)} className="w-full h-32 bg-gray-50 dark:bg-white/5 border-none rounded-xl p-4 text-sm font-medium dark:text-white focus:ring-2 ring-amber-500/20 outline-none resize-none placeholder-gray-400" placeholder="Escribe el mensaje..." /></div><Button onClick={handleSendAlert} disabled={isSendingAlert || !alertMessage} fullWidth className={`bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20 mt-2 ${isSendingAlert ? 'opacity-70' : ''}`}>{isSendingAlert ? 'Enviando...' : 'Enviar Notificación'} <Send size={16} className="ml-2" /></Button></div></div></div></div>)}
+        {activeTab === 'data' && <div className="text-center py-20 text-gray-400 text-xs">Módulo de datos en construcción</div>}
 
       </div>
-
-      {/* --- PIN CONFIRMATION MODAL --- */}
-      {showSecurityPinModal && (
-          <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in">
-              <div className="bg-white dark:bg-[#121212] w-full max-w-xs rounded-2xl p-6 shadow-2xl border border-gray-100 dark:border-white/10">
-                  <div className="flex flex-col items-center mb-6">
-                      <div className="bg-brand-black dark:bg-white text-white dark:text-black p-3 rounded-full mb-3 shadow-lg">
-                          <Lock size={24} />
-                      </div>
-                      <h3 className="text-lg font-black text-brand-black dark:text-white uppercase">Protocolo Admin</h3>
-                      <p className="text-xs text-gray-500 text-center mt-1">Ingresa el código maestro para ejecutar esta acción de seguridad.</p>
-                  </div>
-                  <input 
-                    type="password" 
-                    value={securityPin}
-                    onChange={(e) => { setSecurityPin(e.target.value); setPinError(false); }}
-                    maxLength={4}
-                    placeholder="••••"
-                    className="w-full bg-gray-50 dark:bg-white/5 border-2 border-gray-200 dark:border-white/10 rounded-xl p-4 text-center text-2xl font-black tracking-[1em] focus:border-brand-purple outline-none mb-4"
-                    autoFocus
-                  />
-                  {pinError && <p className="text-red-500 text-[10px] font-black uppercase text-center mb-4 flex items-center justify-center"><AlertTriangle size={12} className="mr-1"/> Código Incorrecto</p>}
-                  <div className="flex gap-3">
-                      <button onClick={() => { setShowSecurityPinModal(false); setSecurityPin(''); }} className="flex-1 py-3 text-xs font-bold uppercase text-gray-400 bg-gray-100 dark:bg-white/5 rounded-lg">Cancelar</button>
-                      <button onClick={confirmSecurityAction} className="flex-1 py-3 text-xs font-bold uppercase text-white bg-brand-purple rounded-lg shadow-lg">Confirmar</button>
-                  </div>
-              </div>
-          </div>
-      )}
-
     </div>
   );
 };

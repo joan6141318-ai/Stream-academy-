@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Calendar, Swords, Shield, ArrowRight, ChevronDown, ChevronUp, CheckCircle2, Clock, Check, History, XCircle, Loader2, CalendarCheck } from 'lucide-react';
+import { Calendar, Swords, Shield, ArrowRight, ChevronDown, ChevronUp, CheckCircle2, Clock, Check, History, XCircle, Loader2, CalendarCheck, AlertCircle } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { useAuth } from '../context/AuthContext';
 import { PKEvent } from '../types';
@@ -36,6 +36,9 @@ const PKCalendar: React.FC = () => {
 
   // Filtrar solicitudes del usuario actual
   const myRequestsHistory = pkRequests.filter(req => req.userId === user?.id);
+  
+  // Verificar si tiene alguna pendiente (Anti-Spam Logic)
+  const hasPendingRequest = myRequestsHistory.some(req => req.status === 'pending');
 
   // Limpiar temporizador al desmontar
   useEffect(() => {
@@ -48,6 +51,13 @@ const PKCalendar: React.FC = () => {
 
   const handleRequestPK = async (e: React.FormEvent) => {
       e.preventDefault();
+      
+      // Anti-Spam Check
+      if (hasPendingRequest) {
+          alert("Ya tienes una solicitud en revisión. Espera a que el administrador la procese antes de enviar otra.");
+          return;
+      }
+
       if (!requestDate || !requestBigoId || !user) return;
 
       setIsSubmitting(true);
@@ -231,74 +241,90 @@ const PKCalendar: React.FC = () => {
             <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openRequest ? 'max-h-[800px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
                 <div className="bg-[#121212] rounded-[2rem] p-6 shadow-2xl border border-white/5">
                     <div className="relative z-10">
-                        <div className="flex justify-between items-start mb-6">
-                            <div>
-                                <div className="bg-white/10 w-10 h-10 rounded-xl flex items-center justify-center mb-4 border border-white/5 backdrop-blur-md">
-                                    <Swords className="text-white" size={20} />
+                        
+                        {/* AVISO ANTI-SPAM */}
+                        {hasPendingRequest ? (
+                            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 flex items-start gap-3">
+                                <AlertCircle className="text-yellow-500 flex-shrink-0" size={20} />
+                                <div>
+                                    <h4 className="text-xs font-black text-yellow-500 uppercase mb-1">Solicitud en Curso</h4>
+                                    <p className="text-[10px] text-yellow-200/80 leading-relaxed">
+                                        Ya tienes una solicitud pendiente de aprobación. Por favor espera a que el administrador la gestione antes de enviar otra.
+                                    </p>
                                 </div>
-                                <h3 className="text-lg font-black text-white uppercase leading-none tracking-tight">
-                                    Formulario de<br/>Solicitud
-                                </h3>
                             </div>
-                        </div>
-
-                        <form onSubmit={handleRequestPK} className="space-y-5">
-                            <div className="group/input">
-                                <label className="text-[9px] font-bold uppercase text-gray-500 mb-2 block tracking-widest">Fecha Deseada</label>
-                                <div className="relative">
-                                    <input 
-                                        type="date" 
-                                        required
-                                        value={requestDate}
-                                        onChange={(e) => setRequestDate(e.target.value)}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-sm font-bold text-white focus:bg-white/10 focus:border-brand-purple/50 outline-none transition-all uppercase placeholder-gray-600"
-                                    />
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/20">
-                                        <Calendar size={16} />
+                        ) : (
+                            <>
+                                <div className="flex justify-between items-start mb-6">
+                                    <div>
+                                        <div className="bg-white/10 w-10 h-10 rounded-xl flex items-center justify-center mb-4 border border-white/5 backdrop-blur-md">
+                                            <Swords className="text-white" size={20} />
+                                        </div>
+                                        <h3 className="text-lg font-black text-white uppercase leading-none tracking-tight">
+                                            Formulario de<br/>Solicitud
+                                        </h3>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="group/input">
-                                <label className="text-[9px] font-bold uppercase text-gray-500 mb-2 block tracking-widest">Tu Bigo ID</label>
-                                <div className="relative">
-                                    <input 
-                                        type="text" 
-                                        required
-                                        value={requestBigoId}
-                                        onChange={(e) => setRequestBigoId(e.target.value)}
-                                        placeholder="ID EXACTO"
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-sm font-bold text-white focus:bg-white/10 focus:border-brand-purple/50 outline-none transition-all placeholder-gray-700"
-                                    />
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/20">
-                                        <Shield size={16} />
+                                <form onSubmit={handleRequestPK} className="space-y-5">
+                                    <div className="group/input">
+                                        <label className="text-[9px] font-bold uppercase text-gray-500 mb-2 block tracking-widest">Fecha Deseada</label>
+                                        <div className="relative">
+                                            <input 
+                                                type="date" 
+                                                required
+                                                value={requestDate}
+                                                onChange={(e) => setRequestDate(e.target.value)}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-sm font-bold text-white focus:bg-white/10 focus:border-brand-purple/50 outline-none transition-all uppercase placeholder-gray-600"
+                                            />
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/20">
+                                                <Calendar size={16} />
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
 
-                            <div className="flex items-center justify-between bg-white/5 rounded-xl p-4 border border-white/5">
-                                <div className="flex flex-col">
-                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Horario Fijo</span>
-                                    <span className="text-sm font-black text-white">08:00 - 08:15 PM</span>
-                                </div>
-                                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide">Colombia</span>
-                            </div>
+                                    <div className="group/input">
+                                        <label className="text-[9px] font-bold uppercase text-gray-500 mb-2 block tracking-widest">Tu Bigo ID</label>
+                                        <div className="relative">
+                                            <input 
+                                                type="text" 
+                                                required
+                                                value={requestBigoId}
+                                                onChange={(e) => setRequestBigoId(e.target.value)}
+                                                placeholder="ID EXACTO"
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-sm font-bold text-white focus:bg-white/10 focus:border-brand-purple/50 outline-none transition-all placeholder-gray-700"
+                                            />
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/20">
+                                                <Shield size={16} />
+                                            </div>
+                                        </div>
+                                    </div>
 
-                            <button 
-                                type="submit"
-                                disabled={isSubmitting}
-                                className="w-full bg-white text-black h-16 rounded-xl font-black uppercase tracking-[0.2em] text-xs shadow-lg hover:bg-gray-200 active:scale-[0.98] transition-all mt-4 flex items-center justify-center space-x-2"
-                            >
-                                {isSubmitting ? (
-                                    <span className="animate-pulse">Procesando...</span>
-                                ) : (
-                                    <>
-                                        <span>Agendar</span>
-                                        <ArrowRight size={16} />
-                                    </>
-                                )}
-                            </button>
-                        </form>
+                                    <div className="flex items-center justify-between bg-white/5 rounded-xl p-4 border border-white/5">
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Horario Fijo</span>
+                                            <span className="text-sm font-black text-white">08:00 - 08:15 PM</span>
+                                        </div>
+                                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wide">Colombia</span>
+                                    </div>
+
+                                    <button 
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="w-full bg-white text-black h-16 rounded-xl font-black uppercase tracking-[0.2em] text-xs shadow-lg hover:bg-gray-200 active:scale-[0.98] transition-all mt-4 flex items-center justify-center space-x-2"
+                                    >
+                                        {isSubmitting ? (
+                                            <span className="animate-pulse">Procesando...</span>
+                                        ) : (
+                                            <>
+                                                <span>Agendar</span>
+                                                <ArrowRight size={16} />
+                                            </>
+                                        )}
+                                    </button>
+                                </form>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

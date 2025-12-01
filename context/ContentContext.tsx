@@ -4,6 +4,14 @@ import { db } from '../firebaseConfig';
 import { Banner, TrainingModule, HomeConfig, PKSchedule, PKRequest } from '../types';
 import { TRAINING_MODULES as INITIAL_MODULES } from '../constants';
 
+// --- CRYPTO UTILITY ---
+export const hashString = async (message: string): Promise<string> => {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+};
+
 // Datos iniciales de Banners para sembrar la DB si está vacía
 const INITIAL_BANNERS: Banner[] = [
     {
@@ -79,10 +87,13 @@ const getInitialStyle = (id: string) => {
     }
 };
 
+// Default Hash for 'moon': a43c1b0aa53a0c908810c03ab1d7cb9922c2a05d605c567839356b20677275c5
 const INITIAL_HOME_CONFIG: HomeConfig = {
     welcomeText: "Bienvenido de nuevo,",
     modulesTitle: "Módulos de Capacitación",
-    modulesSubtitle: "Elige el módulo relacionado con tu duda"
+    modulesSubtitle: "Elige el módulo relacionado con tu duda",
+    agencyCodeHash: "a43c1b0aa53a0c908810c03ab1d7cb9922c2a05d605c567839356b20677275c5", 
+    maintenanceMode: false
 };
 
 // Initial PK Data Structure (Empty Slots)
@@ -187,13 +198,11 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     }, (error) => console.warn("PK Schedule Error", error.code));
 
-    // 5. Listen PK Requests - SORTED CLIENT SIDE TO AVOID INDEX ISSUES
-    // Removed 'orderBy' from query to guarantee results without manual indexing
+    // 5. Listen PK Requests
     const unsubRequests = onSnapshot(
         query(collection(db, "pk_requests")), 
         (snapshot) => {
             const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as PKRequest));
-            // Sort by createdAt desc manually in Javascript
             list.sort((a, b) => b.createdAt - a.createdAt);
             setPkRequests(list);
         },

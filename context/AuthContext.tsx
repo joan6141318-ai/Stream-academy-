@@ -10,7 +10,7 @@ import {
 import { doc, setDoc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from '../firebaseConfig';
-import { ADMIN_EMAILS, DATA_VERSION } from '../constants';
+import { DATA_VERSION } from '../constants';
 import { ActivityLog } from '../types';
 
 export interface User {
@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 1. Escuchar cambios de sesión (Backup & Initial Load)
+  // 1. Escuchar cambios de sesión
   useEffect(() => {
     const safetyTimer = setTimeout(() => {
         if (loading) {
@@ -63,17 +63,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearTimeout(safetyTimer);
 
       if (firebaseUser) {
-        // STRICT SECURITY CHECK
         const email = firebaseUser.email?.toLowerCase() || "";
-        const isOfficialAdmin = ADMIN_EMAILS.includes(email);
-
+        
+        // Base user structure
         let baseUser: User = {
             id: firebaseUser.uid,
             name: firebaseUser.displayName || "Usuario",
             email: email,
             avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${firebaseUser.displayName || 'User'}`,
-            role: isOfficialAdmin ? "Administrador" : "Streamer",
-            isAdmin: isOfficialAdmin, // FORCE TRUE/FALSE BASED ON EMAIL
+            role: "Streamer",
+            isAdmin: false, // Default to FALSE. Only DB can make it TRUE.
             isOnboardingComplete: false,
             dataVersion: DATA_VERSION
         };
@@ -86,6 +85,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (userDoc.exists()) {
                     const dbData = userDoc.data();
                     
+                    // TRUST THE DATABASE FOR ADMIN STATUS
+                    const isDbAdmin = dbData.isAdmin === true;
+
                     // --- MIGRATION LOGIC ---
                     const needsMigration = !dbData.dataVersion || dbData.dataVersion < DATA_VERSION;
 
@@ -93,9 +95,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         const updatedProfile = {
                             ...baseUser,
                             ...dbData,
-                            isAdmin: isOfficialAdmin, // Re-validar admin
-                            role: isOfficialAdmin ? "Administrador" : (dbData.role || "Streamer"),
-                            isOnboardingComplete: false, // FORZAR ONBOARDING
+                            isAdmin: isDbAdmin,
+                            role: isDbAdmin ? "Administrador" : (dbData.role || "Streamer"),
+                            isOnboardingComplete: false, 
                             dataVersion: DATA_VERSION
                         };
                         
@@ -106,12 +108,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         setUser({ 
                             ...baseUser, 
                             ...dbData, 
-                            isAdmin: isOfficialAdmin,
-                            role: isOfficialAdmin ? "Administrador" : (dbData.role || "Streamer")
+                            isAdmin: isDbAdmin,
+                            role: isDbAdmin ? "Administrador" : (dbData.role || "Streamer")
                         } as User);
                     }
                 } else {
-                    // Usuario nuevo (no existe doc)
+                    // Usuario nuevo (no existe doc) - Create Safe Default
+                    // If it's a new user, they are NOT admin.
+                    await setDoc(userDocRef, baseUser);
                     setUser(baseUser);
                 }
             } else {
@@ -142,21 +146,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // --- CAPTURA DE DATOS REALES DE SEGURIDAD ---
       const now = new Date();
-      // Simple User Agent Parser for better readability
       const ua = navigator.userAgent;
       let deviceString = "Desconocido";
       if (ua.includes("iPhone")) deviceString = "iPhone iOS";
-      else if (ua.includes("iPad")) deviceString = "iPadOS";
       else if (ua.includes("Android")) deviceString = "Android Device";
       else if (ua.includes("Windows")) deviceString = "PC Windows";
-      else if (ua.includes("Mac")) deviceString = "Macintosh";
-      else if (ua.includes("Linux")) deviceString = "Linux Desktop";
-
-      // Append Browser info
-      if (ua.includes("Chrome")) deviceString += " (Chrome)";
-      else if (ua.includes("Firefox")) deviceString += " (Firefox)";
-      else if (ua.includes("Safari")) deviceString += " (Safari)";
-
+      
       const newLog: ActivityLog = {
           action: 'Inicio de Sesión Exitoso',
           timestamp: now.toISOString(),
@@ -164,7 +159,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           type: 'login'
       };
 
-      // Update Firestore with Real Data (Using arrayUnion for append)
       if (db) {
           try {
               const userRef = doc(db, "users", fbUser.uid);
@@ -174,17 +168,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   accessLogs: arrayUnion(newLog) 
               });
           } catch (e) {
-              console.error("Error logging activity", e);
-              // Fallback if doc doesn't exist (edge case)
-              const userRef = doc(db, "users", fbUser.uid);
-              await setDoc(userRef, {
-                   lastLogin: now.toISOString(),
-                   deviceInfo: deviceString,
-                   accessLogs: [newLog]
-              }, { merge: true });
+              // Ignore if doc missing, created in onAuthStateChanged
           }
       }
-      // UI state will be handled by onAuthStateChanged
   };
 
   // --- REGISTRO ---
@@ -194,20 +180,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       const fbUser = userCredential.user;
       const userEmail = fbUser.email?.toLowerCase() || "";
-      const isOfficialAdmin = ADMIN_EMAILS.includes(userEmail);
 
       sendEmailVerification(fbUser).catch(e => console.warn("Email verification error", e));
 
       const now = new Date();
       const deviceString = navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Web Browser';
 
+      // NEW USER IS NEVER ADMIN BY DEFAULT
       const newUserProfile: User = {
         id: fbUser.uid,
         name: name,
         email: userEmail,
         avatarUrl: `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${name}`,
-        role: isOfficialAdmin ? "Administrador" : "Streamer Oficial",
-        isAdmin: isOfficialAdmin,
+        role: "Streamer Oficial",
+        isAdmin: false, // SECURITY: Always false on register
         isOnboardingComplete: false,
         dataVersion: DATA_VERSION,
         lastLogin: now.toISOString(),
@@ -258,20 +244,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (data: Partial<User>) => {
     if (!user) return;
     
-    // Security Check
-    if (data.isAdmin !== undefined) {
-        const isOfficialAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
-        if (!isOfficialAdmin) {
-            delete data.isAdmin;
-        }
+    // SECURITY: Prevent upgrading self to admin via frontend
+    if (data.isAdmin === true && !user.isAdmin) {
+        console.warn("Security Alert: Unauthorized admin promotion attempt.");
+        delete data.isAdmin;
+        delete data.role;
     }
 
-    // Log Profile Changes
     if (db) {
         const now = new Date();
         const deviceString = navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Web Browser';
         
-        // If updating name or avatar, log it
         if (data.name || data.avatarUrl) {
              const log: ActivityLog = {
                  action: 'Perfil Actualizado',
@@ -280,17 +263,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                  type: 'profile_update'
              };
              try {
-                // We do this separately to avoid circular logic in state
                 const userRef = doc(db, "users", user.id);
                 await updateDoc(userRef, { accessLogs: arrayUnion(log) });
              } catch(e) {}
         }
     }
     
-    // 1. Optimistic Update
     setUser(prev => prev ? { ...prev, ...data } : null);
 
-    // 2. Background Sync
     try {
         if (db) {
             const userDocRef = doc(db, "users", user.id);

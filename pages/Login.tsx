@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, AlertCircle, WifiOff, Check, Shield, User } from 'lucide-react';
+import { Zap, AlertCircle, WifiOff, Check } from 'lucide-react';
 import { Button } from '../components/Button';
 import { useAuth } from '../context/AuthContext';
-import { doc, getDoc } from 'firebase/firestore';
-import { db, auth } from '../firebaseConfig';
-import { ADMIN_EMAILS } from '../constants';
+import { useContent, hashString } from '../context/ContentContext';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login, register, updateProfile, user, loading } = useAuth(); 
+  const { login, register, user, loading } = useAuth(); 
+  const { homeConfig } = useContent();
   
   // Estados para manejar el formulario
   const [isRegistering, setIsRegistering] = useState(false);
@@ -25,9 +24,6 @@ const Login: React.FC = () => {
   const [isNetworkError, setIsNetworkError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  
-  // Nuevo estado para el Rol
-  const [role, setRole] = useState<'streamer' | 'admin'>('streamer');
 
   // EFECTO: Si el usuario ya está logueado, mandarlo a /welcome
   useEffect(() => {
@@ -51,37 +47,31 @@ const Login: React.FC = () => {
     setIsNetworkError(false);
     setIsSubmitting(true);
 
-    // --- SECURITY CHECK (ADMIN) ---
-    if (role === 'admin') {
-        const normalizedEmail = email.toLowerCase().trim();
-        if (!ADMIN_EMAILS.includes(normalizedEmail)) {
-            setError("UPS algo fallo no eres Administrador");
-            setIsSubmitting(false);
-            return;
-        }
-    }
-
     try {
       if (isRegistering) {
         if (!name.trim()) throw new Error("Ingresa tu nombre para continuar.");
         
-        // --- VALIDACIÓN DE AGENCIA ---
+        // --- VALIDACIÓN DE AGENCIA SEGURA (HASH) ---
         const normalizedAgency = agencyCode.trim().toLowerCase();
-        if (normalizedAgency !== 'moon') {
-            setAgencyError("Ingresa la agencia correcta");
-            throw new Error("Lo sentimos, necesitas ser parte del equipo para tener acceso. Te invitamos a unirte a nuestra agencia, contáctanos.");
+        
+        // Calcular Hash del input
+        const inputHash = await hashString(normalizedAgency);
+        
+        // Obtener Hash Correcto (o el default 'moon' hash si no carga)
+        const validHash = homeConfig?.agencyCodeHash || "a43c1b0aa53a0c908810c03ab1d7cb9922c2a05d605c567839356b20677275c5";
+        
+        if (inputHash !== validHash) {
+            setAgencyError("Código incorrecto");
+            throw new Error("Lo sentimos, el código de agencia no es válido. Contáctanos si crees que es un error.");
         }
 
         await register(email, password, name);
         setIsSuccess(true);
-        // REDIRECCIÓN A WELCOME PARA NUEVOS REGISTROS
         navigate('/welcome', { replace: true });
       } else {
         await login(email, password);
-        // ÉXITO LOGIN
+        // Login success check happens in useEffect or AuthContext
         setIsSuccess(true);
-        
-        // La redirección ahora también la maneja el useEffect, pero la mantenemos aquí para respuesta inmediata
         navigate('/welcome', { replace: true });
       }
       
@@ -89,18 +79,11 @@ const Login: React.FC = () => {
       setIsSuccess(false);
       setIsSubmitting(false);
       
-      // Manejo de errores
       const errorCode = err.code || '';
       const errorMessage = err.message || '';
-      const isCustomError = errorMessage.includes("necesitas ser parte del equipo");
+      const isCustomError = errorMessage.includes("código de agencia");
 
-      // Suppress console error for expected login failures AND custom validation errors
-      if (
-          errorCode !== 'auth/invalid-credential' && 
-          errorCode !== 'auth/user-not-found' && 
-          errorCode !== 'auth/wrong-password' && 
-          !isCustomError
-      ) {
+      if (!isCustomError) {
           console.error("Firebase Auth Error:", errorCode, errorMessage);
       }
 
@@ -114,10 +97,6 @@ const Login: React.FC = () => {
         }, 2000);
       } else if (errorCode === 'auth/weak-password') {
         setError("La contraseña debe tener al menos 6 caracteres.");
-      } else if (errorCode === 'auth/operation-not-allowed') {
-        setError("Error: Debes habilitar 'Correo/Contraseña' en la consola de Firebase.");
-      } else if (errorCode === 'auth/configuration-not-found') {
-        setError("Error: Configuración incompleta. Revisa la consola de Firebase.");
       } else if (errorCode === 'auth/network-request-failed' || errorMessage.includes('network-request-failed')) {
         setError("Error de conexión: Revisa tu internet.");
         setIsNetworkError(true);
@@ -132,7 +111,6 @@ const Login: React.FC = () => {
   return (
     <div className="flex flex-col h-full w-full bg-white dark:bg-black px-8 pb-safe pt-safe overflow-y-auto scrollbar-hide transition-colors duration-300">
       
-      {/* Hero Section */}
       <div className="flex-1 flex flex-col justify-center animate-fade-in">
         <div className="w-14 h-14 bg-brand-black dark:bg-white flex items-center justify-center rounded-sm mb-6 shadow-xl shadow-brand-purple/20">
             <Zap className="text-white dark:text-black w-7 h-7" strokeWidth={2} />
@@ -148,46 +126,18 @@ const Login: React.FC = () => {
           </p>
         </div>
 
-        {/* SELECTOR DE ROL (ADMIN / EMISOR) */}
-        {!isRegistering && (
-            <div className="w-full bg-gray-100 dark:bg-white/5 p-1 rounded-lg mb-8 flex relative">
-                <button
-                    onClick={() => { setRole('admin'); setError(null); }}
-                    className={`flex-1 flex items-center justify-center py-2.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all duration-300 z-10 ${role === 'admin' ? 'text-brand-black dark:text-black shadow-sm bg-white dark:bg-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
-                >
-                    <Shield size={12} className="mr-1.5" />
-                    Admin
-                </button>
-                <button
-                    onClick={() => { setRole('streamer'); setError(null); }}
-                    className={`flex-1 flex items-center justify-center py-2.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all duration-300 z-10 ${role === 'streamer' ? 'text-brand-black dark:text-black shadow-sm bg-white dark:bg-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
-                >
-                    <User size={12} className="mr-1.5" />
-                    Emisor
-                </button>
-            </div>
-        )}
-
-        {/* Mensaje de Error */}
         {error && (
           <div className={`mb-6 p-4 border-l-4 flex items-start animate-fade-in ${isNetworkError ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-500' : 'bg-red-50 dark:bg-red-900/20 border-red-500'}`}>
             {isNetworkError ? <WifiOff size={16} className="text-orange-500 mr-2 flex-shrink-0 mt-0.5" /> : <AlertCircle size={16} className="text-red-500 mr-2 flex-shrink-0 mt-0.5" />}
             <div>
                 <p className={`text-[10px] font-bold uppercase tracking-wide leading-tight ${isNetworkError ? 'text-orange-600 dark:text-orange-400' : 'text-red-500'}`}>{error}</p>
-                {isNetworkError && (
-                    <p className="text-[9px] text-orange-800 dark:text-orange-300 mt-1 leading-snug">
-                        El dominio actual no está autorizado en Firebase. Agrégalo en Authentication &gt; Configuración &gt; Dominios autorizados.
-                    </p>
-                )}
             </div>
           </div>
         )}
 
-        {/* Formulario */}
         <form onSubmit={handleSubmit} className="w-full space-y-8">
           <div className="space-y-6">
             
-            {/* Campo Nombre (Solo visible al registrarse) */}
             {isRegistering && (
               <div className="group animate-fade-in">
                 <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 transition-colors group-focus-within:text-brand-purple">Nombre Completo</label>
@@ -207,7 +157,7 @@ const Login: React.FC = () => {
                 type="email" 
                 value={email}
                 onChange={(e) => handleInputChange(setEmail, e.target.value)}
-                placeholder={role === 'admin' ? "admin@agencia.com" : "usuario@email.com"}
+                placeholder="usuario@email.com"
                 required
                 className="w-full h-10 border-b-2 border-gray-100 dark:border-white/20 bg-transparent text-base font-bold text-brand-black dark:text-white placeholder-gray-200 dark:placeholder-gray-700 focus:outline-none focus:border-brand-black dark:focus:border-white transition-all rounded-none p-0"
               />
@@ -225,17 +175,16 @@ const Login: React.FC = () => {
               />
             </div>
 
-            {/* Campo Agencia (Solo visible al registrarse - DESPUÉS DE CONTRASEÑA) */}
             {isRegistering && (
               <div className="group animate-fade-in">
                 <label className={`block text-[9px] font-black uppercase tracking-widest mb-1 transition-colors ${agencyError ? 'text-red-500' : 'text-gray-400 group-focus-within:text-brand-purple'}`}>
-                  Nombre de tu agencia
+                  Código de Agencia
                 </label>
                 <input 
                   type="text" 
                   value={agencyCode}
                   onChange={(e) => handleInputChange(setAgencyCode, e.target.value)}
-                  placeholder="Escribe el nombre de la agencia"
+                  placeholder="Introduce el código de acceso"
                   className={`w-full h-10 border-b-2 bg-transparent text-base font-bold text-brand-black dark:text-white placeholder-gray-200 dark:placeholder-gray-700 focus:outline-none transition-all rounded-none p-0 ${agencyError ? 'border-red-500' : 'border-gray-100 dark:border-white/20 focus:border-brand-black dark:focus:border-white'}`}
                 />
                 {agencyError && (
@@ -268,7 +217,7 @@ const Login: React.FC = () => {
                       {isRegistering ? 'CREANDO...' : 'INGRESANDO...'}
                   </div>
               ) : (
-                  isRegistering ? 'CREAR CUENTA' : (role === 'admin' ? 'INGRESAR AL PANEL' : 'INICIAR SESIÓN')
+                  isRegistering ? 'CREAR CUENTA' : 'INICIAR SESIÓN'
               )}
             </Button>
             
@@ -285,7 +234,7 @@ const Login: React.FC = () => {
       
       <div className="pb-6 text-center">
          <p className="text-[9px] font-bold text-gray-200 dark:text-gray-800 uppercase tracking-widest">
-           Secure Access • v1.9.1
+           Secure Access • v2.1
          </p>
       </div>
     </div>

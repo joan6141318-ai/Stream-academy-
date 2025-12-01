@@ -43,6 +43,8 @@ export interface HomeConfig {
   welcomeText: string;
   modulesTitle: string;
   modulesSubtitle: string;
+  agencyCodeHash?: string; // CHANGED: Storing Hash instead of Plain Text
+  maintenanceMode?: boolean;
 }
 
 export interface UserProfile {

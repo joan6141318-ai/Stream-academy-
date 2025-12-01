@@ -1,10 +1,8 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Bell, Lock, HelpCircle, ChevronRight, Camera, User, Mail, Moon, Save, Type, Shield, Grid, X, Smile, Check } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
-import { ADMIN_EMAILS } from '../constants';
 
 // Avatares para selección rápida
 const AVATARS = [
@@ -186,22 +184,11 @@ const UserSettings: React.FC = () => {
   const handleAdminAccess = async () => {
       if (!user) return;
 
-      const isAuthorized = ADMIN_EMAILS.includes(user.email.toLowerCase());
-
-      if (!isAuthorized) {
-         alert("Lo sentimos no eres Administrador hay algo en lo que te podamos ayudar?");
-         return;
-      }
-
-      if (!user.isAdmin) {
-          const confirm = window.confirm("¿Confirmas que eres el dueño de esta agencia?\n\nEsto actualizará tu rol en la base de datos.");
-          if (confirm) {
-              await updateProfile({ isAdmin: true, role: 'Agencia Admin' });
-              alert("Permisos actualizados. Bienvenido, Admin.");
-              navigate('/admin');
-          }
-      } else {
+      // SECURITY: TRUST ONLY DB VALUE
+      if (user.isAdmin) {
           navigate('/admin');
+      } else {
+          alert("Lo sentimos no eres Administrador hay algo en lo que te podamos ayudar?");
       }
   };
 
@@ -236,7 +223,7 @@ const UserSettings: React.FC = () => {
 
                 {!isUploading && (
                     <>
-                        {/* Botón Cámara (Subir Foto) - Solo visible en modo normal o edición, pero sin avatares flotantes */}
+                        {/* Botón Cámara (Subir Foto) - Solo visible en modo normal o edición */}
                         <button 
                             onClick={triggerFileInput}
                             className="absolute bottom-1 right-1 bg-brand-black dark:bg-white text-white dark:text-black p-2 rounded-full shadow-lg active:scale-95 transition-transform border-2 border-white dark:border-black z-10"
@@ -379,7 +366,7 @@ const UserSettings: React.FC = () => {
                 Cerrar Sesión
             </button>
             <p className="text-center text-[10px] font-bold text-gray-300 dark:text-gray-600 mt-4 uppercase">
-                StreamAgency v1.2.0 • Build 2501
+                StreamAgency v2.0 • Secure Build
             </p>
         </div>
 

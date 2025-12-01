@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -22,9 +21,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminSelection from './pages/AdminSelection'; 
 import EditorDashboard from './pages/EditorDashboard'; 
 import WelcomeIntermediate from './pages/WelcomeIntermediate';
-import PKCalendar from './pages/PKCalendar'; // New Import
+import PKCalendar from './pages/PKCalendar'; 
 import { MainLayout } from './components/MainLayout';
-import { ADMIN_EMAILS } from './constants';
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -41,34 +39,18 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Protección para rutas admin con alerta intrusiva
+// Protección para rutas admin BASADA EN BASE DE DATOS
 const AdminRoute = ({ children }: { children?: React.ReactNode }) => {
     const { user, loading } = useAuth();
-    const [unauthorized, setUnauthorized] = useState(false);
     
-    useEffect(() => {
-        if (!loading && user) {
-            const isAuthorized = ADMIN_EMAILS.includes(user.email.toLowerCase());
-            if (!isAuthorized) {
-                // Mensaje solicitado por el usuario
-                alert("Lo sentimos no eres Administrador hay algo en lo que te podamos ayudar?");
-                setUnauthorized(true);
-            }
-        }
-    }, [user, loading]);
-
     if (loading) return null;
     
     if (!user) return <Navigate to="/" />;
 
-    // Si detectamos que no es autorizado después del efecto, redirigimos
-    if (unauthorized) {
+    // STRICT CHECK: Trust only the DB value
+    if (!user.isAdmin) {
+        alert("Lo sentimos no eres Administrador hay algo en lo que te podamos ayudar?");
         return <Navigate to="/home" replace />;
-    }
-
-    // Doble verificación en render
-    if (!user.isAdmin && !ADMIN_EMAILS.includes(user.email.toLowerCase())) {
-         return null; // El useEffect manejará la alerta y el redireccionamiento
     }
 
     return <>{children}</>;
