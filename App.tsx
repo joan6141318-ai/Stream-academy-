@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -79,9 +78,11 @@ const AppContent: React.FC = () => {
       }
   }
 
-  // --- 2. GLOBAL MAINTENANCE GUARD ---
-  // If maintenance mode is active AND user is not admin, redirect to maintenance page.
-  if (!contentLoading && homeConfig?.maintenanceMode) {
+  // --- 2. GLOBAL MAINTENANCE GUARD (DUAL MODE) ---
+  // If maintenance mode is NOT 'off' AND user is not admin, redirect to maintenance page.
+  const activeMode = homeConfig?.maintenanceMode || 'off';
+  
+  if (!contentLoading && activeMode !== 'off') {
       const isMaintenancePage = location.pathname === '/maintenance';
       const isLoginPage = location.pathname === '/';
       const isBlockedPage = location.pathname === '/access-denied';
@@ -101,7 +102,7 @@ const AppContent: React.FC = () => {
         {/* Public Route */}
         <Route path="/" element={<Login />} />
         
-        {/* GLOBAL LOCKDOWN PAGE */}
+        {/* GLOBAL LOCKDOWN PAGE (Handles both Red/Purple visual internally) */}
         <Route path="/maintenance" element={<MaintenanceMode />} />
 
         {/* BLOCKED USER PAGE */}

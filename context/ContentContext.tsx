@@ -93,7 +93,7 @@ const INITIAL_HOME_CONFIG: HomeConfig = {
     modulesTitle: "Módulos de Capacitación",
     modulesSubtitle: "Elige el módulo relacionado con tu duda",
     agencyCodeHash: "a43c1b0aa53a0c908810c03ab1d7cb9922c2a05d605c567839356b20677275c5", 
-    maintenanceMode: false
+    maintenanceMode: 'off'
 };
 
 // Initial PK Data Structure (Empty Slots)

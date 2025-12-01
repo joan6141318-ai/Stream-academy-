@@ -1,5 +1,3 @@
-
-
 export interface TrainingResource {
   title: string;
   type: 'table' | 'calc' | 'wallet' | 'card' | 'doc';
@@ -43,8 +41,8 @@ export interface HomeConfig {
   welcomeText: string;
   modulesTitle: string;
   modulesSubtitle: string;
-  agencyCodeHash?: string; // CHANGED: Storing Hash instead of Plain Text
-  maintenanceMode?: boolean;
+  agencyCodeHash?: string; 
+  maintenanceMode?: 'off' | 'lockdown' | 'maintenance'; // CHANGED: String union for specific modes
 }
 
 export interface UserProfile {
