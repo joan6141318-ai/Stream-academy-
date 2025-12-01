@@ -64,8 +64,8 @@ const Login: React.FC = () => {
         const validHash = homeConfig?.agencyCodeHash || "a43c1b0aa53a0c908810c03ab1d7cb9922c2a05d605c567839356b20677275c5";
         
         if (inputHash !== validHash) {
-            setAgencyError("Código incorrecto");
-            throw new Error("Lo sentimos, el código de agencia no es válido. Contáctanos si crees que es un error.");
+            setAgencyError("Nombre incorrecto");
+            throw new Error("Lo sentimos, el nombre de agencia no es válido. Contáctanos si crees que es un error.");
         }
 
         await register(email, password, name);
@@ -84,7 +84,7 @@ const Login: React.FC = () => {
       
       const errorCode = err.code || '';
       const errorMessage = err.message || '';
-      const isCustomError = errorMessage.includes("código de agencia");
+      const isCustomError = errorMessage.includes("nombre de agencia");
 
       if (!isCustomError) {
           console.error("Firebase Auth Error:", errorCode, errorMessage);
@@ -193,13 +193,13 @@ const Login: React.FC = () => {
             {isRegistering && (
               <div className="group animate-fade-in">
                 <label className={`block text-[9px] font-black uppercase tracking-widest mb-1 transition-colors ${agencyError ? 'text-red-500' : 'text-gray-400 group-focus-within:text-brand-purple'}`}>
-                  Código de Agencia
+                  Nombre de tu agencia
                 </label>
                 <input 
                   type="text" 
                   value={agencyCode}
                   onChange={(e) => handleInputChange(setAgencyCode, e.target.value)}
-                  placeholder="Introduce el código de acceso"
+                  placeholder="Escribe el nombre aquí"
                   className={`w-full h-10 border-b-2 bg-transparent text-base font-bold text-brand-black dark:text-white placeholder-gray-200 dark:placeholder-gray-700 focus:outline-none transition-all rounded-none p-0 ${agencyError ? 'border-red-500' : 'border-gray-100 dark:border-white/20 focus:border-brand-black dark:focus:border-white'}`}
                 />
                 {agencyError && (
@@ -249,7 +249,7 @@ const Login: React.FC = () => {
       
       <div className="pb-6 text-center">
          <p className="text-[9px] font-bold text-gray-200 dark:text-gray-800 uppercase tracking-widest">
-           Secure Access • v2.1
+           Secure Access • v2.2
          </p>
       </div>
     </div>
