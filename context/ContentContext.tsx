@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { collection, onSnapshot, doc, updateDoc, setDoc, addDoc, deleteDoc, query } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
@@ -189,12 +190,19 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     }, (error) => console.warn("Config Error", error.code));
 
-    // 4. Listen PK Schedule
+    // 4. Listen PK Schedule (ROBUST HANDLER)
     const unsubPK = onSnapshot(doc(db, "schedules", "main"), (docSnap) => {
         if (docSnap.exists()) {
-            setPkSchedule(docSnap.data() as PKSchedule);
+            const data = docSnap.data() as PKSchedule;
+            // Ensure arrays always exist to prevent UI crashes if DB is partial
+            const safeData = {
+                potential: data.potential || INITIAL_PK_SCHEDULE.potential,
+                supersmash: data.supersmash || INITIAL_PK_SCHEDULE.supersmash
+            };
+            setPkSchedule(safeData);
         } else {
             setDoc(doc(db, "schedules", "main"), INITIAL_PK_SCHEDULE).catch(e => console.warn("Auto-seed PK failed", e));
+            setPkSchedule(INITIAL_PK_SCHEDULE);
         }
     }, (error) => console.warn("PK Schedule Error", error.code));
 
