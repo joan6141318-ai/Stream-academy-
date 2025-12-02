@@ -29,9 +29,11 @@ const AdminDashboard: React.FC = () => {
   // Local State for PK Editing - INITIALIZED IMMEDIATELY
   const [localSchedule, setLocalSchedule] = useState<PKSchedule | null>(pkSchedule);
 
-  // Estados Formularios
+  // Estados Formularios COMMS
   const [alertMessage, setAlertMessage] = useState('');
   const [isSendingAlert, setIsSendingAlert] = useState(false);
+  // Guardamos la API Key en localStorage para comodidad del admin
+  const [restApiKey, setRestApiKey] = useState(localStorage.getItem('onesignal_api_key') || '');
 
   // --- SECURITY STATES ---
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -120,14 +122,52 @@ const AdminDashboard: React.FC = () => {
       }
   };
 
+  // --- REAL PUSH NOTIFICATION SEND ---
   const handleSendAlert = async () => {
     if (!alertMessage.trim()) return;
+    if (!restApiKey.trim()) {
+        alert("Necesitas la REST API Key de OneSignal para enviar mensajes reales.");
+        return;
+    }
+
     setIsSendingAlert(true);
-    setTimeout(() => {
-        alert("Mensaje Push enviado exitosamente.");
-        setAlertMessage('');
+
+    try {
+        const options = {
+            method: 'POST',
+            headers: {
+                accept: 'application/json',
+                'Content-Type': 'application/json',
+                Authorization: `Basic ${restApiKey}`
+            },
+            body: JSON.stringify({
+                app_id: "3bbf8972-d8cb-4eed-a46b-6059a4f71cd1", // Tu App ID
+                included_segments: ["Total Subscriptions"], // Enviar a todos
+                contents: { "en": alertMessage, "es": alertMessage },
+                headings: { "en": "StreamAgency Aviso", "es": "StreamAgency Aviso" },
+                name: "ADMIN_BROADCAST"
+            })
+        };
+
+        const response = await fetch('https://onesignal.com/api/v1/notifications', options);
+        const data = await response.json();
+
+        if (data.id) {
+            alert("¡Mensaje Push enviado exitosamente a todos los dispositivos!");
+            setAlertMessage('');
+            // Guardar la API Key para futuro uso
+            localStorage.setItem('onesignal_api_key', restApiKey);
+        } else {
+            console.error(data);
+            alert("Error al enviar. Verifica tu REST API Key.");
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert("Error de conexión con OneSignal.");
+    } finally {
         setIsSendingAlert(false);
-    }, 1000);
+    }
   };
 
   const handleApproveRequest = async (reqId: string) => {
@@ -659,7 +699,7 @@ const AdminDashboard: React.FC = () => {
                              
                              <div className="space-y-3">
                                 {localSchedule.supersmash?.map((event, idx) => (
-                                    <div key={event.id || idx} className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5 flex items-center justify-between gap-3">
+                                    <div key={event.id || idx} className="bg-white dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5 flex items-center justify-between gap-3">
                                         <div className="flex flex-col items-center justify-center bg-white dark:bg-black/20 p-2 rounded-lg min-w-[60px]">
                                             <Clock size={12} className="text-gray-400 mb-1"/>
                                             <span className="text-[9px] font-black text-brand-black dark:text-white whitespace-nowrap text-center leading-tight">
@@ -669,14 +709,14 @@ const AdminDashboard: React.FC = () => {
                                         
                                         <div className="flex-1 flex items-center gap-2">
                                             <input 
-                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-orange-500 text-center uppercase" 
+                                                className="w-full bg-gray-50 dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-orange-500 text-center uppercase" 
                                                 placeholder="ID EMISOR"
                                                 value={event.id1 || ''}
                                                 onChange={(e) => handleScheduleChange('supersmash', idx, 'id1', e.target.value)}
                                             />
                                             <span className="text-[10px] font-black text-gray-300">VS</span>
                                             <input 
-                                                className="w-full bg-white dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-orange-500 text-center uppercase" 
+                                                className="w-full bg-gray-50 dark:bg-black p-3 rounded-lg text-xs font-black text-brand-black dark:text-white border border-gray-200 dark:border-white/10 outline-none focus:border-orange-500 text-center uppercase" 
                                                 placeholder="ID OPONENTE"
                                                 value={event.id2 || ''}
                                                 onChange={(e) => handleScheduleChange('supersmash', idx, 'id2', e.target.value)}
@@ -784,8 +824,62 @@ const AdminDashboard: React.FC = () => {
             </div>
         )}
 
-        {/* COMMS & DATA TABS (Existing content) */}
-        {activeTab === 'comms' && (<div className="space-y-6 animate-slide-up"><div className="bg-white dark:bg-brand-dark-card p-6 rounded-3xl shadow-lg border border-gray-100 dark:border-white/5 relative overflow-hidden"><div className="relative z-10"><div className="flex items-center space-x-2 mb-6"><div className="bg-amber-500/10 p-2 rounded-lg"><Radio className="text-amber-500" size={20} /></div><h2 className="text-lg font-black uppercase text-brand-black dark:text-white">Difusión Global</h2></div><div className="space-y-4"><div><label className="text-[9px] font-black uppercase text-gray-400 mb-2 block">Mensaje de Alerta / Push</label><textarea value={alertMessage} onChange={(e) => setAlertMessage(e.target.value)} className="w-full h-32 bg-gray-50 dark:bg-white/5 border-none rounded-xl p-4 text-sm font-medium dark:text-white focus:ring-2 ring-amber-500/20 outline-none resize-none placeholder-gray-400" placeholder="Escribe el mensaje..." /></div><Button onClick={handleSendAlert} disabled={isSendingAlert || !alertMessage} fullWidth className={`bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20 mt-2 ${isSendingAlert ? 'opacity-70' : ''}`}>{isSendingAlert ? 'Enviando...' : 'Enviar Notificación'} <Send size={16} className="ml-2" /></Button></div></div></div></div>)}
+        {/* COMMS TABS (PUSH NOTIFICATIONS) */}
+        {activeTab === 'comms' && (
+            <div className="space-y-6 animate-slide-up">
+                <div className="bg-white dark:bg-brand-dark-card p-6 rounded-3xl shadow-lg border border-gray-100 dark:border-white/5 relative overflow-hidden">
+                    <div className="relative z-10">
+                        <div className="flex items-center space-x-2 mb-6">
+                            <div className="bg-amber-500/10 p-2 rounded-lg"><Radio className="text-amber-500" size={20} /></div>
+                            <h2 className="text-lg font-black uppercase text-brand-black dark:text-white">Difusión Global</h2>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            {/* API KEY INPUT */}
+                            <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-200 dark:border-white/10">
+                                <label className="text-[9px] font-black uppercase text-gray-400 mb-2 block tracking-widest">
+                                    OneSignal REST API Key
+                                </label>
+                                <div className="flex gap-2">
+                                    <div className="bg-white dark:bg-black/20 p-2 rounded-lg text-gray-400">
+                                        <Key size={16} />
+                                    </div>
+                                    <input 
+                                        type="password" 
+                                        value={restApiKey}
+                                        onChange={(e) => setRestApiKey(e.target.value)}
+                                        placeholder="Pega tu clave aquí..."
+                                        className="w-full bg-transparent text-xs font-mono outline-none text-brand-black dark:text-white"
+                                    />
+                                </div>
+                                <p className="text-[8px] text-gray-400 mt-2">* Se guardará en tu navegador para futuros envíos.</p>
+                            </div>
+
+                            <div>
+                                <label className="text-[9px] font-black uppercase text-gray-400 mb-2 block">Mensaje de Alerta / Push</label>
+                                <textarea 
+                                    value={alertMessage} 
+                                    onChange={(e) => setAlertMessage(e.target.value)} 
+                                    className="w-full h-32 bg-gray-50 dark:bg-white/5 border-none rounded-xl p-4 text-sm font-medium dark:text-white focus:ring-2 ring-amber-500/20 outline-none resize-none placeholder-gray-400" 
+                                    placeholder="Escribe el mensaje que llegará a todos los dispositivos..." 
+                                />
+                            </div>
+                            
+                            <Button 
+                                onClick={handleSendAlert} 
+                                disabled={isSendingAlert || !alertMessage || !restApiKey} 
+                                fullWidth 
+                                className={`bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20 mt-2 ${isSendingAlert ? 'opacity-70' : ''}`}
+                            >
+                                {isSendingAlert ? 'Enviando...' : 'Enviar Notificación'} 
+                                <Send size={16} className="ml-2" />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
+        
         {activeTab === 'data' && <div className="text-center py-20 text-gray-400 text-xs">Módulo de datos en construcción</div>}
 
       </div>

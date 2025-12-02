@@ -1,6 +1,6 @@
 
-// Nombre del caché - Actualizado a v16 para forzar recarga por actualización de seguridad
-const CACHE_NAME = 'stream-agency-v16-realtime-secure';
+// Nombre del caché - Actualizado a v17 para forzar recarga por actualización de notificaciones push
+const CACHE_NAME = 'stream-agency-v17-realtime-secure';
 
 // Archivos vitales para que la app arranque offline
 const ASSETS_TO_CACHE = [
