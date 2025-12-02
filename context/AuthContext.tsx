@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   createUserWithEmailAndPassword, 
@@ -7,7 +8,7 @@ import {
   updateProfile as updateAuthProfile,
   sendEmailVerification
 } from "firebase/auth";
-import { doc, setDoc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, arrayUnion, onSnapshot } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from '../firebaseConfig';
 import { DATA_VERSION } from '../constants';
@@ -26,6 +27,7 @@ export interface User {
   deviceInfo?: string;
   accessLogs?: ActivityLog[];
   isBlocked?: boolean;
+  forceRelogin?: number; // Timestamp para forzar cierre de sesión
 }
 
 interface AuthContextType {
@@ -41,98 +43,127 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// LISTA MAESTRA DE DUEÑOS (Acceso total inmediato)
+const MASTER_EMAILS = ['joan6141318@gmail.com'];
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 1. Escuchar cambios de sesión
+  // 1. Escuchar cambios de sesión y DE BASE DE DATOS en Tiempo Real
   useEffect(() => {
     const safetyTimer = setTimeout(() => {
         if (loading) {
             console.warn("Firebase slow response - Forcing UI load");
             setLoading(false);
         }
-    }, 2000);
+    }, 3000);
 
     if (!auth) {
         setLoading(false);
         return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    let unsubscribeFirestore: (() => void) | null = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       clearTimeout(safetyTimer);
+
+      // Si teníamos un listener de otro usuario anterior, lo cerramos
+      if (unsubscribeFirestore) {
+          unsubscribeFirestore();
+          unsubscribeFirestore = null;
+      }
 
       if (firebaseUser) {
         const email = firebaseUser.email?.toLowerCase() || "";
+        // VERIFICACIÓN MAESTRA: Si es tu correo, eres admin SIEMPRE.
+        const isMasterAdmin = MASTER_EMAILS.includes(email);
         
-        // Base user structure
-        let baseUser: User = {
+        // Estructura base por defecto
+        const baseUser: User = {
             id: firebaseUser.uid,
             name: firebaseUser.displayName || "Usuario",
             email: email,
             avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${firebaseUser.displayName || 'User'}`,
-            role: "Streamer",
-            isAdmin: false, // Default to FALSE. Only DB can make it TRUE.
+            role: isMasterAdmin ? "Dueño" : "Streamer",
+            isAdmin: isMasterAdmin, // FORZAR TRUE SI ES EL DUEÑO
             isOnboardingComplete: false,
             dataVersion: DATA_VERSION
         };
 
-        try {
-            if (db) {
-                const userDocRef = doc(db, "users", firebaseUser.uid);
-                const userDoc = await getDoc(userDocRef);
-                
-                if (userDoc.exists()) {
-                    const dbData = userDoc.data();
+        if (db) {
+            const userDocRef = doc(db, "users", firebaseUser.uid);
+            
+            // --- AQUÍ ESTÁ LA MAGIA: LISTENER EN TIEMPO REAL ---
+            unsubscribeFirestore = onSnapshot(userDocRef, async (docSnap) => {
+                if (docSnap.exists()) {
+                    const dbData = docSnap.data();
                     
-                    // TRUST THE DATABASE FOR ADMIN STATUS
-                    const isDbAdmin = dbData.isAdmin === true;
+                    // Seguridad: Si es Master Email, ignorar DB y dar permisos
+                    const isAdminAccess = isMasterAdmin || dbData.isAdmin === true;
 
-                    // --- MIGRATION LOGIC ---
+                    // --- MIGRACIÓN DE DATOS ---
                     const needsMigration = !dbData.dataVersion || dbData.dataVersion < DATA_VERSION;
 
                     if (needsMigration) {
                         const updatedProfile = {
                             ...baseUser,
                             ...dbData,
-                            isAdmin: isDbAdmin,
-                            role: isDbAdmin ? "Administrador" : (dbData.role || "Streamer"),
+                            isAdmin: isAdminAccess,
+                            role: isAdminAccess ? "Administrador" : (dbData.role || "Streamer"),
                             isOnboardingComplete: false, 
                             dataVersion: DATA_VERSION
                         };
                         
-                        await setDoc(userDocRef, updatedProfile, { merge: true });
+                        // Guardar migración
+                        try {
+                            await setDoc(userDocRef, updatedProfile, { merge: true });
+                        } catch(e) { console.error("Migration failed", e); }
+                        
+                        // Actualizar estado local
                         setUser(updatedProfile);
 
                     } else {
+                        // ACTUALIZACIÓN INSTANTÁNEA
                         setUser({ 
                             ...baseUser, 
                             ...dbData, 
-                            isAdmin: isDbAdmin,
-                            role: isDbAdmin ? "Administrador" : (dbData.role || "Streamer")
+                            isAdmin: isAdminAccess, // Prioridad al Master Email
+                            role: isAdminAccess ? "Administrador" : (dbData.role || "Streamer")
                         } as User);
                     }
                 } else {
-                    // Usuario nuevo (no existe doc) - Create Safe Default
-                    // If it's a new user, they are NOT admin.
-                    await setDoc(userDocRef, baseUser);
-                    setUser(baseUser);
+                    // Usuario nuevo (no existe doc) - Crear perfil
+                    try {
+                        await setDoc(userDocRef, baseUser);
+                        setUser(baseUser);
+                    } catch (e) {
+                        console.error("Error creating initial profile", e);
+                        setUser(baseUser); // Fallback visual
+                    }
                 }
-            } else {
-                setUser(baseUser);
-            }
-        } catch (error: any) {
-            console.warn("Firestore offline/error: Using cached/basic profile.");
+                setLoading(false);
+            }, (error) => {
+                console.error("Firestore listener error:", error);
+                // En caso de error de lectura, si es Master, mantener acceso
+                if (isMasterAdmin) setUser(baseUser);
+                setLoading(false);
+            });
+        } else {
+            // Sin conexión a DB
             setUser(baseUser);
+            setLoading(false);
         }
       } else {
         setUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => {
-        unsubscribe();
+        unsubscribeAuth();
+        if (unsubscribeFirestore) unsubscribeFirestore();
         clearTimeout(safetyTimer);
     };
   }, []); 
@@ -144,7 +175,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const credential = await signInWithEmailAndPassword(auth, email, pass);
       const fbUser = credential.user;
       
-      // --- CAPTURA DE DATOS REALES DE SEGURIDAD ---
       const now = new Date();
       const ua = navigator.userAgent;
       let deviceString = "Desconocido";
@@ -168,7 +198,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   accessLogs: arrayUnion(newLog) 
               });
           } catch (e) {
-              // Ignore if doc missing, created in onAuthStateChanged
+              // Ignore
           }
       }
   };
@@ -185,15 +215,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const now = new Date();
       const deviceString = navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Web Browser';
+      
+      // Auto-admin si es el correo maestro
+      const isMasterAdmin = MASTER_EMAILS.includes(userEmail);
 
-      // NEW USER IS NEVER ADMIN BY DEFAULT
       const newUserProfile: User = {
         id: fbUser.uid,
         name: name,
         email: userEmail,
         avatarUrl: `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${name}`,
-        role: "Streamer Oficial",
-        isAdmin: false, // SECURITY: Always false on register
+        role: isMasterAdmin ? "Dueño" : "Streamer Oficial",
+        isAdmin: isMasterAdmin, 
         isOnboardingComplete: false,
         dataVersion: DATA_VERSION,
         lastLogin: now.toISOString(),
@@ -201,6 +233,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         accessLogs: [{ action: 'Cuenta Creada', timestamp: now.toISOString(), device: deviceString, type: 'login' }]
       };
 
+      // Set user immediately for UI responsiveness
       setUser(newUserProfile);
       setLoading(false);
 
@@ -244,9 +277,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (data: Partial<User>) => {
     if (!user) return;
     
-    // SECURITY: Prevent upgrading self to admin via frontend
-    if (data.isAdmin === true && !user.isAdmin) {
-        console.warn("Security Alert: Unauthorized admin promotion attempt.");
+    // SECURITY: Si es el dueño, permitir todo. Si no, bloquear ascenso a admin.
+    const isMasterAdmin = MASTER_EMAILS.includes(user.email);
+    
+    if (data.isAdmin === true && !user.isAdmin && !isMasterAdmin) {
+        // Bloqueo solo si NO eres el dueño
         delete data.isAdmin;
         delete data.role;
     }
@@ -269,6 +304,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }
     
+    // Optimistic Update
     setUser(prev => prev ? { ...prev, ...data } : null);
 
     try {
