@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Bell, Lock, HelpCircle, ChevronRight, Camera, User, Mail, Moon, Save, Type, Shield, Grid, X, Smile, Check, FileText } from 'lucide-react';
+import { LogOut, Bell, Lock, HelpCircle, ChevronRight, Camera, User, Mail, Moon, Save, Type, Shield, Grid, X, Smile, Check, FileText, AlertCircle } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { useOneSignal } from '../hooks/useOneSignal'; // Importamos el hook real
@@ -202,7 +202,7 @@ const UserSettings: React.FC = () => {
   // Helper para mostrar estado legible
   const getPermissionLabel = () => {
       if (permissionStatus === 'granted') return 'Permitido (Activo)';
-      if (permissionStatus === 'denied') return 'BLOQUEADO por navegador';
+      if (permissionStatus === 'denied') return 'BLOQUEADO POR NAVEGADOR';
       return 'Sin configurar (Toca para activar)';
   };
 
@@ -348,7 +348,7 @@ const UserSettings: React.FC = () => {
                     icon={<Bell size={18} />} 
                     label="Notificaciones Push" 
                     isToggle 
-                    isToggled={isSubscribed}
+                    isToggled={isSubscribed && permissionStatus === 'granted'} 
                     onClick={togglePush}
                 />
                 
@@ -360,6 +360,24 @@ const UserSettings: React.FC = () => {
                             {getPermissionLabel()}
                         </span>
                     </div>
+                    
+                    {permissionStatus === 'denied' && (
+                        <div className="mb-2 mt-1 bg-red-50 dark:bg-red-900/20 p-2 rounded border border-red-100 dark:border-red-900/30 flex items-start gap-2">
+                            <AlertCircle size={14} className="text-red-500 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                                <p className="text-[10px] text-red-600 dark:text-red-400 font-bold leading-tight">
+                                    Debes desbloquear los permisos manualmente en la configuración del navegador.
+                                </p>
+                                <button 
+                                    onClick={togglePush} 
+                                    className="text-[10px] text-brand-black dark:text-white font-black underline mt-1"
+                                >
+                                    Ver cómo activar
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     <p className="text-[9px] font-mono text-center text-gray-400 dark:text-gray-600 break-all select-all">
                         ID: {subscriptionId ? subscriptionId : 'Desconectado'}
                     </p>
