@@ -29,12 +29,18 @@ export const useOneSignal = () => {
             // Verificar estado actual
             OneSignal.User.PushSubscription.addEventListener("change", (event: any) => {
                setIsSubscribed(event.current.optedIn);
+               console.log("OneSignal State Changed:", event.current);
             });
             
             // Estado inicial
-            setIsSubscribed(OneSignal.User.PushSubscription.optedIn);
+            const optedIn = OneSignal.User.PushSubscription.optedIn;
+            setIsSubscribed(optedIn);
+            
+            // DEBUG: Mostrar ID de usuario para verificar que se registró correctamente
+            const id = OneSignal.User.PushSubscription.id;
+            console.log("OneSignal Initialized. Subscribed:", optedIn);
+            console.log("OneSignal ID:", id);
 
-            console.log("OneSignal Initialized");
         } catch (error) {
             console.error("OneSignal init error:", error);
         }
@@ -47,21 +53,29 @@ export const useOneSignal = () => {
       if (typeof window === 'undefined') return;
       
       window.OneSignalDeferred.push(async function(OneSignal: any) {
-          const hasPermission = OneSignal.Notifications.permission;
+          // 1. Check if permission exists
+          let hasPermission = OneSignal.Notifications.permission;
           
           if (!hasPermission) {
-              // Si nunca ha dado permiso, lo pedimos (Nativo del celular)
-              await OneSignal.Notifications.requestPermission();
+              console.log("Requesting native permission...");
+              // 2. Request permission if needed
+              const granted = await OneSignal.Notifications.requestPermission();
+              hasPermission = granted;
           }
           
-          if (OneSignal.User.PushSubscription.optedIn) {
-              // Si ya está suscrito, lo desactivamos
-              OneSignal.User.PushSubscription.optOut();
-              setIsSubscribed(false);
+          // 3. If granted, toggle subscription
+          if (hasPermission) {
+              if (OneSignal.User.PushSubscription.optedIn) {
+                  console.log("Opting OUT");
+                  OneSignal.User.PushSubscription.optOut();
+                  setIsSubscribed(false);
+              } else {
+                  console.log("Opting IN");
+                  OneSignal.User.PushSubscription.optIn();
+                  setIsSubscribed(true);
+              }
           } else {
-              // Si no está suscrito, lo activamos
-              OneSignal.User.PushSubscription.optIn();
-              setIsSubscribed(true);
+              alert("Debes permitir las notificaciones en la configuración de tu navegador para activar esta función.");
           }
       });
   };

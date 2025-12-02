@@ -142,7 +142,7 @@ const AdminDashboard: React.FC = () => {
             },
             body: JSON.stringify({
                 app_id: "3bbf8972-d8cb-4eed-a46b-6059a4f71cd1", // Tu App ID
-                included_segments: ["Total Subscriptions"], // Enviar a todos
+                included_segments: ["Subscribed Users"], // FIX: Nombre correcto del segmento estándar
                 contents: { "en": alertMessage, "es": alertMessage },
                 headings: { "en": "StreamAgency Aviso", "es": "StreamAgency Aviso" },
                 name: "ADMIN_BROADCAST"
@@ -153,7 +153,8 @@ const AdminDashboard: React.FC = () => {
         const data = await response.json();
 
         if (data.id) {
-            alert("¡Mensaje Push enviado exitosamente a todos los dispositivos!");
+            const count = data.recipients || 0;
+            alert(`¡Mensaje Push enviado exitosamente a ${count} dispositivos!`);
             setAlertMessage('');
             // Guardar la API Key para futuro uso
             localStorage.setItem('onesignal_api_key', restApiKey);
