@@ -1,7 +1,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlayCircle, Shield, Zap, Star, BellRing, Trophy, TrendingUp, Video, ShieldCheck, HelpCircle, Gamepad2, FileText, ChevronRight, LayoutGrid } from 'lucide-react';
+import { PlayCircle, Shield, Zap, Star, BellRing, Trophy, TrendingUp, Video, ShieldCheck, HelpCircle, Gamepad2, FileText, ChevronRight, LayoutGrid, ArrowUpRight, Check } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { useContent } from '../context/ContentContext';
@@ -69,37 +69,55 @@ const Profile: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full w-full bg-[#FAFAFA] dark:bg-black transition-colors duration-300 relative font-sans">
-      {/* Header Minimalista Transparente */}
-      <div className="fixed top-0 left-0 right-0 z-50 px-6 pt-safe flex justify-between items-center bg-[#FAFAFA]/90 dark:bg-black/90 backdrop-blur-md h-16">
+      
+      {/* Header Minimalista (Solo Logo y Admin) */}
+      <div className="fixed top-0 left-0 right-0 z-50 px-6 pt-safe flex justify-between items-center bg-[#FAFAFA]/90 dark:bg-black/90 backdrop-blur-xl h-20">
           <div className="flex items-center space-x-2">
-             <div className="w-8 h-8 bg-brand-black dark:bg-white rounded-lg flex items-center justify-center shadow-md">
+             <div className="w-8 h-8 bg-brand-black dark:bg-white rounded-xl flex items-center justify-center shadow-lg shadow-black/10">
                 <LayoutGrid size={16} className="text-white dark:text-black" />
              </div>
-             <span className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-black dark:text-white">StreamAgency</span>
+             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-black dark:text-white">StreamAgency</span>
           </div>
-          {/* Admin Badge discreto */}
+          {/* Admin Badge */}
           {user.isAdmin && (
-            <span className="bg-brand-purple/10 text-brand-purple px-2 py-1 rounded text-[8px] font-black uppercase tracking-widest border border-brand-purple/20">
-                Admin Mode
-            </span>
+            <div className="flex items-center space-x-1 bg-black/5 dark:bg-white/10 px-3 py-1.5 rounded-full border border-black/5 dark:border-white/5">
+                <ShieldCheck size={10} className="text-brand-purple" />
+                <span className="text-[8px] font-black uppercase tracking-widest text-brand-black dark:text-white">Admin</span>
+            </div>
           )}
       </div>
       
-      <div className="flex-1 overflow-y-auto scrollbar-hide pt-20 pb-24 px-6">
+      <div className="flex-1 overflow-y-auto scrollbar-hide pt-24 pb-32 px-6">
           
-          {/* === HERO SECTION === */}
-          <div className="mb-8 animate-fade-in">
-              <p className="text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1 pl-1">
-                  {homeConfig?.welcomeText || "Bienvenido de nuevo,"}
-              </p>
-              <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tight mb-6 pl-1">
-                  {user.name}
-              </h1>
+          {/* === HERO SECTION (Style: Welcome Page) === */}
+          <div className="mb-10 animate-fade-in relative">
+              <div className="flex flex-col">
+                  <p className="text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2 pl-1">
+                      {homeConfig?.welcomeText || "Espacio de Trabajo"}
+                  </p>
+                  
+                  <div className="flex items-start justify-between">
+                      <h1 className="text-4xl font-black text-brand-black dark:text-white uppercase leading-[0.9] tracking-tighter mb-6 max-w-[80%]">
+                          Hola,<br/>
+                          <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
+                              {user.name.split(' ')[0]}
+                          </span>
+                      </h1>
+                      
+                      {/* Mini Avatar */}
+                      <div className="w-12 h-12 rounded-full p-0.5 bg-white shadow-lg border border-gray-100 dark:border-white/10 relative">
+                          <img src={user.avatarUrl} alt="Me" className="w-full h-full rounded-full object-cover" />
+                          <div className="absolute -bottom-1 -right-1 bg-brand-black text-white p-1 rounded-full border-2 border-white">
+                              <Check size={8} strokeWidth={4} />
+                          </div>
+                      </div>
+                  </div>
+              </div>
 
-              {/* BANNERS CAROUSEL (Rounded & Floating) */}
-              <div className="relative w-full rounded-[2rem] overflow-hidden shadow-2xl shadow-black/10 dark:shadow-none border border-white dark:border-white/10 group">
+              {/* BANNERS CAROUSEL (Rounded 2.5rem & Clean) */}
+              <div className="relative w-full rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 dark:shadow-none group transform transition-all hover:scale-[1.01]">
                   {loading ? (
-                      <div className="w-full aspect-[16/9] bg-gray-200 dark:bg-white/10 animate-pulse"></div>
+                      <div className="w-full aspect-[16/9] bg-gray-100 dark:bg-white/5 animate-pulse"></div>
                   ) : (
                     <>
                       <div 
@@ -114,40 +132,45 @@ const Profile: React.FC = () => {
                                 key={banner.id}
                                 onClick={() => handleBannerClick(banner.link)}
                                 className={`relative flex-shrink-0 w-full overflow-hidden cursor-pointer active:scale-[0.98] transition-transform duration-300 snap-center`} 
-                                style={{ aspectRatio: '16/9' }}
+                                style={{ aspectRatio: '16/10' }} // Un poco más alto para estilo moderno
                               >
                                   {/* Background Gradient */}
-                                  <div className={`absolute inset-0 bg-gradient-to-r ${banner.gradient}`}></div>
+                                  <div className={`absolute inset-0 bg-gradient-to-br ${banner.gradient}`}></div>
                                   
-                                  {/* Background Image (Subtle) */}
+                                  {/* Background Image */}
                                   <img 
                                     src={banner.image} 
                                     alt={banner.title} 
-                                    className={`absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay ${banner.imagePosition || 'object-center'}`} 
+                                    className={`absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-overlay ${banner.imagePosition || 'object-center'}`} 
                                   />
                                   
                                   {/* Content Overlay */}
-                                  <div className="absolute inset-0 p-6 flex flex-col justify-end items-start z-10">
-                                      <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 mb-3">
-                                          <span className="text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1">
-                                              <Star size={8} fill="currentColor" /> {banner.tag}
-                                          </span>
+                                  <div className="absolute inset-0 p-8 flex flex-col justify-between z-10">
+                                      <div className="flex justify-between items-start">
+                                          <div className="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+                                              <span className="text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                                                  <Star size={10} fill="currentColor" /> {banner.tag}
+                                              </span>
+                                          </div>
+                                          <div className="bg-white/10 p-2 rounded-full backdrop-blur-sm">
+                                              <ArrowUpRight size={18} className="text-white" />
+                                          </div>
                                       </div>
-                                      <h2 className="text-xl font-black text-white uppercase leading-none mb-1 drop-shadow-lg max-w-[90%]">{banner.title}</h2>
-                                      <p className="text-white/80 text-[10px] font-bold max-w-[80%] leading-tight">{banner.subtitle}</p>
+                                      
+                                      <div>
+                                          <h2 className="text-2xl font-black text-white uppercase leading-[0.9] mb-2 drop-shadow-lg max-w-[90%] tracking-tight">{banner.title}</h2>
+                                          <p className="text-white/80 text-[10px] font-bold max-w-[80%] leading-tight line-clamp-2">{banner.subtitle}</p>
+                                      </div>
                                   </div>
-
-                                  {/* Decorative Icon */}
-                                  <Icon className="absolute top-4 right-4 text-white/20 rotate-12" size={60} strokeWidth={1} />
                               </div>
                             );
                           })}
                       </div>
                       
-                      {/* Dots Indicator */}
-                      <div className="absolute bottom-4 right-6 flex space-x-1.5 z-20">
+                      {/* Dots Indicator (Outside/Floating) */}
+                      <div className="absolute bottom-6 right-8 flex space-x-1.5 z-20">
                           {banners.map((_, index) => (
-                              <div key={index} className={`h-1.5 rounded-full transition-all duration-300 shadow-sm ${activeIndex === index ? 'w-4 bg-white' : 'w-1.5 bg-white/40'}`} />
+                              <div key={index} className={`h-1.5 rounded-full transition-all duration-300 shadow-sm backdrop-blur-sm ${activeIndex === index ? 'w-6 bg-white' : 'w-1.5 bg-white/40'}`} />
                           ))}
                       </div>
                     </>
@@ -155,103 +178,100 @@ const Profile: React.FC = () => {
               </div>
           </div>
 
-          {/* === MODULES GRID (BENTO STYLE) === */}
-          <div className="mb-10">
-                <div className="flex items-center justify-between mb-4 px-1">
-                    <h3 className="text-lg font-black uppercase tracking-tight text-brand-black dark:text-white leading-none">
-                        {homeConfig?.modulesTitle || "Capacitación"}
+          {/* === MODULES GRID (ESTILO "CAPACITATE" - BENTO) === */}
+          <div className="mb-12">
+                <div className="flex items-end justify-between mb-6 px-1">
+                    <h3 className="text-4xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tighter opacity-10">
+                        01
                     </h3>
-                    <div className="h-px flex-1 bg-gray-200 dark:bg-white/10 ml-4"></div>
+                    <div className="text-right">
+                        <span className="block text-[10px] font-black uppercase tracking-widest text-brand-purple mb-1">
+                            Librería de Recursos
+                        </span>
+                        <h3 className="text-xl font-black uppercase tracking-tight text-brand-black dark:text-white leading-none">
+                            {homeConfig?.modulesTitle || "Capacitación"}
+                        </h3>
+                    </div>
                 </div>
             
                 <div className="grid grid-cols-2 gap-4">
                   {loading ? (
-                      [1,2,3,4].map(i => <div key={i} className="h-40 w-full bg-gray-100 dark:bg-white/5 rounded-[2rem] animate-pulse"></div>)
-                  ) : modules.map((module) => {
+                      [1,2,3,4].map(i => <div key={i} className="h-48 w-full bg-gray-50 dark:bg-white/5 rounded-[2rem] animate-pulse"></div>)
+                  ) : modules.map((module, index) => {
                       const style = module.style || { bg: 'bg-gray-800', shadow: 'shadow-gray-800/40', iconName: 'PlayCircle', cardOpacity: 1 };
                       const Icon = getIconComponent(style.iconName);
                       
-                      // Extraemos el color base para usarlo en el icono (ej: 'bg-blue-600' -> 'text-blue-600')
-                      // Esto es un truco visual para mantener la personalización del CMS pero con el diseño blanco
-                      const colorClass = style.bg.replace('bg-', 'text-'); 
-                      const bgClass = style.bg.replace('bg-', 'bg-');
+                      // Alternate Large Card logic (Every 3rd item is full width)
+                      const isLarge = (index + 1) % 3 === 0;
 
                       return (
                         <button 
                             key={module.id}
                             onClick={() => navigate(`/training/${module.id}`)}
-                            className="relative flex flex-col justify-between p-5 h-44 w-full text-left bg-white dark:bg-[#111] rounded-[2rem] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] border border-gray-100 dark:border-white/5 active:scale-[0.96] transition-all duration-300 group overflow-hidden"
+                            className={`relative flex flex-col justify-between p-6 ${isLarge ? 'col-span-2 aspect-[2/1]' : 'aspect-square'} bg-white dark:bg-[#111] rounded-[2.5rem] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.08)] border border-gray-100 dark:border-white/5 active:scale-[0.96] transition-all duration-300 group overflow-hidden`}
                         >
                             {/* Header: Icon Container */}
                             <div className="flex justify-between items-start w-full relative z-10">
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors duration-300 ${bgClass} bg-opacity-10 dark:bg-opacity-20 group-hover:bg-opacity-20`}>
-                                    <Icon size={24} className={`${colorClass} dark:text-white`} strokeWidth={2} />
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors duration-300 bg-gray-50 dark:bg-white/10 group-hover:bg-brand-black group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black`}>
+                                    <Icon size={20} className="text-brand-black dark:text-white group-hover:text-white dark:group-hover:text-black transition-colors" strokeWidth={2.5} />
                                 </div>
-                                <div className="bg-gray-50 dark:bg-white/5 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <ChevronRight size={14} className="text-brand-black dark:text-white" />
-                                </div>
+                                <ArrowUpRight size={20} className="text-gray-300 group-hover:text-brand-purple transition-colors" />
                             </div>
                             
                             {/* Body: Title */}
-                            <div className="relative z-10 mt-auto">
-                                <span className="text-sm font-black uppercase leading-tight block text-brand-black dark:text-white tracking-tight mb-1 group-hover:translate-x-1 transition-transform duration-300">
+                            <div className="relative z-10 mt-auto text-left">
+                                <span className={`font-black uppercase leading-[0.9] block text-brand-black dark:text-white tracking-tighter mb-1 group-hover:translate-x-1 transition-transform duration-300 ${isLarge ? 'text-2xl' : 'text-sm'}`}>
                                     {module.title}
                                 </span>
-                                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider line-clamp-1">
-                                    Ver Módulo
+                                <span className="text-[8px] text-gray-400 font-bold uppercase tracking-widest line-clamp-1 group-hover:text-brand-purple transition-colors">
+                                    Explorar Módulo
                                 </span>
                             </div>
 
-                            {/* Background Image (If exists, subtle fade) */}
-                            {module.imageUrl && (
-                                <img 
-                                    src={module.imageUrl} 
-                                    alt="" 
-                                    className="absolute top-0 right-0 w-32 h-32 object-cover opacity-5 dark:opacity-10 rounded-bl-[4rem] pointer-events-none transition-transform duration-500 group-hover:scale-110" 
-                                />
-                            )}
+                            {/* Decorative Big Icon (Watermark) */}
+                            <Icon 
+                                className={`absolute -bottom-6 -right-6 text-gray-50 dark:text-white/5 rotate-[-15deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500 pointer-events-none`} 
+                                size={isLarge ? 140 : 100} 
+                                strokeWidth={1} 
+                            />
                         </button>
                       );
                   })}
                 </div>
           </div>
 
-          {/* === UTILITY CARDS (Clean Style) === */}
+          {/* === UTILITY SECTION (Compact List) === */}
           <div className="mb-10">
-              <div className="flex items-center justify-between mb-4 px-1">
-                    <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">
-                        Herramientas & Ayuda
-                    </h3>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                  {/* Seguridad */}
-                  <button 
-                    onClick={() => navigate('/training/seguridad')}
-                    className="bg-white dark:bg-[#111] p-5 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5 flex flex-col justify-center items-center text-center gap-3 active:scale-[0.96] transition-all group"
-                  >
-                      <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-full group-hover:scale-110 transition-transform">
-                          <ShieldCheck className="text-red-500" size={24} strokeWidth={2} />
+              <div className="bg-brand-black dark:bg-[#111] rounded-[2.5rem] p-8 relative overflow-hidden shadow-2xl shadow-black/30">
+                  <div className="relative z-10 flex flex-col items-center text-center">
+                      <div className="bg-white/10 p-3 rounded-full mb-4 backdrop-blur-md border border-white/10">
+                          <HelpCircle className="text-white" size={24} />
                       </div>
-                      <div>
-                          <span className="text-xs font-black text-brand-black dark:text-white uppercase block">Seguridad</span>
-                          <span className="text-[8px] text-gray-400 font-bold uppercase tracking-wider">Normas</span>
+                      <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2">
+                          ¿Necesitas Ayuda?
+                      </h3>
+                      <p className="text-xs text-white/60 font-medium max-w-[200px] mb-6">
+                          Revisa nuestras normas o consulta las preguntas frecuentes.
+                      </p>
+                      
+                      <div className="flex gap-3 w-full">
+                          <button 
+                            onClick={() => navigate('/training/seguridad')}
+                            className="flex-1 bg-white text-brand-black h-12 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center hover:bg-gray-100 transition-colors"
+                          >
+                              Normas
+                          </button>
+                          <button 
+                            onClick={() => alert("Próximamente FAQ")}
+                            className="flex-1 bg-white/10 text-white h-12 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center hover:bg-white/20 transition-colors backdrop-blur-sm border border-white/10"
+                          >
+                              FAQ
+                          </button>
                       </div>
-                  </button>
-
-                  {/* FAQ */}
-                  <button 
-                      onClick={() => alert("Abriendo preguntas frecuentes...")}
-                      className="bg-white dark:bg-[#111] p-5 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5 flex flex-col justify-center items-center text-center gap-3 active:scale-[0.96] transition-all group"
-                  >
-                      <div className="bg-cyan-50 dark:bg-cyan-900/20 p-3 rounded-full group-hover:scale-110 transition-transform">
-                          <HelpCircle className="text-cyan-600 dark:text-cyan-400" size={24} strokeWidth={2} />
-                      </div>
-                      <div>
-                          <span className="text-xs font-black text-brand-black dark:text-white uppercase block">Ayuda</span>
-                          <span className="text-[8px] text-gray-400 font-bold uppercase tracking-wider">FAQ</span>
-                      </div>
-                  </button>
+                  </div>
+                  
+                  {/* Background Noise/Gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-brand-purple/20 to-transparent pointer-events-none"></div>
               </div>
           </div>
 
@@ -259,7 +279,7 @@ const Profile: React.FC = () => {
           <div className="pb-8 flex justify-center">
                 <button 
                     onClick={() => setShowPrivacy(true)}
-                    className="text-[10px] font-bold text-gray-300 dark:text-gray-600 uppercase tracking-widest hover:text-brand-purple dark:hover:text-white transition-colors flex items-center space-x-1.5 bg-gray-50 dark:bg-white/5 px-4 py-2 rounded-full"
+                    className="text-[9px] font-bold text-gray-300 dark:text-gray-600 uppercase tracking-widest hover:text-brand-black dark:hover:text-white transition-colors flex items-center space-x-2"
                 >
                     <FileText size={12} />
                     <span>Legal & Privacidad</span>
