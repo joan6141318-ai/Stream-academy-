@@ -64,7 +64,7 @@ const UserSettings: React.FC = () => {
   const { user, logout, updateProfile, uploadPhoto } = useAuth();
   
   // CONEXIÓN A ONESIGNAL
-  const { isSubscribed, togglePush, subscriptionId } = useOneSignal();
+  const { isSubscribed, togglePush, subscriptionId, permissionStatus } = useOneSignal();
   
   const [darkMode, setDarkMode] = useState(false);
   
@@ -199,6 +199,19 @@ const UserSettings: React.FC = () => {
       }
   };
 
+  // Helper para mostrar estado legible
+  const getPermissionLabel = () => {
+      if (permissionStatus === 'granted') return 'Permitido (Activo)';
+      if (permissionStatus === 'denied') return 'BLOQUEADO por navegador';
+      return 'Sin configurar (Toca para activar)';
+  };
+
+  const getPermissionColor = () => {
+      if (permissionStatus === 'granted') return 'text-green-500';
+      if (permissionStatus === 'denied') return 'text-red-500 font-black';
+      return 'text-gray-400';
+  };
+
   if (!user) return null;
 
   return (
@@ -230,7 +243,6 @@ const UserSettings: React.FC = () => {
 
                 {!isUploading && (
                     <>
-                        {/* Botón Cámara (Subir Foto) - Solo visible en modo normal o edición */}
                         <button 
                             onClick={triggerFileInput}
                             className="absolute bottom-1 right-1 bg-brand-black dark:bg-white text-white dark:text-black p-2 rounded-full shadow-lg active:scale-95 transition-transform border-2 border-white dark:border-black z-10"
@@ -257,7 +269,6 @@ const UserSettings: React.FC = () => {
                         />
                      </div>
 
-                     {/* Botón para Elegir Avatar 3D (Solo en modo edición) */}
                      <button 
                         type="button"
                         onClick={() => setShowAvatarModal(true)}
@@ -309,7 +320,6 @@ const UserSettings: React.FC = () => {
             </div>
             
             <div className="px-6 py-4 space-y-6">
-                {/* BIO */}
                 <div className="flex items-start space-x-4">
                     <div className="mt-1 bg-gray-50 dark:bg-white/5 p-2 rounded-sm"><Type size={16} className="text-brand-purple" /></div>
                     <div className="flex-1">
@@ -328,16 +338,6 @@ const UserSettings: React.FC = () => {
             </div>
         </div>
 
-        {/* --- DATOS PRIVADOS (LIMPIO) --- */}
-        <div className="bg-white dark:bg-brand-dark-card mb-3 shadow-sm">
-            <div className="px-6 py-4 border-b border-gray-50 dark:border-white/5">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Datos Privados</h3>
-            </div>
-            <div className="flex flex-col">
-                <SettingItem icon={<Mail size={18} />} label="Correo Vinculado" value={user.email} />
-            </div>
-        </div>
-
         {/* --- CONFIGURACIÓN APP --- */}
         <div className="bg-white dark:bg-brand-dark-card mb-3 shadow-sm">
             <div className="px-6 py-4 border-b border-gray-50 dark:border-white/5">
@@ -348,14 +348,20 @@ const UserSettings: React.FC = () => {
                     icon={<Bell size={18} />} 
                     label="Notificaciones Push" 
                     isToggle 
-                    isToggled={isSubscribed} // Conectado a OneSignal real
-                    onClick={togglePush}     // Función real de OneSignal
+                    isToggled={isSubscribed}
+                    onClick={togglePush}
                 />
                 
-                {/* DIAGNÓSTICO ID ONESIGNAL */}
+                {/* DIAGNÓSTICO ONESIGNAL */}
                 <div className="px-4 pb-4 bg-gray-50 dark:bg-black/20 border-b border-gray-100 dark:border-white/5">
+                    <div className="flex justify-between items-center mb-1">
+                        <span className="text-[9px] font-bold text-gray-400 uppercase">Estado Permiso:</span>
+                        <span className={`text-[9px] font-black uppercase ${getPermissionColor()}`}>
+                            {getPermissionLabel()}
+                        </span>
+                    </div>
                     <p className="text-[9px] font-mono text-center text-gray-400 dark:text-gray-600 break-all select-all">
-                        ID: {subscriptionId ? subscriptionId : 'No conectado (Permiso denegado)'}
+                        ID: {subscriptionId ? subscriptionId : 'Desconectado'}
                     </p>
                 </div>
 
@@ -381,7 +387,6 @@ const UserSettings: React.FC = () => {
                 Cerrar Sesión
             </button>
             
-            {/* Legal Link */}
             <button 
                 onClick={() => setShowPrivacy(true)}
                 className="w-full mt-4 text-center text-[9px] font-bold text-gray-400 hover:text-brand-purple uppercase tracking-widest transition-colors flex items-center justify-center space-x-1"
@@ -397,57 +402,29 @@ const UserSettings: React.FC = () => {
 
       </div>
 
-      {/* --- AVATAR SELECTION MODAL --- */}
+      {/* Avatars & Privacy Modals */}
       {showAvatarModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in bg-black/60 backdrop-blur-sm" onClick={() => setShowAvatarModal(false)}>
-            <div 
-                className="relative w-full max-w-sm bg-white dark:bg-[#121212] rounded-3xl p-6 animate-slide-up border border-gray-100 dark:border-white/10 shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
-            >
+            <div className="relative w-full max-w-sm bg-white dark:bg-[#121212] rounded-3xl p-6 animate-slide-up border border-gray-100 dark:border-white/10 shadow-2xl" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6">
                     <div className="flex items-center space-x-2">
-                        <div className="bg-brand-purple/10 p-1.5 rounded-lg">
-                            <Smile size={18} className="text-brand-purple" />
-                        </div>
+                        <div className="bg-brand-purple/10 p-1.5 rounded-lg"><Smile size={18} className="text-brand-purple" /></div>
                         <h3 className="text-sm font-black text-brand-black dark:text-white uppercase tracking-tight">Elige tu Avatar</h3>
                     </div>
-                    <button onClick={() => setShowAvatarModal(false)} className="p-2 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full text-gray-400 transition-colors">
-                        <X size={20} />
-                    </button>
+                    <button onClick={() => setShowAvatarModal(false)} className="p-2 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full text-gray-400 transition-colors"><X size={20} /></button>
                 </div>
-                
                 <div className="grid grid-cols-3 gap-4">
                     {AVATARS.map((item, idx) => (
-                        <div 
-                            key={idx} 
-                            className="aspect-square bg-gray-50 dark:bg-white/5 rounded-2xl cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 active:scale-95 transition-all duration-200 relative overflow-hidden group border border-transparent hover:border-gray-200 dark:hover:border-white/20"
-                            onClick={() => handleAvatarSelect(item.url)}
-                        >
-                            <div className="absolute inset-0 flex items-end justify-center">
-                                <img 
-                                    src={item.url} 
-                                    alt={item.label} 
-                                    className="w-[85%] h-auto object-cover transform translate-y-1 group-hover:-translate-y-1 transition-transform duration-300 drop-shadow-sm" 
-                                />
-                            </div>
-                            {user.avatarUrl === item.url && (
-                                <div className="absolute top-1 right-1 bg-brand-purple rounded-full p-0.5">
-                                    <Check size={10} className="text-white" />
-                                </div>
-                            )}
+                        <div key={idx} className="aspect-square bg-gray-50 dark:bg-white/5 rounded-2xl cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 active:scale-95 transition-all duration-200 relative overflow-hidden group border border-transparent hover:border-gray-200 dark:hover:border-white/20" onClick={() => handleAvatarSelect(item.url)}>
+                            <div className="absolute inset-0 flex items-end justify-center"><img src={item.url} alt={item.label} className="w-[85%] h-auto object-cover transform translate-y-1 group-hover:-translate-y-1 transition-transform duration-300 drop-shadow-sm" /></div>
+                            {user.avatarUrl === item.url && <div className="absolute top-1 right-1 bg-brand-purple rounded-full p-0.5"><Check size={10} className="text-white" /></div>}
                         </div>
                     ))}
-                </div>
-                <div className="mt-4 text-center">
-                    <p className="text-[9px] text-gray-400 font-bold tracking-[0.2em] uppercase">Estilo 3D</p>
                 </div>
             </div>
         </div>
       )}
-
-      {/* Privacy Modal */}
       {showPrivacy && <PrivacyPolicyModal onClose={() => setShowPrivacy(false)} />}
-
     </div>
   );
 };

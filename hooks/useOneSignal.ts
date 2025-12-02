@@ -11,9 +11,15 @@ declare global {
 export const useOneSignal = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
+  const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>('default');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // Leer estado inicial del navegador (Verdadera fuente de verdad)
+      if ('Notification' in window) {
+          setPermissionStatus(Notification.permission);
+      }
+
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       
       window.OneSignalDeferred.push(function(OneSignal: any) {
@@ -22,27 +28,30 @@ export const useOneSignal = () => {
               appId: "3bbf8972-d8cb-4eed-a46b-6059a4f71cd1",
               safari_web_id: "web.onesignal.auto.5f4f9ed9-fb2e-4d6a-935d-81aa46fccce0",
               notifyButton: {
-                enable: false, // Ocultamos la campana flotante para usar nuestro propio botón en Ajustes
+                enable: false, 
               },
               allowLocalhostAsSecureOrigin: true, 
             });
 
-            // Verificar estado actual
+            // Verificar estado de suscripción en OneSignal
             OneSignal.User.PushSubscription.addEventListener("change", (event: any) => {
                setIsSubscribed(event.current.optedIn);
                setSubscriptionId(event.current.id);
-               console.log("OneSignal State Changed:", event.current);
             });
             
-            // Estado inicial
+            // Listener para cambios de permisos (si el usuario los cambia en el navegador)
+            OneSignal.Notifications.addEventListener("permissionChange", (permission: boolean) => {
+                const status = permission ? 'granted' : 'denied';
+                // @ts-ignore
+                setPermissionStatus(status);
+            });
+            
+            // Estado inicial OneSignal
             const optedIn = OneSignal.User.PushSubscription.optedIn;
             const id = OneSignal.User.PushSubscription.id;
             
             setIsSubscribed(optedIn);
             setSubscriptionId(id);
-            
-            console.log("OneSignal Initialized. Subscribed:", optedIn);
-            console.log("OneSignal ID:", id);
 
         } catch (error) {
             console.error("OneSignal init error:", error);
@@ -51,37 +60,50 @@ export const useOneSignal = () => {
     }
   }, []);
 
-  // Función para conectar al botón de Ajustes
   const togglePush = async () => {
       if (typeof window === 'undefined') return;
       
       window.OneSignalDeferred.push(async function(OneSignal: any) {
-          // 1. Check if permission exists
-          let hasPermission = OneSignal.Notifications.permission;
-          
-          if (!hasPermission) {
-              console.log("Requesting native permission...");
-              // 2. Request permission if needed
-              const granted = await OneSignal.Notifications.requestPermission();
-              hasPermission = granted;
+          // Obtener estado real del navegador
+          const currentPermission = Notification.permission;
+
+          if (currentPermission === 'denied') {
+              alert("⚠️ Las notificaciones están bloqueadas en tu navegador.\n\nPara activarlas:\n1. Toca el candado 🔒 en la barra de dirección.\n2. Ve a 'Permisos' o 'Configuración del sitio'.\n3. Activa 'Notificaciones' y recarga la página.");
+              return;
+          }
+
+          if (currentPermission === 'default') {
+              console.log("Solicitando permiso nativo...");
+              try {
+                  const accepted = await OneSignal.Notifications.requestPermission();
+                  if (accepted) {
+                      OneSignal.User.PushSubscription.optIn();
+                      setIsSubscribed(true);
+                      setPermissionStatus('granted');
+                  } else {
+                      setPermissionStatus('denied');
+                      alert("Has denegado el permiso. No podrás recibir alertas.");
+                  }
+              } catch (e) {
+                  console.error("Error pidiendo permiso", e);
+              }
+              return;
           }
           
-          // 3. If granted, toggle subscription
-          if (hasPermission) {
+          // Si ya tiene permiso ('granted'), actuamos sobre el interruptor de OneSignal
+          if (currentPermission === 'granted') {
               if (OneSignal.User.PushSubscription.optedIn) {
-                  console.log("Opting OUT");
+                  console.log("Desactivando suscripción...");
                   OneSignal.User.PushSubscription.optOut();
                   setIsSubscribed(false);
               } else {
-                  console.log("Opting IN");
+                  console.log("Activando suscripción...");
                   OneSignal.User.PushSubscription.optIn();
                   setIsSubscribed(true);
               }
-          } else {
-              alert("Debes permitir las notificaciones en la configuración de tu navegador para activar esta función.");
           }
       });
   };
 
-  return { isSubscribed, togglePush, subscriptionId };
+  return { isSubscribed, togglePush, subscriptionId, permissionStatus };
 };
