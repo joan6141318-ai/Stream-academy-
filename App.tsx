@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -26,6 +27,7 @@ import MaintenanceMode from './pages/MaintenanceMode';
 import AccessDenied from './pages/AccessDenied';
 import { MainLayout } from './components/MainLayout';
 import { InstallPrompt } from './components/InstallPrompt';
+import { useOneSignal } from './hooks/useOneSignal'; // Import Hook
 
 // System Version: v16.0.0 - Realtime Security Core
 
@@ -66,9 +68,10 @@ const AppContent: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const location = useLocation();
 
+  // --- INIT PUSH NOTIFICATIONS ---
+  useOneSignal();
+
   // --- 1. GLOBAL BLOCKED USER CHECK (KILL SWITCH) ---
-  // If user is blocked, redirect to /access-denied immediately.
-  // This reacts instantly to AuthContext updates from Firestore onSnapshot.
   if (!authLoading && user?.isBlocked) {
       const isAccessDeniedPage = location.pathname === '/access-denied';
       const isLoginPage = location.pathname === '/';
@@ -79,7 +82,6 @@ const AppContent: React.FC = () => {
   }
 
   // --- 2. GLOBAL MAINTENANCE GUARD (DUAL MODE) ---
-  // If maintenance mode is NOT 'off' AND user is not admin, redirect to maintenance page.
   const activeMode = homeConfig?.maintenanceMode || 'off';
   
   if (!contentLoading && activeMode !== 'off') {
