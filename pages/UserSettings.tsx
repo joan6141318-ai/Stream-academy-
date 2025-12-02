@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut, Bell, Lock, HelpCircle, ChevronRight, Camera, User, Mail, Moon, Save, Type, Shield, Grid, X, Smile, Check, FileText } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
+import { useOneSignal } from '../hooks/useOneSignal'; // Importamos el hook real
 import { PrivacyPolicyModal } from './PrivacyPolicyModal';
 
 // Avatares para selección rápida
@@ -61,8 +62,11 @@ const SettingItem: React.FC<{
 const UserSettings: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout, updateProfile, uploadPhoto } = useAuth();
+  
+  // CONEXIÓN A ONESIGNAL
+  const { isSubscribed, togglePush } = useOneSignal();
+  
   const [darkMode, setDarkMode] = useState(false);
-  const [notifications, setNotifications] = useState(true);
   
   // Edit States
   const [isEditing, setIsEditing] = useState(false);
@@ -344,8 +348,8 @@ const UserSettings: React.FC = () => {
                     icon={<Bell size={18} />} 
                     label="Notificaciones Push" 
                     isToggle 
-                    isToggled={notifications}
-                    onClick={() => setNotifications(!notifications)}
+                    isToggled={isSubscribed} // Conectado a OneSignal real
+                    onClick={togglePush}     // Función real de OneSignal
                 />
                 <SettingItem 
                     icon={<Moon size={18} />} 
