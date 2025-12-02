@@ -1,7 +1,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlayCircle, ShieldCheck, HelpCircle, Gamepad2, FileText, LayoutGrid, ArrowUpRight, Sun, Moon, Sunset, Star, BellRing, Trophy, TrendingUp, Video } from 'lucide-react';
+import { PlayCircle, Shield, Zap, Star, BellRing, Trophy, TrendingUp, Video, ShieldCheck, HelpCircle, Gamepad2, FileText, ChevronRight, LayoutGrid, ArrowUpRight, Check, Sparkles, Moon, Sun, Sunset } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useContent } from '../context/ContentContext';
 import * as LucideIcons from 'lucide-react';
@@ -55,7 +55,7 @@ const Profile: React.FC = () => {
           scrollRef.current.scrollBy({ left: clientWidth, behavior: 'smooth' });
         }
       }
-    }, 6000); 
+    }, 6000); // Un poco más lento para leer mejor
 
     return () => clearInterval(interval);
   }, []);
@@ -86,9 +86,9 @@ const Profile: React.FC = () => {
     <div className="flex flex-col h-full w-full bg-[#FAFAFA] dark:bg-black transition-colors duration-300 relative font-sans">
       
       {/* Header Minimalista (Glassmorphism) */}
-      <div className="fixed top-0 left-0 right-0 z-50 px-6 pt-safe flex justify-between items-center bg-[#FAFAFA]/90 dark:bg-black/90 backdrop-blur-xl h-20 border-b border-gray-100 dark:border-white/5 transition-all">
+      <div className="fixed top-0 left-0 right-0 z-50 px-6 pt-safe flex justify-between items-center bg-[#FAFAFA]/80 dark:bg-black/80 backdrop-blur-xl h-20 border-b border-gray-100/50 dark:border-white/5 transition-all">
           <div className="flex items-center space-x-2">
-             <div className="w-8 h-8 bg-brand-black dark:bg-white rounded-lg flex items-center justify-center shadow-lg shadow-black/10 dark:shadow-white/10">
+             <div className="w-8 h-8 bg-brand-black dark:bg-white rounded-xl flex items-center justify-center shadow-lg shadow-black/5 dark:shadow-white/10">
                 <LayoutGrid size={16} className="text-white dark:text-black" />
              </div>
              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-black dark:text-white">StreamAgency</span>
@@ -104,7 +104,7 @@ const Profile: React.FC = () => {
       
       <div className="flex-1 overflow-y-auto scrollbar-hide pt-28 pb-32 px-6">
           
-          {/* === HERO SECTION (Editorial Greeting) === */}
+          {/* === HERO SECTION (Premium Greeting) === */}
           <div className="mb-8 animate-fade-in relative">
               <div className="flex justify-between items-end mb-6">
                   <div className="flex flex-col">
@@ -121,15 +121,15 @@ const Profile: React.FC = () => {
                   
                   {/* Mini Avatar with Glow */}
                   <div className="relative group cursor-pointer" onClick={() => navigate('/settings')}>
-                      <div className="absolute -inset-1 bg-gradient-to-br from-brand-purple to-pink-500 rounded-full blur opacity-30 group-hover:opacity-60 transition-opacity duration-500"></div>
-                      <div className="w-14 h-14 rounded-full p-0.5 bg-white dark:bg-black relative z-10 shadow-sm">
+                      <div className="absolute -inset-1 bg-gradient-to-br from-brand-purple to-pink-500 rounded-full blur opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
+                      <div className="w-14 h-14 rounded-full p-0.5 bg-white dark:bg-black relative z-10">
                           <img src={user.avatarUrl} alt="Me" className="w-full h-full rounded-full object-cover" />
                       </div>
                   </div>
               </div>
 
-              {/* BANNERS CAROUSEL (Cinematic Style) */}
-              <div className="relative w-full rounded-[2rem] overflow-hidden shadow-2xl shadow-black/10 dark:shadow-black/50 group transform transition-all hover:scale-[1.01]">
+              {/* BANNERS CAROUSEL (Premium Glass Style) */}
+              <div className="relative w-full rounded-[2rem] overflow-hidden shadow-2xl shadow-black/20 dark:shadow-black/50 group transform transition-all hover:scale-[1.01]">
                   {loading ? (
                       <div className="w-full aspect-[16/9] bg-gray-100 dark:bg-white/5 animate-pulse"></div>
                   ) : (
@@ -148,14 +148,14 @@ const Profile: React.FC = () => {
                                 className={`relative flex-shrink-0 w-full overflow-hidden cursor-pointer active:scale-[0.98] transition-transform duration-300 snap-center`} 
                                 style={{ aspectRatio: '16/9' }}
                               >
-                                  {/* Background Image */}
+                                  {/* Background Image (Full Color) */}
                                   <img 
                                     src={banner.image} 
                                     alt={banner.title} 
                                     className={`absolute inset-0 w-full h-full object-cover ${banner.imagePosition || 'object-center'} transition-transform duration-700 hover:scale-105`} 
                                   />
                                   
-                                  {/* Cinematic Gradient (Bottom Only) */}
+                                  {/* Smart Gradient Overlay (Solo oscurece abajo para leer texto) */}
                                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
                                   
                                   {/* Content Layer */}
@@ -198,7 +198,7 @@ const Profile: React.FC = () => {
               </div>
           </div>
 
-          {/* === MODULES GRID (Bento Style - Clean & Modern) === */}
+          {/* === MODULES GRID (Clean & Interactive) === */}
           <div className="mb-12">
                 <div className="flex items-center justify-between mb-6 px-1">
                     <div>
@@ -215,7 +215,7 @@ const Profile: React.FC = () => {
             
                 <div className="grid grid-cols-2 gap-4">
                   {loading ? (
-                      [1,2,3,4].map(i => <div key={i} className="h-40 w-full bg-gray-100 dark:bg-white/5 rounded-[2rem] animate-pulse"></div>)
+                      [1,2,3,4].map(i => <div key={i} className="h-44 w-full bg-gray-100 dark:bg-white/5 rounded-[2rem] animate-pulse"></div>)
                   ) : modules.map((module, index) => {
                       const style = module.style || { bg: 'bg-gray-800', shadow: 'shadow-gray-800/40', iconName: 'PlayCircle', cardOpacity: 1 };
                       const Icon = getIconComponent(style.iconName);
@@ -225,13 +225,15 @@ const Profile: React.FC = () => {
                         <button 
                             key={module.id}
                             onClick={() => navigate(`/training/${module.id}`)}
-                            className={`relative flex flex-col justify-between p-6 ${isLarge ? 'col-span-2 aspect-[2.2/1]' : 'aspect-square'} bg-white dark:bg-[#111] rounded-[2rem] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] dark:shadow-none border border-gray-100 dark:border-white/5 active:scale-[0.96] transition-all duration-300 group overflow-hidden hover:shadow-xl hover:border-brand-purple/20`}
+                            className={`relative flex flex-col justify-between p-6 ${isLarge ? 'col-span-2 aspect-[2.2/1]' : 'aspect-square'} bg-white dark:bg-[#111] rounded-[2rem] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-100 dark:border-white/5 active:scale-[0.96] transition-all duration-300 group overflow-hidden hover:shadow-xl hover:border-brand-purple/20`}
                         >
-                            {/* Header: Icon Bubble */}
+                            {/* Hover Gradient Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+
+                            {/* Header: Icon Container (Squircle) */}
                             <div className="flex justify-between items-start w-full relative z-10">
-                                {/* El icono ahora vive en una burbuja de color suave basada en el tema del módulo, pero el fondo de la tarjeta es limpio */}
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${style.bg.replace('bg-', 'bg-opacity-10 bg-').replace('600', '100').replace('500', '100')} dark:bg-white/5 group-hover:bg-brand-black group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black`}>
-                                    <Icon size={22} className={`text-brand-black dark:text-white group-hover:text-white dark:group-hover:text-black transition-colors`} strokeWidth={2} />
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 bg-gray-50 dark:bg-white/5 group-hover:bg-brand-black group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black group-hover:shadow-lg group-hover:shadow-brand-purple/20`}>
+                                    <Icon size={22} className="text-brand-black dark:text-white group-hover:text-white dark:group-hover:text-black transition-colors" strokeWidth={2} />
                                 </div>
                                 
                                 {/* Arrow fades in on hover */}
@@ -252,9 +254,9 @@ const Profile: React.FC = () => {
                                 )}
                             </div>
 
-                            {/* Decorative Watermark (Very subtle) */}
+                            {/* Decorative Watermark (Subtle) */}
                             <Icon 
-                                className={`absolute -bottom-4 -right-4 text-black/[0.02] dark:text-white/[0.03] rotate-[-10deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500 pointer-events-none`} 
+                                className={`absolute -bottom-4 -right-4 text-brand-black/[0.03] dark:text-white/[0.03] rotate-[-10deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500 pointer-events-none`} 
                                 size={isLarge ? 160 : 100} 
                                 strokeWidth={1} 
                             />
@@ -264,10 +266,10 @@ const Profile: React.FC = () => {
                 </div>
           </div>
 
-          {/* === UTILITY SECTION (Modern Card) === */}
+          {/* === UTILITY SECTION (Redesigned) === */}
           <div className="mb-10">
               <div className="bg-gradient-to-br from-brand-black to-gray-900 dark:from-[#151515] dark:to-black rounded-[2rem] p-1 relative overflow-hidden shadow-2xl shadow-black/20">
-                  <div className="bg-black/40 backdrop-blur-md rounded-[1.8rem] p-7 flex flex-col items-center text-center relative z-10 border border-white/5">
+                  <div className="bg-black/20 backdrop-blur-sm rounded-[1.8rem] p-7 flex flex-col items-center text-center relative z-10 border border-white/5">
                       
                       <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mb-4 border border-white/10 animate-pulse">
                           <HelpCircle className="text-white" size={24} />
