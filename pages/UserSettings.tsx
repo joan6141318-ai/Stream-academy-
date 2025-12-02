@@ -64,7 +64,7 @@ const UserSettings: React.FC = () => {
   const { user, logout, updateProfile, uploadPhoto } = useAuth();
   
   // CONEXIÓN A ONESIGNAL
-  const { isSubscribed, togglePush } = useOneSignal();
+  const { isSubscribed, togglePush, subscriptionId } = useOneSignal();
   
   const [darkMode, setDarkMode] = useState(false);
   
@@ -351,6 +351,14 @@ const UserSettings: React.FC = () => {
                     isToggled={isSubscribed} // Conectado a OneSignal real
                     onClick={togglePush}     // Función real de OneSignal
                 />
+                
+                {/* DIAGNÓSTICO ID ONESIGNAL */}
+                <div className="px-4 pb-4 bg-gray-50 dark:bg-black/20 border-b border-gray-100 dark:border-white/5">
+                    <p className="text-[9px] font-mono text-center text-gray-400 dark:text-gray-600 break-all select-all">
+                        ID: {subscriptionId ? subscriptionId : 'No conectado (Permiso denegado)'}
+                    </p>
+                </div>
+
                 <SettingItem 
                     icon={<Moon size={18} />} 
                     label="Modo Oscuro" 

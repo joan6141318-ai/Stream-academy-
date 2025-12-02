@@ -5,6 +5,10 @@
       "destination": "/OneSignalSDKWorker.js"
     },
     {
+      "source": "/OneSignalSDKUpdaterWorker.js",
+      "destination": "/OneSignalSDKUpdaterWorker.js"
+    },
+    {
       "source": "/manifest.json",
       "destination": "/manifest.json"
     },

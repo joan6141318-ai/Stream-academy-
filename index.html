@@ -16,8 +16,19 @@
     
     <title>StreamAgency Pro</title>
     
-    <!-- OneSignal SDK -->
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <!-- OneSignal SDK Initialization -->
+    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
+    <script>
+      window.OneSignal = window.OneSignal || [];
+      OneSignal.push(function () {
+        OneSignal.init({
+          appId: "3bbf8972-d8cb-4eed-a46b-6059a4f71cd1",
+          serviceWorkerPath: "/OneSignalSDKWorker.js",
+          serviceWorkerUpdaterPath: "/OneSignalSDKUpdaterWorker.js",
+          allowLocalhostAsSecureOrigin: true
+        });
+      });
+    </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>

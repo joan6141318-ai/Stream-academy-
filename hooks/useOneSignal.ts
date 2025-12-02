@@ -10,6 +10,7 @@ declare global {
 
 export const useOneSignal = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -29,15 +30,17 @@ export const useOneSignal = () => {
             // Verificar estado actual
             OneSignal.User.PushSubscription.addEventListener("change", (event: any) => {
                setIsSubscribed(event.current.optedIn);
+               setSubscriptionId(event.current.id);
                console.log("OneSignal State Changed:", event.current);
             });
             
             // Estado inicial
             const optedIn = OneSignal.User.PushSubscription.optedIn;
-            setIsSubscribed(optedIn);
-            
-            // DEBUG: Mostrar ID de usuario para verificar que se registró correctamente
             const id = OneSignal.User.PushSubscription.id;
+            
+            setIsSubscribed(optedIn);
+            setSubscriptionId(id);
+            
             console.log("OneSignal Initialized. Subscribed:", optedIn);
             console.log("OneSignal ID:", id);
 
@@ -80,5 +83,5 @@ export const useOneSignal = () => {
       });
   };
 
-  return { isSubscribed, togglePush };
+  return { isSubscribed, togglePush, subscriptionId };
 };
