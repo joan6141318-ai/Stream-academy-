@@ -29,6 +29,7 @@ const Profile: React.FC = () => {
   // Auto-play Effect for Banner
   useEffect(() => {
     const interval = setInterval(() => {
+      // FIX: Verificar existencia del ref antes de acceder
       if (scrollRef.current) {
         const { scrollLeft, clientWidth, scrollWidth } = scrollRef.current;
         const isAtEnd = scrollLeft + clientWidth >= scrollWidth - 10;

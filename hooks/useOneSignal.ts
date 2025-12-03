@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 // Extend window object to include OneSignal
 declare global {
@@ -12,9 +12,13 @@ export const useOneSignal = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>('default');
+  
+  // CANDADO DE INICIALIZACIÓN
+  const initDone = useRef(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !initDone.current) {
+      
       // Leer estado inicial del navegador (Verdadera fuente de verdad)
       if ('Notification' in window) {
           const status = Notification.permission;
@@ -29,6 +33,8 @@ export const useOneSignal = () => {
       
       window.OneSignalDeferred.push(function(OneSignal: any) {
         try {
+            if (initDone.current) return; // Doble check por seguridad interna de la librería
+            
             OneSignal.init({
               appId: "3bbf8972-d8cb-4eed-a46b-6059a4f71cd1",
               safari_web_id: "web.onesignal.auto.5f4f9ed9-fb2e-4d6a-935d-81aa46fccce0",
@@ -37,6 +43,9 @@ export const useOneSignal = () => {
               },
               allowLocalhostAsSecureOrigin: true, 
             });
+
+            // Marcar como inicializado
+            initDone.current = true;
 
             // Verificar estado de suscripción en OneSignal
             OneSignal.User.PushSubscription.addEventListener("change", (event: any) => {

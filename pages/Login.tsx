@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, AlertCircle, WifiOff, Check, ShieldAlert, FileText } from 'lucide-react';
+import { Zap, AlertCircle, WifiOff, Check, ShieldAlert, FileText, Loader2 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 import { useContent, hashString } from '../context/ContentContext';
@@ -10,7 +10,7 @@ import { PrivacyPolicyModal } from './PrivacyPolicyModal';
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login, register, user, loading } = useAuth(); 
-  const { homeConfig } = useContent();
+  const { homeConfig, loading: contentLoading } = useContent(); // Importar estado de carga del contenido
   
   // Estados para manejar el formulario
   const [isRegistering, setIsRegistering] = useState(false);
@@ -58,17 +58,21 @@ const Login: React.FC = () => {
         if (!name.trim()) throw new Error("Ingresa tu nombre para continuar.");
         
         // --- VALIDACIÓN DE CÓDIGO DE INVITACIÓN (Gatekeeper) ---
+        // CRITICAL FIX: Ensure config is loaded or fallback strictly
+        if (contentLoading) {
+            throw new Error("Conectando con el servidor... Intenta en unos segundos.");
+        }
+
         const normalizedAgency = agencyCode.trim().toLowerCase();
         
         // Calcular Hash del input
         const inputHash = await hashString(normalizedAgency);
         
-        // Obtener Hash Correcto (o el default 'moon' hash si no carga)
+        // Obtener Hash Correcto
+        // Default hash es SHA-256 de 'moon' como fallback final, pero esperamos a contentLoading
         const validHash = homeConfig?.agencyCodeHash || "a43c1b0aa53a0c908810c03ab1d7cb9922c2a05d605c567839356b20677275c5";
         
-        // Validación cosmética: Solo permite avanzar si el código coincide.
-        // NO OTORGA PERMISOS DE ADMIN.
-        if (normalizedAgency !== 'moon' && inputHash !== validHash) {
+        if (inputHash !== validHash) {
             setAgencyError("Código inválido");
             throw new Error("El código de invitación es incorrecto. Pídelo a tu líder.");
         }
@@ -90,7 +94,7 @@ const Login: React.FC = () => {
       
       const errorCode = err.code || '';
       const errorMessage = err.message || '';
-      const isCustomError = errorMessage.includes("código de invitación");
+      const isCustomError = errorMessage.includes("código de invitación") || errorMessage.includes("Conectando");
 
       if (!isCustomError) {
           console.error("Firebase Auth Error:", errorCode, errorMessage);
@@ -197,17 +201,25 @@ const Login: React.FC = () => {
             </div>
 
             {isRegistering && (
-              <div className="group animate-fade-in">
+              <div className="group animate-fade-in relative">
                 <label className={`block text-[9px] font-black uppercase tracking-widest mb-1 transition-colors ${agencyError ? 'text-red-500' : 'text-gray-400 group-focus-within:text-brand-purple'}`}>
                   Código de Invitación
                 </label>
-                <input 
-                  type="text" 
-                  value={agencyCode}
-                  onChange={(e) => handleInputChange(setAgencyCode, e.target.value)}
-                  placeholder="Código de acceso"
-                  className={`w-full h-10 border-b-2 bg-transparent text-base font-bold text-brand-black dark:text-white placeholder-gray-200 dark:placeholder-gray-700 focus:outline-none transition-all rounded-none p-0 ${agencyError ? 'border-red-500' : 'border-gray-100 dark:border-white/20 focus:border-brand-black dark:focus:border-white'}`}
-                />
+                <div className="relative">
+                    <input 
+                      type="text" 
+                      value={agencyCode}
+                      onChange={(e) => handleInputChange(setAgencyCode, e.target.value)}
+                      placeholder={contentLoading ? "Cargando sistema..." : "Código de acceso"}
+                      disabled={contentLoading}
+                      className={`w-full h-10 border-b-2 bg-transparent text-base font-bold text-brand-black dark:text-white placeholder-gray-200 dark:placeholder-gray-700 focus:outline-none transition-all rounded-none p-0 pr-8 ${agencyError ? 'border-red-500' : 'border-gray-100 dark:border-white/20 focus:border-brand-black dark:focus:border-white'}`}
+                    />
+                    {contentLoading && (
+                        <div className="absolute right-0 top-2">
+                            <Loader2 size={16} className="animate-spin text-brand-purple" />
+                        </div>
+                    )}
+                </div>
                 {agencyError && (
                     <span className="text-[9px] font-black text-red-500 uppercase mt-1 block animate-pulse">
                         {agencyError}
@@ -225,7 +237,7 @@ const Login: React.FC = () => {
                 variant="black" 
                 size="lg" 
                 className={`shadow-xl shadow-black/20 dark:shadow-white/5 dark:bg-white dark:text-black dark:hover:bg-gray-200 text-xs relative transition-all duration-300 ${isSuccess ? 'bg-green-500 hover:bg-green-600 dark:bg-green-500 dark:hover:bg-green-400 text-white dark:text-white border-transparent' : ''}`} 
-                disabled={isSubmitting || isSuccess}
+                disabled={isSubmitting || isSuccess || (isRegistering && contentLoading)}
             >
               {isSuccess ? (
                   <div className="flex items-center animate-fade-in">

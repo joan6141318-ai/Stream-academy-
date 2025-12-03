@@ -45,12 +45,13 @@ const AdminDashboard: React.FC = () => {
   
   const selectedSecurityUser = users.find(u => u.id === selectedUserId) || null;
 
-  // --- REAL TIME USERS LISTENER (Optimized) ---
+  // --- REAL TIME USERS LISTENER (FIXED: REMOVED LIMIT) ---
   useEffect(() => {
     if (!db) return;
     
-    // PERF FIX: Usamos limit(100) para ampliar la visión de usuarios sin colapsar el navegador
-    const q = query(collection(db, "users"), limit(100));
+    // CORRECCIÓN: Eliminado limit(100) para asegurar que el buscador encuentre a TODOS los usuarios.
+    // Esto es crítico para la administración correcta aunque consuma más datos.
+    const q = query(collection(db, "users"));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const usersList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -264,12 +265,12 @@ const AdminDashboard: React.FC = () => {
                         type="text" 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Filtrar en lista visible..." 
+                        placeholder="Filtrar por nombre, correo o ID..." 
                         className="bg-transparent border-none text-sm font-bold w-full ml-3 focus:outline-none dark:text-white placeholder-gray-300" 
                     />
                 </div>
                 <p className="text-[9px] text-gray-400 text-center font-bold uppercase tracking-wider">
-                    Mostrando últimos 100 usuarios registrados
+                    Total Usuarios: {users.length}
                 </p>
 
                 <div className="grid gap-3">

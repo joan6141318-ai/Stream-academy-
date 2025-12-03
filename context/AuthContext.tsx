@@ -145,13 +145,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (db) {
           try {
               const userRef = doc(db, "users", fbUser.uid);
-              await updateDoc(userRef, {
+              // CAMBIO CRÍTICO: Usar setDoc con merge en lugar de updateDoc
+              // Esto asegura que si 'accessLogs' no existe, se cree el documento correctamente
+              // y evita errores si la estructura del usuario era antigua.
+              await setDoc(userRef, {
                   lastLogin: now.toISOString(),
                   deviceInfo: deviceString,
                   accessLogs: arrayUnion(newLog) 
-              });
+              }, { merge: true });
           } catch (e) {
-              // Ignore if doc missing
+              // Fallo silencioso en logs para no bloquear el login
+              console.warn("Log update warning:", e);
           }
       }
   };
@@ -243,7 +247,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
              };
              try {
                 const userRef = doc(db, "users", user.id);
-                await updateDoc(userRef, { accessLogs: arrayUnion(log) });
+                // Usamos setDoc con merge para máxima compatibilidad
+                await setDoc(userRef, { accessLogs: arrayUnion(log) }, { merge: true });
              } catch(e) {}
         }
     }
