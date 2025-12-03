@@ -138,28 +138,27 @@ const PKCalendar: React.FC = () => {
              <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openSupersmash ? 'max-h-[1200px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}><div className="bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-white/5 rounded-2xl p-4 shadow-sm">{pkSchedule.supersmash.map(item => renderEventRow(item))}</div></div>
         </div>
 
-        {/* --- WIDGET: SOLICITAR PK (DISEÑO ACORDEÓN) --- */}
+        {/* --- WIDGET: SOLICITAR PK (Diseño Igualado a Supersmash) --- */}
         <div className="mb-12 animate-fade-in mt-8">
             
             {/* TOGGLE BUTTON */}
             <button 
                 onClick={() => setOpenRequest(!openRequest)}
-                className="w-full bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden flex items-center justify-between group active:scale-[0.98] transition-all z-20"
+                className="w-full flex flex-col items-start bg-[#0a0a0a] text-white p-6 rounded-2xl shadow-xl shadow-black/30 active:scale-[0.99] transition-all group relative overflow-hidden border border-white/10"
             >
-                <div className="relative z-10 text-left">
-                    <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-[0.9] mb-2">
-                        Solicita<br/>Un PK
-                    </h2>
-                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] group-hover:text-brand-purple transition-colors">
-                        Agenda tu batalla
+                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                 
+                 <div className="relative z-10 w-full">
+                    <div className="flex justify-between items-center w-full">
+                        <h2 className="text-3xl font-black uppercase tracking-tighter leading-none mb-1">
+                            SOLICITA<br/>UN PK
+                        </h2>
+                        {openRequest ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                    </div>
+                    <p className="text-[10px] font-bold text-gray-500 mt-2 uppercase tracking-[0.2em] group-hover:text-brand-purple transition-colors">
+                        AGENDA TU BATALLA
                     </p>
                 </div>
-                
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${openRequest ? 'bg-white text-black rotate-180' : 'bg-white/10 text-white'}`}>
-                    <ChevronDown size={24} />
-                </div>
-
-                 <div className="absolute top-0 right-0 w-32 h-32 bg-brand-purple/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none group-hover:bg-brand-purple/20 transition-colors"></div>
             </button>
 
             {/* EXPANDABLE FORM AREA */}
