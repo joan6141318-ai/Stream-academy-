@@ -27,6 +27,7 @@ const PKCalendar: React.FC = () => {
   // UI States
   const [openPotential, setOpenPotential] = useState(false);
   const [openSupersmash, setOpenSupersmash] = useState(false);
+  const [openRequest, setOpenRequest] = useState(false); // State for Request Accordion
   const [requestDate, setRequestDate] = useState('');
   const [requestBigoId, setRequestBigoId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,8 +51,7 @@ const PKCalendar: React.FC = () => {
           }
       });
 
-      // 2. Listen Requests (Solo las mías o todas? En user view mejor todas para validar duplicados o solo mías)
-      // Para optimizar, podríamos filtrar solo las del usuario, pero el requerimiento pedía quitar la carga global.
+      // 2. Listen Requests
       const unsubRequests = onSnapshot(query(collection(db, "pk_requests")), (snapshot) => {
           const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as PKRequest));
           setPkRequests(list);
@@ -138,102 +138,119 @@ const PKCalendar: React.FC = () => {
              <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openSupersmash ? 'max-h-[1200px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}><div className="bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-white/5 rounded-2xl p-4 shadow-sm">{pkSchedule.supersmash.map(item => renderEventRow(item))}</div></div>
         </div>
 
-        {/* --- WIDGET: SOLICITAR PK (DISEÑO RESTAURADO TIPO TARJETA) --- */}
+        {/* --- WIDGET: SOLICITAR PK (DISEÑO ACORDEÓN) --- */}
         <div className="mb-12 animate-fade-in mt-8">
-            <div className="w-full bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
+            
+            {/* TOGGLE BUTTON */}
+            <button 
+                onClick={() => setOpenRequest(!openRequest)}
+                className="w-full bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden flex items-center justify-between group active:scale-[0.98] transition-all z-20"
+            >
+                <div className="relative z-10 text-left">
+                    <h2 className="text-4xl font-black text-white uppercase tracking-tighter leading-[0.9] mb-2">
+                        Solicita<br/>Un PK
+                    </h2>
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] group-hover:text-brand-purple transition-colors">
+                        Agenda tu batalla
+                    </p>
+                </div>
                 
-                {/* Header Icon */}
-                <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6 border border-white/5">
-                    <Swords className="text-white" size={24} />
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${openRequest ? 'bg-white text-black rotate-180' : 'bg-white/10 text-white'}`}>
+                    <ChevronDown size={24} />
                 </div>
 
-                <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-8 leading-none">
-                    Formulario de<br/>Solicitud
-                </h2>
+                 <div className="absolute top-0 right-0 w-32 h-32 bg-brand-purple/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none group-hover:bg-brand-purple/20 transition-colors"></div>
+            </button>
 
-                {hasPendingRequest ? (
-                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6 flex items-start gap-4 animate-fade-in">
-                        <AlertCircle className="text-yellow-500 flex-shrink-0 mt-1" size={24} />
-                        <div>
-                            <h4 className="text-sm font-black text-yellow-500 uppercase mb-1">Solicitud en Curso</h4>
-                            <p className="text-xs text-yellow-200/80 leading-relaxed">
-                                Ya tienes una solicitud pendiente de revisión. Podrás enviar otra cuando esta sea procesada.
-                            </p>
-                        </div>
-                    </div>
-                ) : (
-                    <form onSubmit={handleRequestPK} className="space-y-6">
-                        {/* Date Input */}
-                        <div className="group">
-                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">
-                                Fecha Deseada
-                            </label>
-                            <div className="relative">
-                                <input 
-                                    type="date" 
-                                    required 
-                                    value={requestDate} 
-                                    onChange={(e) => setRequestDate(e.target.value)} 
-                                    className="w-full bg-[#121212] border-2 border-brand-purple rounded-xl px-4 py-4 text-sm font-bold text-white outline-none focus:shadow-[0_0_30px_rgba(124,58,237,0.2)] transition-all uppercase placeholder-gray-500 appearance-none"
-                                />
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                                    <Calendar size={20} />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Bigo ID Input */}
-                        <div className="group">
-                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">
-                                Tu Bigo ID
-                            </label>
-                            <div className="relative">
-                                <input 
-                                    type="text" 
-                                    required 
-                                    value={requestBigoId} 
-                                    onChange={(e) => setRequestBigoId(e.target.value)} 
-                                    placeholder="ID EXACTO" 
-                                    className="w-full bg-[#121212] border-2 border-[#1f1f1f] rounded-xl px-4 py-4 text-sm font-bold text-white placeholder-gray-700 focus:border-white/20 outline-none transition-all uppercase"
-                                />
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-700">
-                                    <Shield size={20} />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Static Schedule Info */}
-                        <div className="bg-[#121212] rounded-xl p-5 border border-white/5 flex justify-between items-center group">
+            {/* EXPANDABLE FORM AREA */}
+            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openRequest ? 'max-h-[1200px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+                
+                <div className="w-full bg-[#111] border border-white/5 rounded-[2rem] p-6 shadow-inner relative overflow-hidden">
+                    
+                    {hasPendingRequest ? (
+                        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6 flex items-start gap-4 animate-fade-in">
+                            <AlertCircle className="text-yellow-500 flex-shrink-0 mt-1" size={24} />
                             <div>
-                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1 group-hover:text-brand-purple transition-colors">
-                                    Horario Fijo
-                                </span>
-                                <span className="text-lg font-black text-white uppercase tracking-tight">
-                                    08:00 - 08:15 PM
+                                <h4 className="text-sm font-black text-yellow-500 uppercase mb-1">Solicitud en Curso</h4>
+                                <p className="text-xs text-yellow-200/80 leading-relaxed">
+                                    Ya tienes una solicitud pendiente de revisión. Podrás enviar otra cuando esta sea procesada.
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleRequestPK} className="space-y-6">
+                            {/* Date Input */}
+                            <div className="group">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">
+                                    Fecha Deseada
+                                </label>
+                                <div className="relative">
+                                    <input 
+                                        type="date" 
+                                        required 
+                                        value={requestDate} 
+                                        onChange={(e) => setRequestDate(e.target.value)} 
+                                        className="w-full bg-[#1a1a1a] border-2 border-[#2a2a2a] focus:border-brand-purple rounded-xl px-4 py-4 text-sm font-bold text-white outline-none transition-all uppercase placeholder-gray-500 appearance-none"
+                                    />
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                                        <Calendar size={20} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Bigo ID Input */}
+                            <div className="group">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">
+                                    Tu Bigo ID
+                                </label>
+                                <div className="relative">
+                                    <input 
+                                        type="text" 
+                                        required 
+                                        value={requestBigoId} 
+                                        onChange={(e) => setRequestBigoId(e.target.value)} 
+                                        placeholder="ID EXACTO" 
+                                        className="w-full bg-[#1a1a1a] border-2 border-[#2a2a2a] rounded-xl px-4 py-4 text-sm font-bold text-white placeholder-gray-600 focus:border-brand-purple outline-none transition-all uppercase"
+                                    />
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-600">
+                                        <Shield size={20} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Static Schedule Info */}
+                            <div className="bg-[#1a1a1a] rounded-xl p-5 border border-white/5 flex justify-between items-center group">
+                                <div>
+                                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">
+                                        Horario Fijo
+                                    </span>
+                                    <span className="text-lg font-black text-white uppercase tracking-tight">
+                                        08:00 - 08:15 PM
+                                    </span>
+                                </div>
+                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest bg-white/5 px-2 py-1 rounded border border-white/5">
+                                    Colombia
                                 </span>
                             </div>
-                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest bg-white/5 px-2 py-1 rounded border border-white/5">
-                                Colombia
-                            </span>
-                        </div>
 
-                        {/* Submit Button */}
-                        <button 
-                            type="submit" 
-                            disabled={isSubmitting} 
-                            className="w-full bg-white text-black h-16 rounded-xl font-black uppercase tracking-[0.2em] text-xs shadow-xl hover:bg-gray-200 active:scale-[0.98] transition-all flex items-center justify-center mt-6 group"
-                        >
-                            {isSubmitting ? (
-                                <span className="animate-pulse">Procesando...</span>
-                            ) : (
-                                <>
-                                    <span>Agendar</span>
-                                    <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
-                                </>
-                            )}
-                        </button>
-                    </form>
-                )}
+                            {/* Submit Button */}
+                            <button 
+                                type="submit" 
+                                disabled={isSubmitting} 
+                                className="w-full bg-white text-black h-16 rounded-xl font-black uppercase tracking-[0.2em] text-xs shadow-xl hover:bg-gray-200 active:scale-[0.98] transition-all flex items-center justify-center mt-6 group"
+                            >
+                                {isSubmitting ? (
+                                    <span className="animate-pulse">Procesando...</span>
+                                ) : (
+                                    <>
+                                        <span>Agendar</span>
+                                        <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                                    </>
+                                )}
+                            </button>
+                        </form>
+                    )}
+                </div>
             </div>
 
             {myRequest && (
