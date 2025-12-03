@@ -29,7 +29,7 @@ import { MainLayout } from './components/MainLayout';
 import { InstallPrompt } from './components/InstallPrompt';
 import { useOneSignal } from './hooks/useOneSignal'; // Import Hook
 
-// System Version: v16.1.0 - Admin Recovery Fix
+// System Version: v16.2.0 - Maintenance Race Condition Fix
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -71,8 +71,21 @@ const AppContent: React.FC = () => {
   // --- INIT PUSH NOTIFICATIONS ---
   useOneSignal();
 
+  // --- CRITICAL LOADING STATE ---
+  // Esperar a que cargue tanto Auth como Content antes de decidir rutas críticas
+  if (authLoading || contentLoading) {
+      return (
+          <div className="fixed inset-0 z-[200] bg-white dark:bg-black flex flex-col items-center justify-center">
+              <div className="w-10 h-10 border-4 border-brand-purple border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 animate-pulse">
+                  Conectando con el servidor...
+              </p>
+          </div>
+      );
+  }
+
   // --- 1. GLOBAL BLOCKED USER CHECK (KILL SWITCH) ---
-  if (!authLoading && user?.isBlocked) {
+  if (user?.isBlocked) {
       const isAccessDeniedPage = location.pathname === '/access-denied';
       const isLoginPage = location.pathname === '/';
       
@@ -84,7 +97,7 @@ const AppContent: React.FC = () => {
   // --- 2. GLOBAL MAINTENANCE GUARD (DUAL MODE) ---
   const activeMode = homeConfig?.maintenanceMode || 'off';
   
-  if (!contentLoading && activeMode !== 'off') {
+  if (activeMode !== 'off') {
       const isMaintenancePage = location.pathname === '/maintenance';
       const isLoginPage = location.pathname === '/';
       const isBlockedPage = location.pathname === '/access-denied';

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, BarChart2, Check, X, Send, Radio, Activity, Trophy, Save, Clock, Trash2, History, Calendar, Eye, Laptop, UserCheck, ShieldCheck, AlertTriangle, ChevronRight, Key, EyeOff, Grid, ArrowLeft, UserX, Fingerprint, ArrowRight, Settings, Wrench, Bot } from 'lucide-react';
 import { collection, updateDoc, doc, onSnapshot, query, arrayUnion, limit } from 'firebase/firestore';
@@ -210,11 +210,16 @@ const AdminDashboard: React.FC = () => {
       }
   };
 
-  const filteredUsers = users.filter(u => 
-      u.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.bigoId?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Performance Optimization: Memoize filtered users to avoid re-calculation on every render
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm) return users;
+    const lowerTerm = searchTerm.toLowerCase();
+    return users.filter(u => 
+      u.name?.toLowerCase().includes(lowerTerm) || 
+      u.email?.toLowerCase().includes(lowerTerm) ||
+      u.bigoId?.toLowerCase().includes(lowerTerm)
+    );
+  }, [users, searchTerm]);
 
   const pendingRequests = pkRequests.filter(req => req.status === 'pending');
   const historyRequests = pkRequests.filter(req => req.status !== 'pending');

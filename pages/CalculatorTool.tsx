@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calculator, Clock, DollarSign, TrendingUp, AlertTriangle, XCircle, CheckCircle, PartyPopper } from 'lucide-react';
@@ -17,7 +18,7 @@ const CalculatorTool: React.FC = () => {
     excessSeeds: number;
   }>({ basePay: 0, excessPay: 0, totalPay: 0, tierReached: null, excessSeeds: 0 });
 
-  // Ref to track if audio context is initialized (optional safety)
+  // Ref to track if audio context is initialized
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   // Function to generate the 4-second alert sound (Siren Style)
@@ -26,12 +27,21 @@ const CalculatorTool: React.FC = () => {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioContext) return;
       
+      // Initialize or Resume Context
       if (!audioCtxRef.current) {
         audioCtxRef.current = new AudioContext();
       }
-      const ctx = audioCtxRef.current;
-      if (ctx.state === 'suspended') ctx.resume();
       
+      const ctx = audioCtxRef.current;
+      
+      // Intentar resumir si está suspendido (requiere interacción previa del usuario en algunos navegadores)
+      if (ctx.state === 'suspended') {
+          ctx.resume().catch(e => console.warn("AudioContext resume failed (no user gesture):", e));
+      }
+      
+      // Si el estado sigue siendo suspendido después de intentar resumir, no podemos reproducir
+      if (ctx.state === 'suspended') return;
+
       const osc = ctx.createOscillator();
       const gainNode = ctx.createGain();
       
@@ -44,8 +54,7 @@ const CalculatorTool: React.FC = () => {
       const now = ctx.currentTime;
       const duration = 4; // Exactly 4 seconds
 
-      // Frequency modulation for Siren effect (High-Low oscillation)
-      // Starts at 600Hz, goes to 800Hz and back repeatedly
+      // Frequency modulation for Siren effect
       osc.frequency.setValueAtTime(600, now);
       osc.frequency.linearRampToValueAtTime(850, now + 0.5);
       osc.frequency.linearRampToValueAtTime(600, now + 1.0);
@@ -65,7 +74,7 @@ const CalculatorTool: React.FC = () => {
       osc.stop(now + duration);
 
     } catch (e) {
-      console.error("Audio playback error:", e);
+      console.warn("Audio playback error:", e);
     }
   };
 
@@ -87,16 +96,13 @@ const CalculatorTool: React.FC = () => {
     // SCENARIO A: Less than 20 hours
     if (numHours < 20) {
         setStatus('danger');
-        // "No será acreedor a monetizar solo al cambio de semillas"
-        // Todo se paga a tasa de cambio (Semillas / 210)
         const exchangeVal = numSeeds / 210;
-        
         setResult({
-            basePay: 0, // No base
-            excessPay: exchangeVal, // All is treated as exchange
+            basePay: 0,
+            excessPay: exchangeVal, 
             totalPay: exchangeVal,
             tierReached: tier ? tier.seeds : 0,
-            excessSeeds: numSeeds // All seeds are excess in this case
+            excessSeeds: numSeeds 
         });
         return;
     }
@@ -128,8 +134,6 @@ const CalculatorTool: React.FC = () => {
         });
 
     } else {
-        // Fallback if seeds < lowest tier (Exchange rate only)
-        // Treated same as < 20 hours effectively but visual status depends on hours
         setStatus(numHours < 44 ? 'warning' : 'neutral');
         const pay = numSeeds / 210;
         setResult({
@@ -144,22 +148,19 @@ const CalculatorTool: React.FC = () => {
   }, [seeds, hours]);
 
   // Effect to trigger sound with DEBOUNCE (Delay)
-  // Only plays if status settles on 'danger' after user stops typing for 1.5s
   useEffect(() => {
-    // We only want to alert if there is actual input in both fields to avoid premature alerts
     if (seeds.length === 0 || hours.length === 0 || status !== 'danger') {
         return;
     }
 
     const timer = setTimeout(() => {
         playAlertSound();
-    }, 1500); // 1.5 seconds delay
+    }, 1500); 
 
     return () => clearTimeout(timer);
   }, [seeds, hours, status]);
 
   const formatCurrency = (val: number) => {
-    // Adds USD explicitly to the formatted string
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val) + ' USD';
   };
 

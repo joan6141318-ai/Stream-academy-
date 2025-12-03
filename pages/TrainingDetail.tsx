@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, ShieldAlert, MessageSquareWarning, Gift, AlertTriangle, UserX, ShieldCheck, Clock, BarChart3, ChevronDown, X, ZoomIn, AlertOctagon, Gavel, Sparkles, Check } from 'lucide-react';
+import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, ShieldAlert, MessageSquareWarning, Gift, AlertTriangle, UserX, ShieldCheck, Clock, BarChart3, ChevronDown, X, ZoomIn, AlertOctagon, Gavel, Sparkles, Check, PlayCircle, ExternalLink } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { Button } from '../components/Button';
 import * as LucideIcons from 'lucide-react';
@@ -78,6 +78,14 @@ const TrainingDetail: React.FC = () => {
     if (type === 'calc') navigate('/tools/calculator');
     else if (type === 'table') navigate('/tools/payment-table');
     else alert(`Abriendo recurso: ${title}`);
+  };
+
+  const handleOpenVideo = () => {
+      if (module?.videoUrl && module.videoUrl !== '#') {
+          window.open(module.videoUrl, '_blank');
+      } else {
+          alert("Video no disponible por el momento.");
+      }
   };
 
   if (loading) return <div className="h-full w-full bg-white dark:bg-black flex items-center justify-center text-xs">Cargando...</div>;
@@ -241,6 +249,23 @@ const TrainingDetail: React.FC = () => {
         <div className="mb-8">
             <div className="h-1 w-10 bg-brand-purple mb-4"></div>
             <h2 className="text-lg font-bold text-brand-black dark:text-white leading-tight mb-4">{module.description}</h2>
+            
+            {/* VIDEO ACTION BUTTON */}
+            {module.videoUrl && module.videoUrl !== '#' && (
+                <button 
+                    onClick={handleOpenVideo}
+                    className="w-full bg-gray-900 dark:bg-white text-white dark:text-black py-4 px-4 rounded-xl flex items-center justify-center space-x-3 mb-6 shadow-xl active:scale-98 transition-transform group"
+                >
+                    <div className="bg-white/20 dark:bg-black/10 p-1 rounded-full group-hover:bg-brand-purple group-hover:text-white transition-colors">
+                        <PlayCircle size={20} fill="currentColor" className="text-white dark:text-black group-hover:text-white" />
+                    </div>
+                    <div className="text-left">
+                        <span className="text-xs font-black uppercase tracking-widest block">Ver Video Tutorial</span>
+                    </div>
+                    <ExternalLink size={14} className="opacity-50" />
+                </button>
+            )}
+
             <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed font-medium text-justify mb-8 whitespace-pre-line">{module.textContent}</p>
 
             {/* LIVE DATA SPECIAL MODULE */}
