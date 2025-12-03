@@ -38,6 +38,8 @@ export const SALARY_TIERS = [
   { seeds: 30000, pay: 354 },
   { seeds: 20000, pay: 236 },
   { seeds: 10000, pay: 122 },
+  { seeds: 5000, pay: 58 },
+  { seeds: 2000, pay: 23 },
 ];
 
 export const TRAINING_MODULES: TrainingModule[] = [
