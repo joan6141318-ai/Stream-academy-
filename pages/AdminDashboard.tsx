@@ -49,8 +49,8 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     if (!db) return;
     
-    // PERF FIX: Usamos limit(50) para evitar colapsar el navegador con miles de usuarios
-    const q = query(collection(db, "users"), limit(50));
+    // PERF FIX: Usamos limit(100) para ampliar la visión de usuarios sin colapsar el navegador
+    const q = query(collection(db, "users"), limit(100));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const usersList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -269,7 +269,7 @@ const AdminDashboard: React.FC = () => {
                     />
                 </div>
                 <p className="text-[9px] text-gray-400 text-center font-bold uppercase tracking-wider">
-                    Mostrando últimos 50 usuarios registrados (Rendimiento)
+                    Mostrando últimos 100 usuarios registrados
                 </p>
 
                 <div className="grid gap-3">
