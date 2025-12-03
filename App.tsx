@@ -29,11 +29,15 @@ import { MainLayout } from './components/MainLayout';
 import { InstallPrompt } from './components/InstallPrompt';
 import { useOneSignal } from './hooks/useOneSignal'; // Import Hook
 
-// System Version: v16.2.0 - Root Fix Architecture
+// System Version: v16.1.0 - Admin Recovery Fix
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen bg-white text-brand-black">Cargando...</div>;
+  }
 
   if (!user) {
     return <Navigate to="/" state={{ from: location }} replace />;
@@ -44,12 +48,15 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
 
 // Protección para rutas admin BASADA EN BASE DE DATOS
 const AdminRoute = ({ children }: { children?: React.ReactNode }) => {
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
+    
+    if (loading) return null;
     
     if (!user) return <Navigate to="/" />;
 
     // STRICT CHECK: Trust only the DB value
     if (!user.isAdmin) {
+        // Redirect silently to home if not admin to prevent errors
         return <Navigate to="/home" replace />;
     }
 
@@ -64,37 +71,8 @@ const AppContent: React.FC = () => {
   // --- INIT PUSH NOTIFICATIONS ---
   useOneSignal();
 
-  // =================================================================================
-  // 1. GLOBAL GATEKEEPER (SOLUCIÓN DE RAÍZ)
-  // =================================================================================
-  // Bloqueamos el renderizado de TODA la app hasta que sepamos quién es el usuario
-  // y cuál es la configuración. Esto evita que la pantalla de mantenimiento salte
-  // "mientras" carga el perfil del admin.
-  if (authLoading || contentLoading) {
-      return (
-         <div className="flex flex-col h-[100dvh] w-full bg-white dark:bg-black items-center justify-center transition-colors duration-300">
-            <div className="relative">
-                <div className="w-12 h-12 border-4 border-brand-purple border-t-transparent rounded-full animate-spin"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-2 h-2 bg-brand-purple rounded-full"></div>
-                </div>
-            </div>
-         </div>
-      );
-  }
-
-  // =================================================================================
-  // 2. LOGIC AFTER LOADING (DATA IS 100% READY)
-  // =================================================================================
-
-  // A. ADMIN IMMUNITY (Prioridad Absoluta)
-  // Si es Admin y está atrapado en la pantalla de mantenimiento, sacarlo inmediatamente.
-  if (user?.isAdmin && location.pathname === '/maintenance') {
-      return <Navigate to="/home" replace />;
-  }
-
-  // B. GLOBAL BLOCKED USER CHECK (Kill Switch)
-  if (user?.isBlocked) {
+  // --- 1. GLOBAL BLOCKED USER CHECK (KILL SWITCH) ---
+  if (!authLoading && user?.isBlocked) {
       const isAccessDeniedPage = location.pathname === '/access-denied';
       const isLoginPage = location.pathname === '/';
       
@@ -103,15 +81,16 @@ const AppContent: React.FC = () => {
       }
   }
 
-  // C. MAINTENANCE MODE GUARD
-  // Solo se ejecuta si NO es admin.
+  // --- 2. GLOBAL MAINTENANCE GUARD (DUAL MODE) ---
   const activeMode = homeConfig?.maintenanceMode || 'off';
-  if (activeMode !== 'off' && !user?.isAdmin) {
+  
+  if (!contentLoading && activeMode !== 'off') {
       const isMaintenancePage = location.pathname === '/maintenance';
-      const isLoginPage = location.pathname === '/'; // Permitir ver el Login
+      const isLoginPage = location.pathname === '/';
       const isBlockedPage = location.pathname === '/access-denied';
       
-      if (!isMaintenancePage && !isLoginPage && !isBlockedPage) {
+      // If user is not admin and trying to access anything but permitted pages
+      if (!user?.isAdmin && !isMaintenancePage && !isLoginPage && !isBlockedPage) {
           return <Navigate to="/maintenance" replace />;
       }
   }
