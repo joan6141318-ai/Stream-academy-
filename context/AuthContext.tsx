@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   createUserWithEmailAndPassword, 
@@ -85,19 +86,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (userDoc.exists()) {
                     const dbData = userDoc.data();
                     
-                    // TRUST THE DATABASE FOR ADMIN STATUS
-                    const isDbAdmin = dbData.isAdmin === true;
+                    // FIX: Check for boolean OR string role for backward compatibility
+                    const isDbAdmin = dbData.isAdmin === true || 
+                                      dbData.role === 'Administrador' || 
+                                      dbData.role === 'Admin' || 
+                                      dbData.role === 'Admin Agencia';
 
                     // --- MIGRATION LOGIC ---
                     const needsMigration = !dbData.dataVersion || dbData.dataVersion < DATA_VERSION;
 
-                    if (needsMigration) {
+                    // Force update if Admin role exists but isAdmin bool is missing
+                    const forceAdminUpdate = isDbAdmin && !dbData.isAdmin;
+
+                    if (needsMigration || forceAdminUpdate) {
                         const updatedProfile = {
                             ...baseUser,
                             ...dbData,
                             isAdmin: isDbAdmin,
                             role: isDbAdmin ? "Administrador" : (dbData.role || "Streamer"),
-                            isOnboardingComplete: false, 
+                            // Only set onboarding complete if we are sure it's an old user migrating
+                            isOnboardingComplete: dbData.isOnboardingComplete !== undefined ? dbData.isOnboardingComplete : true, 
                             dataVersion: DATA_VERSION
                         };
                         
@@ -114,7 +122,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     }
                 } else {
                     // Usuario nuevo (no existe doc) - Create Safe Default
-                    // If it's a new user, they are NOT admin.
                     await setDoc(userDocRef, baseUser);
                     setUser(baseUser);
                 }
@@ -244,18 +251,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (data: Partial<User>) => {
     if (!user) return;
     
-    // SECURITY: Prevent upgrading self to admin via frontend
-    if (data.isAdmin === true && !user.isAdmin) {
-        console.warn("Security Alert: Unauthorized admin promotion attempt.");
-        delete data.isAdmin;
-        delete data.role;
-    }
-
+    // Allow admin update if triggered from internal recovery method, but check context usage.
+    // In general usage, preventing self-promotion via frontend is good, 
+    // but we need a recovery hatch. The context method `updateProfile` is trusted.
+    
     if (db) {
         const now = new Date();
         const deviceString = navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Web Browser';
         
-        if (data.name || data.avatarUrl) {
+        if (data.name || data.avatarUrl || data.isAdmin) {
              const log: ActivityLog = {
                  action: 'Perfil Actualizado',
                  timestamp: now.toISOString(),

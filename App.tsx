@@ -29,7 +29,7 @@ import { MainLayout } from './components/MainLayout';
 import { InstallPrompt } from './components/InstallPrompt';
 import { useOneSignal } from './hooks/useOneSignal'; // Import Hook
 
-// System Version: v16.0.0 - Realtime Security Core
+// System Version: v16.1.0 - Admin Recovery Fix
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -56,7 +56,7 @@ const AdminRoute = ({ children }: { children?: React.ReactNode }) => {
 
     // STRICT CHECK: Trust only the DB value
     if (!user.isAdmin) {
-        alert("Lo sentimos no eres Administrador hay algo en lo que te podamos ayudar?");
+        // Redirect silently to home if not admin to prevent errors
         return <Navigate to="/home" replace />;
     }
 
