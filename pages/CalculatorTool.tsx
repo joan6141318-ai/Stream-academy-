@@ -74,8 +74,6 @@ const CalculatorTool: React.FC = () => {
     if (numHours < 20) {
         setStatus('danger');
         const exchangeVal = numSeeds / 210;
-        // Si no cumple horas, la meta alcanzada sigue siendo el tier para referencia, 
-        // pero el pago base es 0 y todo se considera excedente/cambio.
         setResult({ 
             basePay: 0, 
             excessPay: exchangeVal, 
@@ -132,9 +130,9 @@ const CalculatorTool: React.FC = () => {
 
   const getStatusConfig = () => {
     switch (status) {
-        case 'danger': return { borderColor: 'border-red-500', shadowColor: 'shadow-red-500/30', icon: XCircle, iconColor: 'text-red-500', message: 'Horas insuficientes (<20h). Solo cobras cambio.', textColor: 'text-red-400' };
+        case 'danger': return { borderColor: 'border-red-500', shadowColor: 'shadow-red-500/30', icon: XCircle, iconColor: 'text-red-500', message: 'Horas insuficientes (<20h). No aplicas a bono.', textColor: 'text-red-400' };
         case 'warning': return { borderColor: 'border-yellow-500', shadowColor: 'shadow-yellow-500/30', icon: AlertTriangle, iconColor: 'text-yellow-500', message: 'Horas parciales. Pago de meta al 50%.', textColor: 'text-yellow-400' };
-        case 'success': return { borderColor: 'border-emerald-500', shadowColor: 'shadow-emerald-500/40', icon: CheckCircle, iconColor: 'text-emerald-500', message: '¡Meta Lograda! Pago Completo.', textColor: 'text-emerald-400' };
+        case 'success': return { borderColor: 'border-emerald-500', shadowColor: 'shadow-emerald-500/40', icon: CheckCircle, iconColor: 'text-emerald-500', message: 'Felicidades por lograr tu meta sigue así ! En hora buena disfruta tu pago', textColor: 'text-emerald-500' };
         default: return { borderColor: 'border-gray-800', shadowColor: 'shadow-black/20', icon: Calculator, iconColor: 'text-gray-500', message: 'Ingresa tus datos.', textColor: 'text-gray-400' };
     }
   };
@@ -146,80 +144,109 @@ const CalculatorTool: React.FC = () => {
     <div className="flex flex-col h-full w-full bg-brand-gray dark:bg-black transition-colors duration-300">
       <Header title="Calculadora" showBack onBack={() => navigate('/training/pagos')} />
       <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] px-6 pb-8">
-        <div className="mt-6 mb-8"><div className="w-12 h-12 bg-orange-500 rounded-sm flex items-center justify-center mb-4 shadow-lg shadow-orange-500/30"><Calculator className="text-white" size={24} strokeWidth={2.5} /></div><h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none mb-2">Simulador de<br/>Ingresos</h1><p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed">Calcula tu salario estimado.</p></div>
-        <div className="space-y-6 mb-8">
-            <div className="bg-white dark:bg-brand-dark-card p-4 rounded-sm border-l-4 border-orange-500 shadow-sm"><label className="flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2"><TrendingUp size={12} className="mr-1" /> Semillas Totales</label><div className="flex items-center"><input type="text" inputMode="numeric" value={formatNumber(seeds)} onChange={handleSeedChange} placeholder="0" className="w-full bg-transparent text-3xl font-black text-brand-black dark:text-white outline-none placeholder-gray-200" /></div></div>
-            <div className="bg-white dark:bg-brand-dark-card p-4 rounded-sm border-l-4 border-brand-black dark:border-gray-600 shadow-sm"><label className="flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2"><Clock size={12} className="mr-1" /> Horas</label><div className="flex items-center"><input type="number" inputMode="numeric" value={hours} onChange={(e) => setHours(e.target.value)} placeholder="0" className="w-full bg-transparent text-3xl font-black text-brand-black dark:text-white outline-none placeholder-gray-200" /><span className="text-sm font-bold text-gray-400 uppercase">Hrs</span></div></div>
-        </div>
         
-        {/* RESULT CARD */}
-        <div className={`relative overflow-hidden rounded-sm p-6 bg-brand-black text-white border-2 ${statusUI.borderColor} shadow-xl ${statusUI.shadowColor} transition-all duration-500 ease-out`}>
-            {status === 'success' && <div className="absolute top-0 right-0 p-4 animate-bounce opacity-80"><PartyPopper className="text-emerald-400" size={32} /></div>}
-            <DollarSign className="absolute -right-6 -bottom-6 text-white/5 rotate-12" size={180} />
-            
-            <div className="relative z-10">
-                {/* Total Header */}
-                <div className="flex justify-between items-start mb-6"><div><p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${statusUI.textColor}`}>Pago Estimado Total</p><h2 className="text-4xl font-black tracking-tighter">{formatCurrency(result.totalPay)}</h2></div></div>
-                
-                {/* Status Message */}
-                <div className="flex items-start space-x-2 mb-6 bg-white/5 p-3 rounded-sm backdrop-blur-sm"><StatusIcon size={16} className={`mt-0.5 flex-shrink-0 ${statusUI.iconColor}`} /><p className="text-xs font-bold leading-tight opacity-90">{statusUI.message}</p></div>
-                
-                {/* DETAILED BREAKDOWN (VERTICAL LIST) */}
-                <div className="space-y-4 pt-4 border-t border-white/10">
-                    
-                    {/* Meta Cumplida */}
-                    <div className="flex justify-between items-center border-b border-white/5 pb-2 border-dashed">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 flex items-center">
-                            <Target size={12} className="mr-2 opacity-70" />
-                            Meta Alcanzada
-                        </span>
-                        <div className="text-right">
-                            <span className="font-bold text-white text-sm block">{formatNumber(result.tierReached)}</span>
-                            <span className="text-[8px] text-emerald-500 font-bold uppercase tracking-wide">Semillas Base</span>
-                        </div>
-                    </div>
+        {/* Header Title */}
+        <div className="mt-6 mb-8">
+            <div className="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-orange-500/30">
+                <Calculator className="text-white" size={24} strokeWidth={2.5} />
+            </div>
+            <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none mb-2">Simulador de<br/>Ingresos</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed">Calcula tu salario estimado.</p>
+        </div>
 
-                    {/* Semillas Excedentes */}
-                    <div className="flex justify-between items-center border-b border-white/5 pb-2 border-dashed">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 flex items-center">
-                            <Layers size={12} className="mr-2 opacity-70" />
-                            Semillas Excedentes
-                        </span>
-                        <span className="font-bold text-white text-sm">{formatNumber(result.excessSeeds)}</span>
-                    </div>
-
-                    {/* Valor Excedente */}
-                    <div className="flex justify-between items-center border-b border-white/5 pb-2 border-dashed">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 flex items-center">
-                            <Coins size={12} className="mr-2 opacity-70" />
-                            Valor del Excedente
-                        </span>
-                        <span className="font-bold text-orange-400 text-sm">+{formatCurrency(result.excessPay)}</span>
-                    </div>
-
-                    {/* Resumen Final */}
-                    <div className="bg-white/5 p-3 rounded-sm mt-2 border border-white/5">
-                        <div className="flex justify-between items-center text-xs mb-2">
-                            <span className="text-gray-400 font-medium">Pago Base (Meta)</span>
-                            <span className={`font-bold ${status === 'danger' ? 'text-red-500 line-through' : 'text-white'}`}>
-                                {formatCurrency(result.basePay)}
-                            </span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                            <span className="text-gray-400 font-medium">Pago Excedente</span>
-                            <span className="text-orange-400 font-bold">+ {formatCurrency(result.excessPay)}</span>
-                        </div>
-                    </div>
+        {/* Inputs */}
+        <div className="space-y-6 mb-8">
+            <div className="bg-white dark:bg-brand-dark-card p-4 rounded-xl border-l-4 border-orange-500 shadow-sm">
+                <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                    <TrendingUp size={12} className="mr-1" /> Semillas Totales
+                </label>
+                <div className="flex items-center">
+                    <input type="text" inputMode="numeric" value={formatNumber(seeds)} onChange={handleSeedChange} placeholder="0" className="w-full bg-transparent text-3xl font-black text-brand-black dark:text-white outline-none placeholder-gray-200" />
                 </div>
-
-                {/* Exchange Rate Footer */}
-                <div className="mt-6 pt-3 border-t border-white/10 text-center">
-                    <p className="text-[9px] text-gray-500 font-mono tracking-wider">
-                        TASA DE CAMBIO: 210 SEMILLAS = $1 USD
-                    </p>
+            </div>
+            <div className="bg-white dark:bg-brand-dark-card p-4 rounded-xl border-l-4 border-brand-black dark:border-gray-600 shadow-sm">
+                <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+                    <Clock size={12} className="mr-1" /> Horas
+                </label>
+                <div className="flex items-center">
+                    <input type="number" inputMode="numeric" value={hours} onChange={(e) => setHours(e.target.value)} placeholder="0" className="w-full bg-transparent text-3xl font-black text-brand-black dark:text-white outline-none placeholder-gray-200" />
+                    <span className="text-sm font-bold text-gray-400 uppercase">Hrs</span>
                 </div>
             </div>
         </div>
+        
+        {/* RESULT CARD (REDISEÑADA) */}
+        <div className="w-full max-w-md mx-auto">
+            <div className={`relative overflow-hidden rounded-3xl bg-[#09090b] text-white shadow-2xl transition-all duration-500 ease-out ${status === 'success' ? 'shadow-emerald-500/10' : ''}`}>
+                
+                {/* Top Border Accent */}
+                <div className={`h-1.5 w-full ${status === 'success' ? 'bg-emerald-500' : status === 'warning' ? 'bg-yellow-500' : status === 'danger' ? 'bg-red-500' : 'bg-gray-700'}`}></div>
+
+                <div className="p-8 relative z-10">
+                    {/* Floating Icon */}
+                    {status === 'success' && <PartyPopper className="absolute top-6 right-6 text-emerald-500 animate-bounce" size={28} />}
+                    
+                    {/* Header Total */}
+                    <div className="mb-8">
+                        <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${status === 'success' ? 'text-emerald-500' : 'text-gray-400'}`}>
+                            PAGO ESTIMADO TOTAL
+                        </p>
+                        <h2 className="text-5xl font-black tracking-tighter text-white">
+                            {formatCurrency(result.totalPay)} <span className="text-2xl text-gray-500 font-bold ml-1">USD</span>
+                        </h2>
+                    </div>
+
+                    {/* Status Message Box */}
+                    <div className="bg-[#151517] rounded-xl p-4 mb-8 flex items-start gap-3 border border-white/5">
+                        <StatusIcon size={20} className={`mt-0.5 flex-shrink-0 ${statusUI.iconColor}`} />
+                        <p className="text-xs font-bold leading-relaxed text-gray-200">
+                            {statusUI.message}
+                        </p>
+                    </div>
+
+                    <div className="space-y-6 border-t border-white/5 pt-6">
+                        
+                        {/* Row 1: Base */}
+                        <div className="flex justify-between items-end">
+                            <div>
+                                <p className="text-sm font-bold text-gray-400 mb-1">Salario Base (Meta)</p>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-white">
+                                    META LOGRADA: {formatNumber(result.tierReached)} SEMILLAS
+                                </p>
+                            </div>
+                            <span className="text-xl font-black text-white">
+                                {formatCurrency(result.basePay)} <span className="text-xs font-bold text-gray-500">USD</span>
+                            </span>
+                        </div>
+
+                        {/* Row 2: Excess */}
+                        <div className="flex justify-between items-end">
+                            <div>
+                                <p className="text-sm font-bold text-gray-400 mb-1">Excedente :</p>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-white mb-1">
+                                    {formatNumber(result.excessSeeds)} SEMILLAS
+                                </p>
+                                <p className="text-[9px] font-medium text-gray-600 font-mono">
+                                    Por cada 210 semillas = $1 dólar
+                                </p>
+                            </div>
+                            <span className="text-xl font-black text-orange-500">
+                                +{formatCurrency(result.excessPay)} <span className="text-xs font-bold text-orange-500/50">USD</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Background Watermark */}
+                <DollarSign className="absolute -bottom-10 -right-6 text-white/[0.02] rotate-12 pointer-events-none" size={250} />
+            </div>
+
+            {/* Footer Disclaimer */}
+            <p className="mt-6 text-[10px] text-gray-400 text-center leading-relaxed font-medium px-4 opacity-70">
+                *Nota Importante: Los montos mostrados son estimaciones brutas. El valor final recibido en tu cuenta puede variar debido a comisiones de retiro, tarifas de transferencia bancaria o costos de conversión de divisas aplicados por tu banco local.
+            </p>
+        </div>
+
       </div>
     </div>
   );
