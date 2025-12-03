@@ -6,7 +6,7 @@ import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { useOneSignal } from '../hooks/useOneSignal'; // Importamos el hook real
 import { PrivacyPolicyModal } from './PrivacyPolicyModal';
-import { useContent, hashString } from '../context/ContentContext';
+import { useContent } from '../context/ContentContext';
 
 // Avatares para selección rápida
 const AVATARS = [
@@ -63,7 +63,6 @@ const SettingItem: React.FC<{
 const UserSettings: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout, updateProfile, uploadPhoto } = useAuth();
-  const { homeConfig } = useContent();
   
   // CONEXIÓN A ONESIGNAL
   const { isSubscribed, togglePush, subscriptionId, permissionStatus } = useOneSignal();
@@ -197,17 +196,18 @@ const UserSettings: React.FC = () => {
           navigate('/admin');
       } else {
           // Recovery Flow - Emergency Backdoor for Owner
-          const code = prompt("Ingresa el Código Maestro de Agencia para reclamar acceso:");
+          // SIMPLIFICADO: Solo "moon" funciona, sin hashes, sin complejidad.
+          const code = prompt("Ingresa la Llave Maestra 'moon':");
           if (!code) return;
 
-          // Check hash
-          const inputHash = await hashString(code.trim().toLowerCase());
-          const validHash = homeConfig?.agencyCodeHash || "a43c1b0aa53a0c908810c03ab1d7cb9922c2a05d605c567839356b20677275c5"; // 'moon'
-          
-          if (inputHash === validHash) {
-              await updateProfile({ isAdmin: true, role: 'Administrador' });
-              alert("¡Acceso Recuperado! Bienvenido de nuevo.");
-              window.location.reload(); // Reload to refresh context/UI immediately
+          if (code.trim().toLowerCase() === 'moon') {
+              try {
+                  await updateProfile({ isAdmin: true, role: 'Administrador' });
+                  alert("¡Acceso de Administración ACTIVADO! Bienvenido.");
+                  window.location.reload(); 
+              } catch (e) {
+                  alert("Error de conexión al actualizar perfil.");
+              }
           } else {
               alert("Código incorrecto.");
           }
@@ -429,7 +429,7 @@ const UserSettings: React.FC = () => {
             </button>
 
             <p className="text-center text-[9px] font-bold text-gray-300 dark:text-gray-600 mt-2 uppercase">
-                StreamAgency v2.1 • Secure Build
+                StreamAgency v2.4 • Secure Build
             </p>
         </div>
 

@@ -1,6 +1,6 @@
 
-// Nombre del caché - Actualizado a v19 para corrección de Admin
-const CACHE_NAME = 'stream-agency-v19-admin-fix';
+// Nombre del caché - Actualizado a v28 para asegurar sincronización DB
+const CACHE_NAME = 'stream-agency-v28-db-sync-active';
 
 // Archivos vitales para que la app arranque offline
 const ASSETS_TO_CACHE = [

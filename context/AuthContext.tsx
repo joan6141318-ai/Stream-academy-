@@ -11,7 +11,7 @@ import {
 import { doc, setDoc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from '../firebaseConfig';
-import { DATA_VERSION } from '../constants';
+import { DATA_VERSION, ADMIN_EMAILS } from '../constants';
 import { ActivityLog } from '../types';
 
 export interface User {
@@ -32,7 +32,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   login: (email: string, pass: string) => Promise<void>;
-  register: (email: string, pass: string, name: string) => Promise<void>;
+  register: (email: string, pass: string, name: string, isAdmin?: boolean) => Promise<void>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<void>;
   uploadPhoto: (file: Blob, base64Fallback?: string) => Promise<string>;
@@ -65,6 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (firebaseUser) {
         const email = firebaseUser.email?.toLowerCase() || "";
+        const isWhitelisted = ADMIN_EMAILS.includes(email);
         
         // Base user structure
         let baseUser: User = {
@@ -72,8 +73,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             name: firebaseUser.displayName || "Usuario",
             email: email,
             avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${firebaseUser.displayName || 'User'}`,
-            role: "Streamer",
-            isAdmin: false, // Default to FALSE. Only DB can make it TRUE.
+            role: "Streamer", // Default role
+            isAdmin: false,   // Default admin status
             isOnboardingComplete: false,
             dataVersion: DATA_VERSION
         };
@@ -86,25 +87,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (userDoc.exists()) {
                     const dbData = userDoc.data();
                     
-                    // FIX: Check for boolean OR string role for backward compatibility
-                    const isDbAdmin = dbData.isAdmin === true || 
-                                      dbData.role === 'Administrador' || 
-                                      dbData.role === 'Admin' || 
-                                      dbData.role === 'Admin Agencia';
+                    // --- SYNCHRONIZATION LOGIC (Firebase First, with Auto-Correction) ---
+                    // 1. Si está en la whitelist pero la DB dice que NO es admin, actualizamos la DB.
+                    if (isWhitelisted && (!dbData.isAdmin || dbData.role !== 'Administrador')) {
+                        console.log("Auto-correcting Admin privileges in Firestore...");
+                        await setDoc(userDocRef, { isAdmin: true, role: 'Administrador' }, { merge: true });
+                        dbData.isAdmin = true;
+                        dbData.role = 'Administrador';
+                    }
 
                     // --- MIGRATION LOGIC ---
                     const needsMigration = !dbData.dataVersion || dbData.dataVersion < DATA_VERSION;
 
-                    // Force update if Admin role exists but isAdmin bool is missing
-                    const forceAdminUpdate = isDbAdmin && !dbData.isAdmin;
-
-                    if (needsMigration || forceAdminUpdate) {
+                    if (needsMigration) {
                         const updatedProfile = {
                             ...baseUser,
                             ...dbData,
-                            isAdmin: isDbAdmin,
-                            role: isDbAdmin ? "Administrador" : (dbData.role || "Streamer"),
-                            // Only set onboarding complete if we are sure it's an old user migrating
                             isOnboardingComplete: dbData.isOnboardingComplete !== undefined ? dbData.isOnboardingComplete : true, 
                             dataVersion: DATA_VERSION
                         };
@@ -113,23 +111,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         setUser(updatedProfile);
 
                     } else {
+                        // Usamos estrictamente los datos de la DB (ya corregidos si fue necesario)
                         setUser({ 
                             ...baseUser, 
-                            ...dbData, 
-                            isAdmin: isDbAdmin,
-                            role: isDbAdmin ? "Administrador" : (dbData.role || "Streamer")
+                            ...dbData
                         } as User);
                     }
                 } else {
-                    // Usuario nuevo (no existe doc) - Create Safe Default
+                    // Usuario nuevo (no existe doc)
+                    // Si está en whitelist, lo creamos como Admin directamente en la DB
+                    if (isWhitelisted) {
+                        baseUser.isAdmin = true;
+                        baseUser.role = "Administrador";
+                    }
                     await setDoc(userDocRef, baseUser);
                     setUser(baseUser);
                 }
             } else {
+                // Fallback offline (solo memoria)
+                if (isWhitelisted) {
+                    baseUser.isAdmin = true;
+                    baseUser.role = "Administrador";
+                }
                 setUser(baseUser);
             }
         } catch (error: any) {
             console.warn("Firestore offline/error: Using cached/basic profile.");
+            // En caso de error crítico de DB, permitimos acceso admin si está en whitelist por seguridad
+            if (isWhitelisted) {
+                baseUser.isAdmin = true;
+                baseUser.role = "Administrador";
+            }
             setUser(baseUser);
         }
       } else {
@@ -181,26 +193,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // --- REGISTRO ---
-  const register = async (email: string, pass: string, name: string) => {
+  const register = async (email: string, pass: string, name: string, isAdmin: boolean = false) => {
       if (!auth) throw new Error("Firebase no configurado");
       
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       const fbUser = userCredential.user;
       const userEmail = fbUser.email?.toLowerCase() || "";
+      const isWhitelisted = ADMIN_EMAILS.includes(userEmail);
+      
+      // Force Admin if whitelisted OR if manually requested (via 'moon' code)
+      const finalIsAdmin = isAdmin || isWhitelisted;
 
       sendEmailVerification(fbUser).catch(e => console.warn("Email verification error", e));
 
       const now = new Date();
       const deviceString = navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Web Browser';
 
-      // NEW USER IS NEVER ADMIN BY DEFAULT
       const newUserProfile: User = {
         id: fbUser.uid,
         name: name,
         email: userEmail,
         avatarUrl: `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${name}`,
-        role: "Streamer Oficial",
-        isAdmin: false, // SECURITY: Always false on register
+        role: finalIsAdmin ? "Administrador" : "Streamer Oficial",
+        isAdmin: finalIsAdmin, 
         isOnboardingComplete: false,
         dataVersion: DATA_VERSION,
         lastLogin: now.toISOString(),
@@ -250,10 +265,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (data: Partial<User>) => {
     if (!user) return;
-    
-    // Allow admin update if triggered from internal recovery method, but check context usage.
-    // In general usage, preventing self-promotion via frontend is good, 
-    // but we need a recovery hatch. The context method `updateProfile` is trusted.
     
     if (db) {
         const now = new Date();

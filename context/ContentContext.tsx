@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { collection, onSnapshot, doc, updateDoc, setDoc, addDoc, deleteDoc, query } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-import { Banner, TrainingModule, HomeConfig, PKSchedule, PKRequest } from '../types';
+import { Banner, TrainingModule, HomeConfig, PKSchedule, PKRequest, ModuleStyle } from '../types';
 import { TRAINING_MODULES as INITIAL_MODULES } from '../constants';
 
 // --- CRYPTO UTILITY ---
@@ -74,7 +74,7 @@ const INITIAL_BANNERS: Banner[] = [
 ];
 
 // Helper para asignar estilos iniciales a los módulos si no los tienen
-const getInitialStyle = (id: string) => {
+const getInitialStyle = (id: string): ModuleStyle => {
     switch (id) {
       case 'bigo-live': return { iconName: 'PlayCircle', bg: 'bg-blue-600', shadow: 'shadow-blue-600/40', imagePosition: 'object-center' };
       case 'pagos': return { iconName: 'DollarSign', bg: 'bg-emerald-500', shadow: 'shadow-emerald-500/40', imagePosition: 'object-center' };
@@ -136,7 +136,6 @@ const ContentContext = createContext<ContentContextType | undefined>(undefined);
 export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [banners, setBanners] = useState<Banner[]>(INITIAL_BANNERS);
   const [modules, setModules] = useState<TrainingModule[]>(INITIAL_MODULES.map(m => {
-       // @ts-ignore
        const initStyle = getInitialStyle(m.id);
        return {...m, style: initStyle};
   }));
@@ -170,7 +169,6 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (snapshot.empty) {
              try {
                  for (const m of INITIAL_MODULES) {
-                     // @ts-ignore
                      const styledModule = { ...m, style: getInitialStyle(m.id) };
                      await setDoc(doc(db, "modules", m.id), styledModule);
                  }

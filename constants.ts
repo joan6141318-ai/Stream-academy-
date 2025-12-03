@@ -4,6 +4,13 @@ import { TrainingModule, UserProfile } from './types';
 // Incrementa este número para obligar a TODOS los usuarios a refrescar su perfil
 export const DATA_VERSION = 3; 
 
+// --- LISTA DE CORREOS ADMINISTRADORES ---
+// IMPORTANTE: Agrega aquí tus correos exactos (en minúsculas) para obtener acceso automático.
+export const ADMIN_EMAILS = [
+    "joan6141318@gmail.com", 
+    "elianaloor86@gmail.com"
+];
+
 export const MOCK_USER: UserProfile = {
   name: "Alex Rivera",
   id: "AGENCY-8821",
@@ -23,9 +30,9 @@ export const SALARY_TIERS = [
   { seeds: 400000, pay: 4604 },
   { seeds: 300000, pay: 3409 },
   { seeds: 250000, pay: 2840 },
-  { seeds: 200000, pay: 2272 }, // Corregido (antes decía 20000)
+  { seeds: 20000, pay: 2272 }, 
   { seeds: 150000, pay: 1704 },
-  { seeds: 100000, pay: 1136 }, // Corregido (antes decía 10000)
+  { seeds: 100000, pay: 1136 }, 
   { seeds: 60000, pay: 708 },
   { seeds: 30000, pay: 354 },
   { seeds: 20000, pay: 236 },
