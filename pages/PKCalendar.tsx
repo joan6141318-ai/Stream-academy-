@@ -27,7 +27,6 @@ const PKCalendar: React.FC = () => {
   // UI States
   const [openPotential, setOpenPotential] = useState(false);
   const [openSupersmash, setOpenSupersmash] = useState(false);
-  const [openRequest, setOpenRequest] = useState(false);
   const [requestDate, setRequestDate] = useState('');
   const [requestBigoId, setRequestBigoId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -85,7 +84,6 @@ const PKCalendar: React.FC = () => {
           setMyRequest({ date: requestDate, bigoId: requestBigoId });
           setRequestDate('');
           setRequestBigoId('');
-          setOpenRequest(false);
           setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
           if (timerRef.current) clearTimeout(timerRef.current);
           timerRef.current = setTimeout(() => { setMyRequest(null); timerRef.current = null; }, 5000);
@@ -140,28 +138,117 @@ const PKCalendar: React.FC = () => {
              <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openSupersmash ? 'max-h-[1200px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}><div className="bg-white dark:bg-[#0a0a0a] border border-gray-100 dark:border-white/5 rounded-2xl p-4 shadow-sm">{pkSchedule.supersmash.map(item => renderEventRow(item))}</div></div>
         </div>
 
-        {/* --- WIDGET: SOLICITAR PK --- */}
-        <div className="mb-8 animate-fade-in mt-8">
-            <button onClick={() => setOpenRequest(!openRequest)} className="w-full flex flex-col items-start bg-[#121212] text-white p-6 rounded-2xl shadow-xl active:scale-[0.99] transition-all group relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-40 h-40 bg-brand-purple/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none opacity-50"></div>
-                <div className="relative z-10 w-full"><div className="flex justify-between items-center w-full"><h2 className="text-3xl font-black uppercase tracking-tighter leading-none mb-1">SOLICITA<br/>UN PK</h2>{openRequest ? <ChevronUp size={24} /> : <ChevronDown size={24} />}</div><p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-2">Agenda tu batalla</p></div>
-            </button>
-            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openRequest ? 'max-h-[800px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
-                <div className="bg-[#121212] rounded-[2rem] p-6 shadow-2xl border border-white/5">
-                    <div className="relative z-10">
-                        {hasPendingRequest ? (
-                            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 flex items-start gap-3"><AlertCircle className="text-yellow-500 flex-shrink-0" size={20} /><div><h4 className="text-xs font-black text-yellow-500 uppercase mb-1">Solicitud en Curso</h4><p className="text-[10px] text-yellow-200/80 leading-relaxed">Ya tienes una solicitud pendiente.</p></div></div>
-                        ) : (
-                            <form onSubmit={handleRequestPK} className="space-y-5">
-                                <div className="group/input"><label className="text-[9px] font-bold uppercase text-gray-500 mb-2 block tracking-widest">Fecha Deseada</label><input type="date" required value={requestDate} onChange={(e) => setRequestDate(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-sm font-bold text-white focus:bg-white/10 focus:border-brand-purple/50 outline-none transition-all uppercase" /></div>
-                                <div className="group/input"><label className="text-[9px] font-bold uppercase text-gray-500 mb-2 block tracking-widest">Tu Bigo ID</label><input type="text" required value={requestBigoId} onChange={(e) => setRequestBigoId(e.target.value)} placeholder="ID EXACTO" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-sm font-bold text-white focus:bg-white/10 focus:border-brand-purple/50 outline-none transition-all" /></div>
-                                <button type="submit" disabled={isSubmitting} className="w-full bg-white text-black h-16 rounded-xl font-black uppercase tracking-[0.2em] text-xs shadow-lg hover:bg-gray-200 active:scale-[0.98] transition-all mt-4 flex items-center justify-center space-x-2">{isSubmitting ? <span className="animate-pulse">Procesando...</span> : <><span>Agendar</span><ArrowRight size={16} /></>}</button>
-                            </form>
-                        )}
+        {/* --- WIDGET: SOLICITAR PK (DISEÑO RESTAURADO TIPO TARJETA) --- */}
+        <div className="mb-12 animate-fade-in mt-8">
+            <div className="w-full bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
+                
+                {/* Header Icon */}
+                <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6 border border-white/5">
+                    <Swords className="text-white" size={24} />
+                </div>
+
+                <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-8 leading-none">
+                    Formulario de<br/>Solicitud
+                </h2>
+
+                {hasPendingRequest ? (
+                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6 flex items-start gap-4 animate-fade-in">
+                        <AlertCircle className="text-yellow-500 flex-shrink-0 mt-1" size={24} />
+                        <div>
+                            <h4 className="text-sm font-black text-yellow-500 uppercase mb-1">Solicitud en Curso</h4>
+                            <p className="text-xs text-yellow-200/80 leading-relaxed">
+                                Ya tienes una solicitud pendiente de revisión. Podrás enviar otra cuando esta sea procesada.
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    <form onSubmit={handleRequestPK} className="space-y-6">
+                        {/* Date Input */}
+                        <div className="group">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">
+                                Fecha Deseada
+                            </label>
+                            <div className="relative">
+                                <input 
+                                    type="date" 
+                                    required 
+                                    value={requestDate} 
+                                    onChange={(e) => setRequestDate(e.target.value)} 
+                                    className="w-full bg-[#121212] border-2 border-brand-purple rounded-xl px-4 py-4 text-sm font-bold text-white outline-none focus:shadow-[0_0_30px_rgba(124,58,237,0.2)] transition-all uppercase placeholder-gray-500 appearance-none"
+                                />
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                    <Calendar size={20} />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Bigo ID Input */}
+                        <div className="group">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">
+                                Tu Bigo ID
+                            </label>
+                            <div className="relative">
+                                <input 
+                                    type="text" 
+                                    required 
+                                    value={requestBigoId} 
+                                    onChange={(e) => setRequestBigoId(e.target.value)} 
+                                    placeholder="ID EXACTO" 
+                                    className="w-full bg-[#121212] border-2 border-[#1f1f1f] rounded-xl px-4 py-4 text-sm font-bold text-white placeholder-gray-700 focus:border-white/20 outline-none transition-all uppercase"
+                                />
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-700">
+                                    <Shield size={20} />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Static Schedule Info */}
+                        <div className="bg-[#121212] rounded-xl p-5 border border-white/5 flex justify-between items-center group">
+                            <div>
+                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1 group-hover:text-brand-purple transition-colors">
+                                    Horario Fijo
+                                </span>
+                                <span className="text-lg font-black text-white uppercase tracking-tight">
+                                    08:00 - 08:15 PM
+                                </span>
+                            </div>
+                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest bg-white/5 px-2 py-1 rounded border border-white/5">
+                                Colombia
+                            </span>
+                        </div>
+
+                        {/* Submit Button */}
+                        <button 
+                            type="submit" 
+                            disabled={isSubmitting} 
+                            className="w-full bg-white text-black h-16 rounded-xl font-black uppercase tracking-[0.2em] text-xs shadow-xl hover:bg-gray-200 active:scale-[0.98] transition-all flex items-center justify-center mt-6 group"
+                        >
+                            {isSubmitting ? (
+                                <span className="animate-pulse">Procesando...</span>
+                            ) : (
+                                <>
+                                    <span>Agendar</span>
+                                    <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                                </>
+                            )}
+                        </button>
+                    </form>
+                )}
+            </div>
+
+            {myRequest && (
+                <div className="mt-4 animate-slide-up">
+                    <div className="bg-brand-purple text-white p-5 rounded-2xl shadow-xl shadow-purple-500/20 flex items-center justify-between border border-white/10">
+                        <div>
+                            <h3 className="text-sm font-black uppercase">Solicitud Enviada</h3>
+                            <p className="text-xs opacity-80 font-medium mt-0.5">Tu PK ha sido registrado exitosamente.</p>
+                        </div>
+                        <div className="bg-white/20 p-2 rounded-full">
+                            <CheckCircle2 size={20} className="text-white" />
+                        </div>
                     </div>
                 </div>
-            </div>
-            {myRequest && (<div className="mt-6 animate-slide-up"><div className="bg-brand-purple text-white p-6 rounded-2xl shadow-xl shadow-purple-500/20 relative overflow-hidden border border-white/10"><div className="relative z-10 flex flex-col items-center text-center"><h3 className="text-xl font-black uppercase tracking-tight mb-1">Solicitud Recibida</h3><p className="text-xs font-medium text-white/80 mb-6">Tu batalla ha sido pre-agendada</p></div></div></div>)}
+            )}
         </div>
 
         {/* --- SECCIÓN: HISTORIAL --- */}
