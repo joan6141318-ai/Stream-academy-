@@ -1,6 +1,6 @@
 
-// Nombre del caché - Actualizado a v19 para forzar recarga tras reversión
-const CACHE_NAME = 'stream-agency-v19-realtime-secure';
+// Nombre del caché - Actualizado a v18 para forzar recarga por actualización de OneSignal v16
+const CACHE_NAME = 'stream-agency-v18-realtime-secure';
 
 // Archivos vitales para que la app arranque offline
 const ASSETS_TO_CACHE = [
