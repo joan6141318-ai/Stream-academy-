@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ContentProvider } from './context/ContentContext';
 import { LoadingGate, AuthGate, BlockedGate, MaintenanceGate, AdminGate } from './components/RouteGuards';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Pages
 import Login from './pages/Login';
@@ -41,39 +42,38 @@ const AppContent: React.FC = () => {
       <InstallPrompt />
       
       <Routes>
-        {/* === ZONA PÚBLICA / LOGIN === */}
+        {/* === RUTA PÚBLICA (LOGIN) === */}
+        {/* Si el usuario ya está logueado, el componente Login internamente redirige a /welcome */}
         <Route path="/" element={<Login />} />
         
-        {/* === PÁGINAS DE ESTADO ESPECIAL === */}
-        {/* Se colocan fuera de los AuthGates pero dentro del LoadingGate */}
-        {/* Tienen su propia lógica de redirección interna si el usuario está OK */}
+        {/* === PÁGINAS DE ESTADO CRÍTICO (Fuera de Guards normales para evitar bucles) === */}
         <Route path="/maintenance" element={<MaintenanceMode />} />
         <Route path="/access-denied" element={<AccessDenied />} />
 
-        {/* === ZONA PROTEGIDA (Requiere Login) === */}
+        {/* === ZONA PROTEGIDA (Requiere Autenticación) === */}
         <Route element={<AuthGate />}>
             
-            {/* CAPA 1: BLOQUEO DE USUARIO (Redirige a /access-denied si isBlocked=true) */}
+            {/* CAPA 1: BLOQUEO DE CUENTA */}
             <Route element={<BlockedGate />}>
                 
-                {/* CAPA 2: MANTENIMIENTO (Redirige a /maintenance si activo y !isAdmin) */}
+                {/* CAPA 2: MODO MANTENIMIENTO */}
                 <Route element={<MaintenanceGate />}>
                     
-                    {/* --- FLUJO DE ONBOARDING (Sin Layout) --- */}
+                    {/* --- ONBOARDING (Sin Layout) --- */}
                     <Route path="/onboarding" element={<Onboarding />} />
                     <Route path="/onboarding/setup" element={<OnboardingSetup />} />
                     
-                    {/* --- PÁGINAS INTERMEDIAS --- */}
+                    {/* --- PANTALLA INTERMEDIA --- */}
                     <Route path="/welcome" element={<WelcomeIntermediate />} />
                     
-                    {/* --- LAYOUT PRINCIPAL (Con Bottom Nav) --- */}
+                    {/* --- APLICACIÓN PRINCIPAL (Con Navegación Inferior) --- */}
                     <Route element={<MainLayout />}>
                         <Route path="/home" element={<Profile />} />
                         <Route path="/training" element={<TrainingList />} />
                         <Route path="/settings" element={<UserSettings />} />
                     </Route>
 
-                    {/* --- PÁGINAS DE DETALLE Y HERRAMIENTAS (Sin Bottom Nav) --- */}
+                    {/* --- PÁGINAS INDIVIDUALES (Pantalla completa sin Nav) --- */}
                     <Route path="/training/:topicId" element={<TrainingDetail />} />
                     <Route path="/pk-calendar" element={<PKCalendar />} />
                     
@@ -89,7 +89,7 @@ const AppContent: React.FC = () => {
                     <Route path="/tools/gamer" element={<GamerTool />} />
                     <Route path="/tools/gamer/setup" element={<GameRunTool />} />
 
-                    {/* --- ZONA DE ADMINISTRADOR (Requiere isAdmin) --- */}
+                    {/* --- ZONA ADMINISTRATIVA (Requiere isAdmin) --- */}
                     <Route element={<AdminGate />}>
                         <Route path="/admin" element={<Navigate to="/admin/selection" replace />} />
                         <Route path="/admin/selection" element={<AdminSelection />} />
@@ -101,7 +101,7 @@ const AppContent: React.FC = () => {
             </Route> {/* Fin BlockedGate */}
         </Route> {/* Fin AuthGate */}
 
-        {/* Catch-all: Redirigir a la raíz si no coincide nada */}
+        {/* CATCH-ALL: Cualquier ruta desconocida va al inicio */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
@@ -110,16 +110,19 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ContentProvider>
-           {/* LoadingGate asegura que Firebase Auth y Firestore Content estén listos antes de renderizar rutas */}
-           <LoadingGate>
-              <AppContent />
-           </LoadingGate>
-        </ContentProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+        {/* HashRouter es CRÍTICO para entornos con URLs dinámicas o previsualizaciones */}
+        <HashRouter>
+            <AuthProvider>
+                <ContentProvider>
+                    {/* LoadingGate espera a que Firebase responda o haga timeout antes de pintar rutas */}
+                    <LoadingGate>
+                        <AppContent />
+                    </LoadingGate>
+                </ContentProvider>
+            </AuthProvider>
+        </HashRouter>
+    </ErrorBoundary>
   );
 };
 

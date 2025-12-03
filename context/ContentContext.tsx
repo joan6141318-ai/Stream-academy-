@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { collection, onSnapshot, doc, updateDoc, setDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Banner, TrainingModule, HomeConfig, PKSchedule, ModuleStyle } from '../types';
@@ -13,7 +13,7 @@ export const hashString = async (message: string): Promise<string> => {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 };
 
-// Datos iniciales de Banners para sembrar la DB si está vacía
+// Datos iniciales de Banners (Solo memoria, no escritura automática)
 const INITIAL_BANNERS: Banner[] = [
     {
       id: 'banner-5',
@@ -73,7 +73,7 @@ const INITIAL_BANNERS: Banner[] = [
     }
 ];
 
-// Helper para asignar estilos iniciales a los módulos si no los tienen
+// Helper para asignar estilos iniciales
 const getInitialStyle = (id: string): ModuleStyle => {
     switch (id) {
       case 'bigo-live': return { iconName: 'PlayCircle', bg: 'bg-blue-600', shadow: 'shadow-blue-600/40', imagePosition: 'object-center' };
@@ -88,7 +88,6 @@ const getInitialStyle = (id: string): ModuleStyle => {
     }
 };
 
-// Default Hash for 'moon': a43c1b0aa53a0c908810c03ab1d7cb9922c2a05d605c567839356b20677275c5
 const INITIAL_HOME_CONFIG: HomeConfig = {
     welcomeText: "Bienvenido de nuevo,",
     modulesTitle: "Módulos de Capacitación",
@@ -115,118 +114,126 @@ const ContentContext = createContext<ContentContextType | undefined>(undefined);
 
 export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [banners, setBanners] = useState<Banner[]>(INITIAL_BANNERS);
-  const [modules, setModules] = useState<TrainingModule[]>(INITIAL_MODULES.map(m => {
-       const initStyle = getInitialStyle(m.id);
-       return {...m, style: initStyle};
-  }));
+  const [modules, setModules] = useState<TrainingModule[]>(INITIAL_MODULES.map(m => ({...m, style: getInitialStyle(m.id)})));
   const [homeConfig, setHomeConfig] = useState<HomeConfig>(INITIAL_HOME_CONFIG);
+  
+  // SOLUCIÓN 1: Estado de carga global gestionado
   const [loading, setLoading] = useState(true);
+  const loadingFlags = useRef({ banners: false, modules: false, config: false });
+  const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const checkLoading = () => {
+      if (loadingFlags.current.banners && loadingFlags.current.modules && loadingFlags.current.config) {
+          if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
+          setLoading(false);
+      }
+  };
 
   useEffect(() => {
+    // SOLUCIÓN 2: Safety Timeout. Si Firebase falla, liberamos la app en 5 segundos.
+    safetyTimeoutRef.current = setTimeout(() => {
+        console.warn("Firebase timeout: Liberando aplicación con datos locales.");
+        setLoading(false);
+    }, 5000);
+
     if (!db) {
         setLoading(false);
         return;
     }
 
     // 1. Listen Banners
-    const unsubBanners = onSnapshot(collection(db, "banners"), async (snapshot) => {
-        if (snapshot.empty) {
-            try {
-                for (const b of INITIAL_BANNERS) {
-                    await setDoc(doc(db, "banners", String(b.id)), b);
-                }
-            } catch (e) { console.warn("Seeding Banners failed"); }
-        } else {
+    const unsubBanners = onSnapshot(collection(db, "banners"), (snapshot) => {
+        if (!snapshot.empty) {
             const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Banner));
             setBanners(list);
         }
-    }, (error) => console.warn("Banners Error:", error.code));
+        loadingFlags.current.banners = true;
+        checkLoading();
+    }, (error) => {
+        console.warn("Banners load failed (using default):", error.code);
+        loadingFlags.current.banners = true;
+        checkLoading();
+    });
 
     // 2. Listen Modules
-    const unsubModules = onSnapshot(collection(db, "modules"), async (snapshot) => {
-        if (snapshot.empty) {
-             try {
-                 for (const m of INITIAL_MODULES) {
-                     const styledModule = { ...m, style: getInitialStyle(m.id) };
-                     await setDoc(doc(db, "modules", m.id), styledModule);
-                 }
-             } catch (e) { console.warn("Seeding Modules failed"); }
-        } else {
+    const unsubModules = onSnapshot(collection(db, "modules"), (snapshot) => {
+        if (!snapshot.empty) {
             const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as TrainingModule));
             setModules(list);
         }
-    }, (error) => console.warn("Modules Error:", error.code));
+        loadingFlags.current.modules = true;
+        checkLoading();
+    }, (error) => {
+        console.warn("Modules load failed (using default):", error.code);
+        loadingFlags.current.modules = true;
+        checkLoading();
+    });
 
     // 3. Listen Home Config
     const unsubConfig = onSnapshot(doc(db, "config", "home"), (docSnap) => {
         if (docSnap.exists()) {
             setHomeConfig(docSnap.data() as HomeConfig);
-        } else {
-             setDoc(doc(db, "config", "home"), INITIAL_HOME_CONFIG).catch(e => console.warn("Auto-seed config failed", e));
         }
-    }, (error) => console.warn("Config Error", error.code));
-
-    // NOTA: Se eliminaron los listeners de PK Schedule y Requests para optimizar carga inicial.
-    // Se cargarán bajo demanda en las vistas correspondientes.
-
-    setLoading(false);
+        loadingFlags.current.config = true;
+        checkLoading();
+    }, (error) => {
+        console.warn("Config load failed (using default):", error.code);
+        loadingFlags.current.config = true;
+        checkLoading();
+    });
 
     return () => {
+        if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
         unsubBanners();
         unsubModules();
         unsubConfig();
     };
   }, []);
 
+  // --- CRUD Operations (Mantenidas igual pero protegidas) ---
+
   const updateBanner = async (id: string, data: Partial<Banner>) => {
     setBanners(prev => prev.map(b => b.id === id ? { ...b, ...data } : b));
     if(!db) return;
-    try { await updateDoc(doc(db, "banners", String(id)), data); } catch (e) { console.error(e); }
+    try { await updateDoc(doc(db, "banners", String(id)), data); } catch (e) { console.error("Update failed", e); }
   };
 
   const updateModule = async (id: string, data: Partial<TrainingModule>) => {
     setModules(prev => prev.map(m => m.id === id ? { ...m, ...data } : m));
     if(!db) return;
-    try { await updateDoc(doc(db, "modules", id), data); } catch (e) { console.error(e); }
+    try { await updateDoc(doc(db, "modules", id), data); } catch (e) { console.error("Update failed", e); }
   };
 
   const updateHomeConfig = async (data: Partial<HomeConfig>) => {
       setHomeConfig(prev => ({ ...prev, ...data }));
       if (!db) return;
-      try { await setDoc(doc(db, "config", "home"), data, { merge: true }); } catch (e) { console.error(e); }
+      try { await setDoc(doc(db, "config", "home"), data, { merge: true }); } catch (e) { console.error("Update failed", e); }
   };
 
-  // --- PK ACTIONS (Direct DB Calls, No State) ---
   const updatePKSchedule = async (data: PKSchedule) => {
       if (!db) return;
-      try { await setDoc(doc(db, "schedules", "main"), data); } catch (e) { console.error(e); }
+      try { await setDoc(doc(db, "schedules", "main"), data); } catch (e) { console.error("Update failed", e); }
   };
 
   const addPKRequest = async (date: string, bigoId: string, userId: string) => {
-      if (!db) return;
-      try {
-          await addDoc(collection(db, "pk_requests"), {
-              date,
-              bigoId,
-              userId,
-              status: 'pending',
-              createdAt: Date.now()
-          });
-      } catch (e) { console.error("Error adding PK request", e); }
+      if (!db) throw new Error("Database not connected");
+      await addDoc(collection(db, "pk_requests"), {
+          date,
+          bigoId,
+          userId,
+          status: 'pending',
+          createdAt: Date.now()
+      });
   };
 
   const updatePKRequestStatus = async (id: string, status: 'approved' | 'rejected') => {
       if (!db) return;
-      try {
-          await updateDoc(doc(db, "pk_requests", id), { status });
-      } catch (e) { console.error("Error updating PK request", e); }
+      await updateDoc(doc(db, "pk_requests", id), { status });
   };
 
   const deletePKRequest = async (id: string) => {
       if (!db) return;
-      try {
-          await deleteDoc(doc(db, "pk_requests", id));
-      } catch (e) { console.error("Error removing PK request", e); }
+      await deleteDoc(doc(db, "pk_requests", id));
   };
 
   return (

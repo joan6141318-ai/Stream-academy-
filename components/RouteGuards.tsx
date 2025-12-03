@@ -7,7 +7,7 @@ import { useContent } from '../context/ContentContext';
 /**
  * LOADING GATE
  * Bloqueo global: No renderiza NADA hasta que Auth y Content estén listos.
- * Esto evita el "flash" de contenido bloqueado o login.
+ * Esto evita el "flash" de contenido bloqueado o login y errores de rutas indefinidas.
  */
 export const LoadingGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { loading: authLoading } = useAuth();
@@ -16,19 +16,20 @@ export const LoadingGate: React.FC<{ children: React.ReactNode }> = ({ children 
   if (authLoading || contentLoading) {
     return (
       <div className="fixed inset-0 z-[200] bg-white dark:bg-black flex flex-col items-center justify-center transition-colors duration-300">
-        <div className="relative w-24 h-24 mb-8 animate-fade-in">
+        <div className="relative w-20 h-20 mb-6 animate-fade-in">
+            {/* Spinner Moderno */}
             <div className="absolute inset-0 border-4 border-gray-100 dark:border-white/10 rounded-full"></div>
             <div className="absolute inset-0 border-4 border-brand-purple border-t-transparent rounded-full animate-spin"></div>
             <div className="absolute inset-0 flex items-center justify-center">
-                 <span className="text-2xl">🚀</span>
+                 <span className="text-xl">🚀</span>
             </div>
         </div>
         <div className="flex flex-col items-center space-y-2 animate-pulse">
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-brand-black dark:text-white">
-                Iniciando
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-brand-black dark:text-white">
+                StreamAgency
             </h2>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                Sincronizando Perfil...
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+                Conectando...
             </p>
         </div>
       </div>
@@ -40,13 +41,14 @@ export const LoadingGate: React.FC<{ children: React.ReactNode }> = ({ children 
 
 /**
  * AUTH GATE
- * Verifica si el usuario está logueado.
+ * Verifica si el usuario está logueado. Si no, manda al Login.
  */
 export const AuthGate: React.FC = () => {
   const { user } = useAuth();
   const location = useLocation();
 
   if (!user) {
+    // Redirigir al login (root), guardando de dónde venía para futura implementación
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 
@@ -60,8 +62,7 @@ export const AuthGate: React.FC = () => {
 export const BlockedGate: React.FC = () => {
   const { user } = useAuth();
 
-  // Aseguramos booleano estricto
-  if (user?.isBlocked === true) {
+  if (user?.isBlocked) {
     return <Navigate to="/access-denied" replace />;
   }
 
@@ -79,7 +80,7 @@ export const MaintenanceGate: React.FC = () => {
   const mode = homeConfig?.maintenanceMode || 'off';
   const isAdmin = !!user?.isAdmin;
 
-  // Si hay mantenimiento y NO es admin, bloquear.
+  // Si hay mantenimiento (o lockdown) y NO es admin, bloquear.
   if (mode !== 'off' && !isAdmin) {
       return <Navigate to="/maintenance" replace />;
   }

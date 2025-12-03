@@ -8,7 +8,7 @@ import {
   updateProfile as updateAuthProfile,
   sendEmailVerification
 } from "firebase/auth";
-import { doc, setDoc, updateDoc, arrayUnion, onSnapshot, Unsubscribe } from "firebase/firestore";
+import { doc, setDoc, arrayUnion, onSnapshot, Unsubscribe } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from '../firebaseConfig';
 import { DATA_VERSION } from '../constants';
@@ -86,7 +86,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const dbData = docSnap.data();
                 
                 // Mezcla robusta: La DB tiene prioridad sobre el baseUser
-                // Esto asegura que isAdmin, isBlocked, etc., se respeten siempre.
                 setUser({ 
                     ...baseUser, 
                     ...dbData,
@@ -95,15 +94,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     isAdmin: !!dbData.isAdmin
                 } as User);
             } else {
-                // Si el documento no existe (Nuevo Usuario), lo creamos
-                await setDoc(userRef, baseUser);
-                // El snapshot se disparará de nuevo automáticamente con los datos creados
+                // Si el documento no existe (Nuevo Usuario), intentamos crearlo
+                // Si falla por permisos (Rules), usamos el baseUser en memoria
+                try {
+                    await setDoc(userRef, baseUser);
+                    setUser(baseUser);
+                } catch (e) {
+                    console.warn("Error creando perfil en DB (Posible error de permisos), usando perfil memoria:", e);
+                    setUser(baseUser);
+                }
             }
             
             setLoading(false);
         }, (error) => {
             console.error("Error en sincronización de usuario:", error);
-            // En caso de error crítico de lectura, desloguear o mantener estado seguro
+            // Si falla la DB (ej. offline), mantenemos al usuario logueado con datos básicos de Auth
+            const fallbackUser: User = {
+                id: firebaseUser.uid,
+                name: firebaseUser.displayName || "Usuario",
+                email: firebaseUser.email || "",
+                avatarUrl: firebaseUser.photoURL || "",
+                role: "Streamer",
+                isAdmin: false,
+                isBlocked: false
+            };
+            setUser(prev => prev || fallbackUser);
             setLoading(false);
         });
 
@@ -159,12 +174,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       const fbUser = userCredential.user;
-      const userEmail = fbUser.email?.toLowerCase() || "";
-
-      sendEmailVerification(fbUser).catch(e => console.warn("Email verification error", e));
-
-      // El listener onSnapshot se encargará de crear el documento en Firestore
-      // pero podemos adelantar la actualización del perfil de Auth
+      
+      // Actualizar perfil de Auth inmediatamente
       await updateAuthProfile(fbUser, { displayName: name });
   };
 
@@ -198,9 +209,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (data: Partial<User>) => {
     if (!user) return;
     
-    // Actualización optimista local (opcional, ya que el snapshot es rápido)
-    // setUser(prev => prev ? { ...prev, ...data } : null);
-
     try {
         if (db) {
             const userDocRef = doc(db, "users", user.id);
