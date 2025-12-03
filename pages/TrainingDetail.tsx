@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, ShieldAlert, MessageSquareWarning, Gift, AlertTriangle, UserX, ShieldCheck, Clock, BarChart3, ZoomIn, AlertOctagon, Gavel, Sparkles, Check, PlayCircle, ExternalLink, X } from 'lucide-react';
+import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, PlayCircle, ExternalLink, X } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { Button } from '../components/Button';
 import * as LucideIcons from 'lucide-react';
@@ -71,8 +71,10 @@ const TrainingDetail: React.FC = () => {
     else alert(`Abriendo recurso: ${title}`);
   };
 
+  // Función corregida para manejar el clic en el video
   const handleOpenVideo = () => {
-      if (module?.videoUrl && module.videoUrl !== '#') {
+      // Verificamos si hay URL y no es el placeholder '#'
+      if (module?.videoUrl && module.videoUrl !== '#' && module.videoUrl.trim() !== '') {
           window.open(module.videoUrl, '_blank', 'noopener,noreferrer');
       } else {
           alert("Video no disponible por el momento.");
@@ -117,7 +119,7 @@ const TrainingDetail: React.FC = () => {
             <div className="h-1 w-10 bg-brand-purple mb-4"></div>
             <h2 className="text-lg font-bold text-brand-black dark:text-white leading-tight mb-4">{module.description}</h2>
             
-            {/* VIDEO BUTTON IMPLEMENTED */}
+            {/* BOTÓN DE VIDEO ACTIVO */}
             {module.videoUrl && module.videoUrl !== '#' && (
                 <button 
                     onClick={handleOpenVideo}

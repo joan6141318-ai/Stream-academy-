@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ContentProvider } from './context/ContentContext';
@@ -32,7 +33,7 @@ import { InstallPrompt } from './components/InstallPrompt';
 import { useOneSignal } from './hooks/useOneSignal';
 
 const AppContent: React.FC = () => {
-  // Inicializar notificaciones una sola vez
+  // Inicializar notificaciones
   useOneSignal();
 
   return (
@@ -40,37 +41,41 @@ const AppContent: React.FC = () => {
       <InstallPrompt />
       
       <Routes>
-        {/* === RUTAS PÚBLICAS Y DE SISTEMA (Fuera de Guards principales) === */}
+        {/* === ZONA PÚBLICA / LOGIN === */}
         <Route path="/" element={<Login />} />
+        
+        {/* === PÁGINAS DE ESTADO ESPECIAL === */}
+        {/* Se colocan fuera de los AuthGates pero dentro del LoadingGate */}
+        {/* Tienen su propia lógica de redirección interna si el usuario está OK */}
         <Route path="/maintenance" element={<MaintenanceMode />} />
         <Route path="/access-denied" element={<AccessDenied />} />
 
-        {/* === RUTAS PROTEGIDAS (Requieren Autenticación) === */}
+        {/* === ZONA PROTEGIDA (Requiere Login) === */}
         <Route element={<AuthGate />}>
             
-            {/* 1. Validación de Bloqueo Global (Prioridad Alta) */}
+            {/* CAPA 1: BLOQUEO DE USUARIO (Redirige a /access-denied si isBlocked=true) */}
             <Route element={<BlockedGate />}>
                 
-                {/* 2. Validación de Mantenimiento (Puede ser bypasseada por Admins) */}
+                {/* CAPA 2: MANTENIMIENTO (Redirige a /maintenance si activo y !isAdmin) */}
                 <Route element={<MaintenanceGate />}>
                     
-                    {/* --- Rutas de Onboarding (Sin Layout) --- */}
+                    {/* --- FLUJO DE ONBOARDING (Sin Layout) --- */}
                     <Route path="/onboarding" element={<Onboarding />} />
                     <Route path="/onboarding/setup" element={<OnboardingSetup />} />
                     
-                    {/* --- Rutas Intermedias --- */}
+                    {/* --- PÁGINAS INTERMEDIAS --- */}
                     <Route path="/welcome" element={<WelcomeIntermediate />} />
-                    <Route path="/pk-calendar" element={<PKCalendar />} />
-
-                    {/* --- Layout Principal con Navegación Inferior --- */}
+                    
+                    {/* --- LAYOUT PRINCIPAL (Con Bottom Nav) --- */}
                     <Route element={<MainLayout />}>
                         <Route path="/home" element={<Profile />} />
                         <Route path="/training" element={<TrainingList />} />
                         <Route path="/settings" element={<UserSettings />} />
                     </Route>
 
-                    {/* --- Rutas de Detalle (Sin BottomNav) --- */}
+                    {/* --- PÁGINAS DE DETALLE Y HERRAMIENTAS (Sin Bottom Nav) --- */}
                     <Route path="/training/:topicId" element={<TrainingDetail />} />
+                    <Route path="/pk-calendar" element={<PKCalendar />} />
                     
                     {/* Sub-secciones de Entrenamiento */}
                     <Route path="/training/bloqueos/motivos" element={<BloqueoMotivos />} />
@@ -84,7 +89,7 @@ const AppContent: React.FC = () => {
                     <Route path="/tools/gamer" element={<GamerTool />} />
                     <Route path="/tools/gamer/setup" element={<GameRunTool />} />
 
-                    {/* --- RUTAS DE ADMINISTRADOR --- */}
+                    {/* --- ZONA DE ADMINISTRADOR (Requiere isAdmin) --- */}
                     <Route element={<AdminGate />}>
                         <Route path="/admin" element={<Navigate to="/admin/selection" replace />} />
                         <Route path="/admin/selection" element={<AdminSelection />} />
@@ -96,7 +101,7 @@ const AppContent: React.FC = () => {
             </Route> {/* Fin BlockedGate */}
         </Route> {/* Fin AuthGate */}
 
-        {/* Catch all: Redirigir a login */}
+        {/* Catch-all: Redirigir a la raíz si no coincide nada */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
@@ -104,44 +109,11 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  // Splash Screen Inicial (Branding)
-  const [showSplash, setShowSplash] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 2500); 
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (showSplash) {
-    return (
-       <div className="fixed inset-0 z-[300] bg-white dark:bg-black flex flex-col items-center justify-center animate-fade-in transition-colors duration-500">
-          <div className="relative w-40 h-40 mb-8 flex items-center justify-center">
-              <div className="absolute inset-0 bg-brand-purple/30 rounded-full blur-2xl animate-pulse"></div>
-              <img
-                src="https://i.postimg.cc/65zvGzJL/IMG_20251102_060134.png"
-                alt="StreamAgency Logo"
-                className="relative w-full h-full object-contain drop-shadow-2xl animate-[pulse_2s_ease-in-out_infinite]"
-              />
-          </div>
-          <h1 className="text-2xl font-black text-brand-black dark:text-white tracking-[0.3em] uppercase animate-pulse">
-            StreamAgency
-          </h1>
-          <div className="mt-4 flex space-x-1">
-             <div className="w-2 h-2 bg-brand-purple rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-             <div className="w-2 h-2 bg-brand-purple rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-             <div className="w-2 h-2 bg-brand-purple rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-          </div>
-       </div>
-    );
-  }
-
-  // --- RECONSTRUCCIÓN: Usando BrowserRouter y LoadingGate ---
   return (
     <BrowserRouter>
       <AuthProvider>
         <ContentProvider>
+           {/* LoadingGate asegura que Firebase Auth y Firestore Content estén listos antes de renderizar rutas */}
            <LoadingGate>
               <AppContent />
            </LoadingGate>

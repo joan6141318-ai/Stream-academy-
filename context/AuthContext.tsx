@@ -8,7 +8,7 @@ import {
   updateProfile as updateAuthProfile,
   sendEmailVerification
 } from "firebase/auth";
-import { doc, setDoc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, setDoc, updateDoc, arrayUnion, onSnapshot, Unsubscribe } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from '../firebaseConfig';
 import { DATA_VERSION } from '../constants';
@@ -46,78 +46,78 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 1. Escuchar cambios de sesión
+  // 1. Escuchar cambios de sesión y Sincronización Tiempo Real con Firestore
   useEffect(() => {
+    let unsubscribeFirestore: Unsubscribe | null = null;
+
     if (!auth) {
         setLoading(false);
         return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const email = firebaseUser.email?.toLowerCase() || "";
-        
-        // Base user structure
-        let baseUser: User = {
-            id: firebaseUser.uid,
-            name: firebaseUser.displayName || "Usuario",
-            email: email,
-            avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${firebaseUser.displayName || 'User'}`,
-            role: "Streamer", // Default role
-            isAdmin: false,   // Default admin status - SECURE DEFAULT
-            isOnboardingComplete: false,
-            dataVersion: DATA_VERSION
-        };
-
-        try {
-            if (db) {
-                const userDocRef = doc(db, "users", firebaseUser.uid);
-                const userDoc = await getDoc(userDocRef);
-                
-                if (userDoc.exists()) {
-                    const dbData = userDoc.data();
-                    
-                    // --- MIGRATION LOGIC ---
-                    const needsMigration = !dbData.dataVersion || dbData.dataVersion < DATA_VERSION;
-
-                    if (needsMigration) {
-                        const updatedProfile = {
-                            ...baseUser,
-                            ...dbData, // DB Data overrides base, preserving isAdmin from DB
-                            isOnboardingComplete: dbData.isOnboardingComplete !== undefined ? dbData.isOnboardingComplete : true, 
-                            dataVersion: DATA_VERSION
-                        };
-                        
-                        await setDoc(userDocRef, updatedProfile, { merge: true });
-                        setUser(updatedProfile);
-
-                    } else {
-                        // Usamos estrictamente los datos de la DB
-                        setUser({ 
-                            ...baseUser, 
-                            ...dbData
-                        } as User);
-                    }
-                } else {
-                    // Usuario nuevo (no existe doc) - Siempre isAdmin: false por defecto
-                    await setDoc(userDocRef, baseUser);
-                    setUser(baseUser);
-                }
-            } else {
-                // Fallback offline
-                setUser(baseUser);
-            }
-        } catch (error: any) {
-            console.warn("Firestore error, using cached auth profile.");
-            setUser(baseUser);
-        }
-      } else {
-        setUser(null);
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      // Si cambia el usuario de auth, limpiamos el listener anterior de Firestore
+      if (unsubscribeFirestore) {
+        unsubscribeFirestore();
+        unsubscribeFirestore = null;
       }
-      setLoading(false);
+
+      if (firebaseUser) {
+        const userRef = doc(db, "users", firebaseUser.uid);
+        
+        // Configurar listener en tiempo real para el documento del usuario
+        unsubscribeFirestore = onSnapshot(userRef, async (docSnap) => {
+            const email = firebaseUser.email?.toLowerCase() || "";
+            
+            // Datos base predeterminados (Fallback)
+            const baseUser: User = {
+                id: firebaseUser.uid,
+                name: firebaseUser.displayName || "Usuario",
+                email: email,
+                avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${firebaseUser.displayName || 'User'}`,
+                role: "Streamer",
+                isAdmin: false,
+                isBlocked: false, // Por defecto no bloqueado
+                isOnboardingComplete: false,
+                dataVersion: DATA_VERSION
+            };
+
+            if (docSnap.exists()) {
+                const dbData = docSnap.data();
+                
+                // Mezcla robusta: La DB tiene prioridad sobre el baseUser
+                // Esto asegura que isAdmin, isBlocked, etc., se respeten siempre.
+                setUser({ 
+                    ...baseUser, 
+                    ...dbData,
+                    // Asegurar consistencia de datos críticos
+                    isBlocked: !!dbData.isBlocked, 
+                    isAdmin: !!dbData.isAdmin
+                } as User);
+            } else {
+                // Si el documento no existe (Nuevo Usuario), lo creamos
+                await setDoc(userRef, baseUser);
+                // El snapshot se disparará de nuevo automáticamente con los datos creados
+            }
+            
+            setLoading(false);
+        }, (error) => {
+            console.error("Error en sincronización de usuario:", error);
+            // En caso de error crítico de lectura, desloguear o mantener estado seguro
+            setLoading(false);
+        });
+
+      } else {
+        // No hay usuario autenticado
+        setUser(null);
+        setLoading(false);
+      }
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeFirestore) unsubscribeFirestore();
+    };
   }, []); 
 
   // --- LOGIN ---
@@ -127,13 +127,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const credential = await signInWithEmailAndPassword(auth, email, pass);
       const fbUser = credential.user;
       
-      // --- CAPTURA DE DATOS DE ACTIVIDAD ---
+      // Registro de actividad
       const now = new Date();
-      const ua = navigator.userAgent;
-      let deviceString = "Desconocido";
-      if (ua.includes("iPhone")) deviceString = "iPhone iOS";
-      else if (ua.includes("Android")) deviceString = "Android Device";
-      else if (ua.includes("Windows")) deviceString = "PC Windows";
+      const deviceString = navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Web Browser';
       
       const newLog: ActivityLog = {
           action: 'Inicio de Sesión',
@@ -145,17 +141,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (db) {
           try {
               const userRef = doc(db, "users", fbUser.uid);
-              // CAMBIO CRÍTICO: Usar setDoc con merge en lugar de updateDoc
-              // Esto asegura que si 'accessLogs' no existe, se cree el documento correctamente
-              // y evita errores si la estructura del usuario era antigua.
+              // Usamos setDoc con merge para garantizar escritura
               await setDoc(userRef, {
                   lastLogin: now.toISOString(),
                   deviceInfo: deviceString,
                   accessLogs: arrayUnion(newLog) 
               }, { merge: true });
           } catch (e) {
-              // Fallo silencioso en logs para no bloquear el login
-              console.warn("Log update warning:", e);
+              console.warn("No se pudo registrar log de acceso:", e);
           }
       }
   };
@@ -164,50 +157,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (email: string, pass: string, name: string, isAdmin: boolean = false) => {
       if (!auth) throw new Error("Firebase no configurado");
       
-      // SEGURIDAD: Forzamos isAdmin a false, ignorando el parámetro de entrada si viniera corrupto.
-      // Solo un admin existente puede promover a otro desde el panel de control.
-      const secureIsAdmin = false; 
-
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       const fbUser = userCredential.user;
       const userEmail = fbUser.email?.toLowerCase() || "";
 
       sendEmailVerification(fbUser).catch(e => console.warn("Email verification error", e));
 
-      const now = new Date();
-      const deviceString = navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Web Browser';
-
-      const newUserProfile: User = {
-        id: fbUser.uid,
-        name: name,
-        email: userEmail,
-        avatarUrl: `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${name}`,
-        role: "Nuevo Ingreso", // Role inicial seguro
-        isAdmin: secureIsAdmin, 
-        isOnboardingComplete: false,
-        dataVersion: DATA_VERSION,
-        lastLogin: now.toISOString(),
-        deviceInfo: deviceString,
-        accessLogs: [{ action: 'Cuenta Creada', timestamp: now.toISOString(), device: deviceString, type: 'login' }]
-      };
-
-      setUser(newUserProfile);
-      setLoading(false);
-
-      try {
-        if (db) {
-            await setDoc(doc(db, "users", fbUser.uid), newUserProfile);
-        }
-        await updateAuthProfile(fbUser, { displayName: name });
-      } catch (e) {
-        console.error("Error creating user profile in DB", e);
-      }
+      // El listener onSnapshot se encargará de crear el documento en Firestore
+      // pero podemos adelantar la actualización del perfil de Auth
+      await updateAuthProfile(fbUser, { displayName: name });
   };
 
   const logout = async () => {
       if (!auth) return;
       await signOut(auth);
-      setUser(null);
+      // El estado se limpiará vía onAuthStateChanged
   };
 
   const uploadPhoto = async (file: Blob, base64Fallback?: string): Promise<string> => {
@@ -220,7 +184,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               const downloadURL = await getDownloadURL(storageRef);
               return `${downloadURL}?t=${new Date().getTime()}`; 
           } catch (error) {
-              console.warn("Storage upload failed. Switching to Base64 fallback.", error);
+              console.warn("Fallo Storage, usando fallback Base64.", error);
           }
       }
 
@@ -234,31 +198,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (data: Partial<User>) => {
     if (!user) return;
     
-    if (db) {
-        const now = new Date();
-        const deviceString = navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Web Browser';
-        
-        if (data.name || data.avatarUrl || data.isAdmin) {
-             const log: ActivityLog = {
-                 action: 'Perfil Actualizado',
-                 timestamp: now.toISOString(),
-                 device: deviceString,
-                 type: 'profile_update'
-             };
-             try {
-                const userRef = doc(db, "users", user.id);
-                // Usamos setDoc con merge para máxima compatibilidad
-                await setDoc(userRef, { accessLogs: arrayUnion(log) }, { merge: true });
-             } catch(e) {}
-        }
-    }
-    
-    setUser(prev => prev ? { ...prev, ...data } : null);
+    // Actualización optimista local (opcional, ya que el snapshot es rápido)
+    // setUser(prev => prev ? { ...prev, ...data } : null);
 
     try {
         if (db) {
             const userDocRef = doc(db, "users", user.id);
             await setDoc(userDocRef, data, { merge: true });
+            
+            // Log de actividad si es cambio relevante
+            if (data.name || data.avatarUrl) {
+                const now = new Date();
+                const log: ActivityLog = {
+                     action: 'Perfil Actualizado',
+                     timestamp: now.toISOString(),
+                     device: 'App',
+                     type: 'profile_update'
+                 };
+                 await setDoc(userDocRef, { accessLogs: arrayUnion(log) }, { merge: true });
+            }
         }
         
         if (auth && auth.currentUser) {
@@ -271,7 +229,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         }
     } catch (e) {
-        console.warn("Profile sync warning:", e);
+        console.warn("Error sincronizando perfil:", e);
     }
   };
 

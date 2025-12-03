@@ -16,7 +16,8 @@ const CalculatorTool: React.FC = () => {
   const playAlertSound = () => {
     // Robustez: Envolver en try/catch para evitar crash en browsers restrictivos
     try {
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      // @ts-ignore
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
       if (!AudioContext) return;
       
       if (!audioCtxRef.current) {
@@ -25,9 +26,9 @@ const CalculatorTool: React.FC = () => {
       
       const ctx = audioCtxRef.current;
       
-      // Si está suspendido, intentar resumir (podría fallar sin gesto de usuario, pero no crashea la app)
+      // Intentar reanudar si está suspendido (requiere interacción previa del usuario)
       if (ctx.state === 'suspended') {
-          ctx.resume().catch(() => {}); 
+          ctx.resume().catch((e) => console.warn("Audio resume failed (no interaction)", e));
       }
       
       if (ctx.state !== 'running') return; // Si no corre, salimos silenciosamente
@@ -101,7 +102,8 @@ const CalculatorTool: React.FC = () => {
 
   useEffect(() => {
     if (status === 'danger' && seeds.length > 0 && hours.length > 0) {
-        const timer = setTimeout(() => { playAlertSound(); }, 1000); 
+        // Debounce simple para evitar spam
+        const timer = setTimeout(() => { playAlertSound(); }, 500); 
         return () => clearTimeout(timer);
     }
   }, [status]);
