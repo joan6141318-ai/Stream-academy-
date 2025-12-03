@@ -15,7 +15,6 @@ const CalculatorTool: React.FC = () => {
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   const playAlertSound = () => {
-    // Robustez: Envolver en try/catch para evitar crash en browsers restrictivos
     try {
       // @ts-ignore
       const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -27,12 +26,11 @@ const CalculatorTool: React.FC = () => {
       
       const ctx = audioCtxRef.current;
       
-      // Intentar reanudar si está suspendido (requiere interacción previa del usuario)
       if (ctx.state === 'suspended') {
           ctx.resume().catch((e) => console.warn("Audio resume failed (no interaction)", e));
       }
       
-      if (ctx.state !== 'running') return; // Si no corre, salimos silenciosamente
+      if (ctx.state !== 'running') return;
 
       const osc = ctx.createOscillator();
       const gainNode = ctx.createGain();
@@ -42,7 +40,7 @@ const CalculatorTool: React.FC = () => {
       
       osc.type = 'square'; 
       const now = ctx.currentTime;
-      const duration = 2; // Reducido a 2s para ser menos intrusivo
+      const duration = 2;
 
       osc.frequency.setValueAtTime(600, now);
       osc.frequency.linearRampToValueAtTime(850, now + 0.5);
@@ -76,7 +74,8 @@ const CalculatorTool: React.FC = () => {
     if (numHours < 20) {
         setStatus('danger');
         const exchangeVal = numSeeds / 210;
-        // Si no cumple horas, la meta alcanzada sigue siendo el tier, pero el pago base es 0
+        // Si no cumple horas, la meta alcanzada sigue siendo el tier para referencia, 
+        // pero el pago base es 0 y todo se considera excedente/cambio.
         setResult({ 
             basePay: 0, 
             excessPay: exchangeVal, 
@@ -108,7 +107,6 @@ const CalculatorTool: React.FC = () => {
             excessSeeds: rawExcessSeeds > 0 ? rawExcessSeeds : 0 
         });
     } else {
-        // No llega a ninguna meta (menor a 10k o 20k según tabla)
         setStatus(numHours < 44 ? 'warning' : 'neutral');
         const pay = numSeeds / 210;
         setResult({ 
@@ -123,7 +121,6 @@ const CalculatorTool: React.FC = () => {
 
   useEffect(() => {
     if (status === 'danger' && seeds.length > 0 && hours.length > 0) {
-        // Debounce simple para evitar spam
         const timer = setTimeout(() => { playAlertSound(); }, 500); 
         return () => clearTimeout(timer);
     }
@@ -167,31 +164,50 @@ const CalculatorTool: React.FC = () => {
                 {/* Status Message */}
                 <div className="flex items-start space-x-2 mb-6 bg-white/5 p-3 rounded-sm backdrop-blur-sm"><StatusIcon size={16} className={`mt-0.5 flex-shrink-0 ${statusUI.iconColor}`} /><p className="text-xs font-bold leading-tight opacity-90">{statusUI.message}</p></div>
                 
+                {/* DETAILED BREAKDOWN (VERTICAL LIST) */}
                 <div className="space-y-4 pt-4 border-t border-white/10">
                     
-                    {/* DETAILS: Meta & Excess */}
-                    <div className="grid grid-cols-2 gap-4 pb-4 border-b border-white/10 border-dashed">
-                        <div className="bg-white/5 p-2 rounded-sm">
-                            <span className="text-[8px] font-black uppercase tracking-wider text-gray-400 flex items-center mb-1"><Target size={10} className="mr-1" /> Meta Alcanzada</span>
-                            <span className="font-black text-white text-sm block">{formatNumber(result.tierReached)}</span>
-                            <span className="text-[8px] text-emerald-400 font-bold uppercase">Semillas</span>
-                        </div>
-                        <div className="bg-white/5 p-2 rounded-sm text-right">
-                            <span className="text-[8px] font-black uppercase tracking-wider text-gray-400 flex items-center justify-end mb-1"><Layers size={10} className="mr-1" /> Excedente</span>
-                            <span className="font-black text-white text-sm block">{formatNumber(result.excessSeeds)}</span>
-                            <span className="text-[8px] text-orange-400 font-bold uppercase">Semillas (+{formatCurrency(result.excessPay)})</span>
+                    {/* Meta Cumplida */}
+                    <div className="flex justify-between items-center border-b border-white/5 pb-2 border-dashed">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 flex items-center">
+                            <Target size={12} className="mr-2 opacity-70" />
+                            Meta Alcanzada
+                        </span>
+                        <div className="text-right">
+                            <span className="font-bold text-white text-sm block">{formatNumber(result.tierReached)}</span>
+                            <span className="text-[8px] text-emerald-500 font-bold uppercase tracking-wide">Semillas Base</span>
                         </div>
                     </div>
 
-                    {/* PAY BREAKDOWN */}
-                    <div className="space-y-2">
-                        <div className="flex justify-between items-center text-sm">
-                            <span className="font-medium opacity-60 flex items-center"><Target size={12} className="mr-2 opacity-50"/>Pago por Meta</span>
-                            <span className={`font-bold ${status === 'danger' ? 'text-red-500 line-through' : 'text-white'}`}>{formatCurrency(result.basePay)}</span>
+                    {/* Semillas Excedentes */}
+                    <div className="flex justify-between items-center border-b border-white/5 pb-2 border-dashed">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 flex items-center">
+                            <Layers size={12} className="mr-2 opacity-70" />
+                            Semillas Excedentes
+                        </span>
+                        <span className="font-bold text-white text-sm">{formatNumber(result.excessSeeds)}</span>
+                    </div>
+
+                    {/* Valor Excedente */}
+                    <div className="flex justify-between items-center border-b border-white/5 pb-2 border-dashed">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 flex items-center">
+                            <Coins size={12} className="mr-2 opacity-70" />
+                            Valor del Excedente
+                        </span>
+                        <span className="font-bold text-orange-400 text-sm">+{formatCurrency(result.excessPay)}</span>
+                    </div>
+
+                    {/* Resumen Final */}
+                    <div className="bg-white/5 p-3 rounded-sm mt-2 border border-white/5">
+                        <div className="flex justify-between items-center text-xs mb-2">
+                            <span className="text-gray-400 font-medium">Pago Base (Meta)</span>
+                            <span className={`font-bold ${status === 'danger' ? 'text-red-500 line-through' : 'text-white'}`}>
+                                {formatCurrency(result.basePay)}
+                            </span>
                         </div>
-                        <div className="flex justify-between items-center text-sm">
-                            <span className="font-medium opacity-60 flex items-center"><Coins size={12} className="mr-2 opacity-50"/>Pago por Excedente</span>
-                            <span className="font-bold text-orange-400">+{formatCurrency(result.excessPay)}</span>
+                        <div className="flex justify-between items-center text-xs">
+                            <span className="text-gray-400 font-medium">Pago Excedente</span>
+                            <span className="text-orange-400 font-bold">+ {formatCurrency(result.excessPay)}</span>
                         </div>
                     </div>
                 </div>
