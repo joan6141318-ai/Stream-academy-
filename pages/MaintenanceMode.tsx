@@ -1,13 +1,30 @@
+
 import React from 'react';
-import { ShieldAlert, Lock, RefreshCw, AlertTriangle, Bot, Wrench, Settings } from 'lucide-react';
+import { ShieldAlert, Lock, RefreshCw, AlertTriangle, Bot, Wrench, Settings, Unlock, ArrowRight, ShieldCheck, Power } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const MaintenanceMode: React.FC = () => {
-  const { homeConfig } = useContent();
+  const { homeConfig, updateHomeConfig } = useContent();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const activeMode = homeConfig?.maintenanceMode || 'lockdown'; // Default to red if undefined
 
   const handleRefresh = () => {
     window.location.reload();
+  };
+
+  const handleAdminBypass = () => {
+      navigate('/admin/dashboard');
+  };
+
+  const handleTurnOff = async () => {
+      if(window.confirm("¿Desactivar el Modo Mantenimiento para todos?")) {
+          await updateHomeConfig({ maintenanceMode: 'off' });
+          // Redirigir al home después de apagar
+          setTimeout(() => navigate('/home'), 500);
+      }
   };
 
   // --- MODO 1: RED LOCKDOWN (Seguridad/Peligro) ---
@@ -17,6 +34,33 @@ const MaintenanceMode: React.FC = () => {
           
           {/* Background Pulse */}
           <div className="absolute inset-0 bg-red-700 animate-pulse opacity-50 pointer-events-none"></div>
+          
+          {/* ADMIN CONTROL CENTER - CENTERED */}
+          {user?.isAdmin && (
+              <div className="w-full max-w-xs mb-8 z-50 animate-slide-up relative">
+                  <div className="bg-black/30 backdrop-blur-md border border-white/20 p-5 rounded-2xl shadow-2xl">
+                      <div className="flex items-center justify-center space-x-2 mb-4 border-b border-white/10 pb-3">
+                          <ShieldCheck size={18} className="text-white" />
+                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Panel Admin</span>
+                      </div>
+                      <div className="grid grid-cols-1 gap-3">
+                          <button 
+                            onClick={handleTurnOff}
+                            className="w-full bg-white text-red-600 h-10 rounded-lg font-black uppercase text-[10px] tracking-widest flex items-center justify-center hover:bg-gray-100 shadow-md transition-transform active:scale-95"
+                          >
+                              <Power size={14} className="mr-2" />
+                              Desactivar Bloqueo
+                          </button>
+                          <button 
+                            onClick={handleAdminBypass}
+                            className="w-full bg-black/40 text-white border border-white/20 h-10 rounded-lg font-black uppercase text-[10px] tracking-widest flex items-center justify-center hover:bg-black/60 shadow-md transition-transform active:scale-95"
+                          >
+                              Entrar al Sistema <ArrowRight size={14} className="ml-2" />
+                          </button>
+                      </div>
+                  </div>
+              </div>
+          )}
           
           {/* Huge Icon */}
           <div className="relative z-10 mb-8">
@@ -77,6 +121,33 @@ const MaintenanceMode: React.FC = () => {
       <div className="absolute top-0 right-0 w-64 h-64 bg-brand-purple/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-purple/10 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none"></div>
 
+      {/* ADMIN CONTROL CENTER - CENTERED */}
+      {user?.isAdmin && (
+          <div className="w-full max-w-xs mb-10 z-50 animate-slide-up relative">
+              <div className="bg-white dark:bg-brand-dark-card border border-gray-100 dark:border-white/10 p-5 rounded-2xl shadow-xl">
+                  <div className="flex items-center justify-center space-x-2 mb-4 border-b border-gray-100 dark:border-white/10 pb-3">
+                      <ShieldCheck size={18} className="text-brand-purple" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-black dark:text-white">Panel Admin</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3">
+                      <button 
+                        onClick={handleTurnOff}
+                        className="w-full bg-brand-purple text-white h-10 rounded-lg font-black uppercase text-[10px] tracking-widest flex items-center justify-center hover:bg-purple-600 shadow-md transition-transform active:scale-95"
+                      >
+                          <Unlock size={14} className="mr-2" />
+                          Abrir App (Online)
+                      </button>
+                      <button 
+                        onClick={handleAdminBypass}
+                        className="w-full bg-gray-100 dark:bg-white/10 text-brand-black dark:text-white border border-transparent h-10 rounded-lg font-black uppercase text-[10px] tracking-widest flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/20 shadow-sm transition-transform active:scale-95"
+                      >
+                          Ir al Panel <ArrowRight size={14} className="ml-2" />
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
+
       <div className="relative z-10 flex flex-col items-center text-center max-w-sm">
           
           {/* Animated Bot Character */}
@@ -100,7 +171,7 @@ const MaintenanceMode: React.FC = () => {
           </div>
 
           <div className="space-y-4 mb-8">
-              <h1 className="text-3xl font-black uppercase tracking-tighter leading-none">
+              <h1 className="text-3xl font-black uppercase tracking-tighter leading-none text-brand-black dark:text-white">
                   Estamos<br/>Trabajando
               </h1>
               <div className="inline-flex items-center space-x-2 bg-gray-100 dark:bg-white/10 px-3 py-1 rounded-full">
@@ -124,7 +195,7 @@ const MaintenanceMode: React.FC = () => {
       </div>
 
       <div className="absolute bottom-8 text-center opacity-30">
-          <p className="text-[10px] font-mono">STATUS: UPGRADING_SYSTEM</p>
+          <p className="text-[10px] font-mono dark:text-white text-black">STATUS: UPGRADING_SYSTEM</p>
       </div>
     </div>
   );

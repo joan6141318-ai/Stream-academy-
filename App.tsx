@@ -29,7 +29,7 @@ import { MainLayout } from './components/MainLayout';
 import { InstallPrompt } from './components/InstallPrompt';
 import { useOneSignal } from './hooks/useOneSignal'; // Import Hook
 
-// System Version: v16.1.0 - Admin Recovery Fix
+// System Version: v16.1.2 - Admin Guard Fix
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -84,14 +84,23 @@ const AppContent: React.FC = () => {
   // --- 2. GLOBAL MAINTENANCE GUARD (DUAL MODE) ---
   const activeMode = homeConfig?.maintenanceMode || 'off';
   
-  if (!contentLoading && activeMode !== 'off') {
-      const isMaintenancePage = location.pathname === '/maintenance';
-      const isLoginPage = location.pathname === '/';
-      const isBlockedPage = location.pathname === '/access-denied';
+  // SOLUCIÓN DE CARRERA: Solo ejecutamos la lógica si tenemos datos de configuración y autenticación
+  if (!contentLoading && !authLoading && activeMode !== 'off') {
       
-      // If user is not admin and trying to access anything but permitted pages
-      if (!user?.isAdmin && !isMaintenancePage && !isLoginPage && !isBlockedPage) {
-          return <Navigate to="/maintenance" replace />;
+      // EXCEPCIÓN SUPREMA: Si es Admin, el código de abajo NO se ejecuta.
+      // El Admin tiene pase libre total.
+      if (user?.isAdmin) {
+          // Pass-through: El administrador puede navegar a donde quiera.
+      } else {
+          // Lógica para usuarios normales (NO Admins)
+          const isMaintenancePage = location.pathname === '/maintenance';
+          const isLoginPage = location.pathname === '/';
+          const isBlockedPage = location.pathname === '/access-denied';
+          
+          // Si no está en una página permitida, enviarlo a mantenimiento
+          if (!isMaintenancePage && !isLoginPage && !isBlockedPage) {
+              return <Navigate to="/maintenance" replace />;
+          }
       }
   }
 
