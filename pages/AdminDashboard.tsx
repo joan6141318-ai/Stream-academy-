@@ -1,8 +1,8 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, Key, ArrowLeft, ArrowRight, ShieldCheck, UserX, Check, X, Save, Clock, Zap } from 'lucide-react';
-import { collection, updateDoc, doc, onSnapshot, query } from 'firebase/firestore';
+import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, Key, ArrowLeft, ArrowRight, ShieldCheck, UserX, Check, X, Save, Clock, Zap, Plus, Trash2, History } from 'lucide-react';
+import { collection, updateDoc, doc, onSnapshot, query, writeBatch } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Header } from '../components/Header';
 import { Button } from '../components/Button';
@@ -31,6 +31,7 @@ const AdminDashboard: React.FC = () => {
 
   const [newAgencyCode, setNewAgencyCode] = useState('');
   const [isUpdatingKey, setIsUpdatingKey] = useState(false);
+  const [isClearingHistory, setIsClearingHistory] = useState(false);
 
   // --- REAL TIME USERS ---
   useEffect(() => {
@@ -116,6 +117,8 @@ const AdminDashboard: React.FC = () => {
     } catch (err) { alert("Error conexión"); } finally { setIsSendingAlert(false); }
   };
 
+  // --- PK LOGIC ---
+
   const handleScheduleChange = (type: 'potential' | 'supersmash', index: number, field: keyof PKEvent, value: string) => {
       if (!localSchedule) return;
       const updatedList = [...(localSchedule[type] || [])];
@@ -124,25 +127,97 @@ const AdminDashboard: React.FC = () => {
       setLocalSchedule({ ...localSchedule, [type]: updatedList });
   };
 
+  const handleAddRow = (type: 'potential' | 'supersmash') => {
+      if (!localSchedule) return;
+      const newRow: PKEvent = {
+          id: Date.now().toString(),
+          time: '00:00 - 00:00 PM',
+          user1: '', id1: '',
+          user2: '', id2: '',
+          confirmed: false
+      };
+      setLocalSchedule({ ...localSchedule, [type]: [...localSchedule[type], newRow] });
+  };
+
+  const handleRemoveRow = (type: 'potential' | 'supersmash', index: number) => {
+      if (!localSchedule) return;
+      if (!window.confirm("¿Eliminar esta fila?")) return;
+      const updatedList = [...localSchedule[type]];
+      updatedList.splice(index, 1);
+      setLocalSchedule({ ...localSchedule, [type]: updatedList });
+  };
+
+  const handleClearHistory = async () => {
+      if (!window.confirm("¿Estás seguro de eliminar todas las solicitudes APROBADAS y RECHAZADAS? Esto no se puede deshacer.")) return;
+      setIsClearingHistory(true);
+      try {
+          const finishedRequests = pkRequests.filter(req => req.status !== 'pending');
+          const batch = writeBatch(db);
+          finishedRequests.forEach(req => {
+              const ref = doc(db, "pk_requests", req.id);
+              batch.delete(ref);
+          });
+          await batch.commit();
+          alert("Historial limpiado.");
+      } catch (e) {
+          alert("Error al limpiar historial.");
+      } finally {
+          setIsClearingHistory(false);
+      }
+  };
+
   const saveSchedule = async () => {
       if (localSchedule) { await updatePKSchedule(localSchedule); alert("Calendario actualizado"); }
   };
 
-  const renderTimeBox = (timeString: string) => {
-      const parts = timeString.split('-');
-      const start = parts[0]?.trim() || timeString;
-      const end = parts[1]?.trim() || '';
-      
+  const renderEditableRow = (ev: PKEvent, i: number, type: 'potential' | 'supersmash') => {
       return (
-        <div className="bg-white dark:bg-black/20 w-16 h-14 rounded-lg border border-gray-100 dark:border-white/10 flex flex-col items-center justify-center flex-shrink-0 shadow-sm">
-            <Clock size={10} className="text-gray-400 mb-0.5" />
-            <span className="text-[9px] font-black text-brand-black dark:text-white leading-none">{start}</span>
-            {end && <span className="text-[7px] font-bold text-gray-400 dark:text-gray-500 leading-none mt-0.5">{end}</span>}
+        <div key={i} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5 transition-all hover:bg-gray-100 dark:hover:bg-white/10 group">
+            {/* Editable Time Box */}
+            <div className="w-20 h-12 bg-white dark:bg-black/40 rounded-lg border border-gray-200 dark:border-white/10 flex flex-col items-center justify-center shadow-sm relative overflow-hidden group-focus-within:border-brand-purple transition-colors">
+                <div className="absolute top-1 left-0 w-full flex justify-center pointer-events-none">
+                    <Clock size={8} className="text-gray-400" />
+                </div>
+                <input 
+                    value={ev.time}
+                    onChange={e => handleScheduleChange(type, i, 'time', e.target.value)}
+                    className="w-full h-full bg-transparent text-center text-[9px] font-black text-brand-black dark:text-white outline-none px-1 pt-2 uppercase"
+                    placeholder="00:00"
+                />
+            </div>
+
+            {/* Inputs Container */}
+            <div className="flex-1 flex items-center gap-1.5">
+                <input 
+                    value={ev.id1} 
+                    onChange={e => handleScheduleChange(type, i, 'id1', e.target.value)} 
+                    className="w-full h-12 bg-white dark:bg-black/40 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-[10px] uppercase text-brand-black dark:text-white placeholder:text-gray-300 focus:border-brand-purple focus:ring-1 focus:ring-brand-purple/20 outline-none transition-all shadow-sm" 
+                    placeholder="ID EMISOR" 
+                />
+                
+                <span className="text-[10px] font-black text-gray-300 italic flex-shrink-0 select-none">VS</span>
+                
+                <input 
+                    value={ev.id2} 
+                    onChange={e => handleScheduleChange(type, i, 'id2', e.target.value)} 
+                    className="w-full h-12 bg-white dark:bg-black/40 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-[10px] uppercase text-brand-black dark:text-white placeholder:text-gray-300 focus:border-brand-purple focus:ring-1 focus:ring-brand-purple/20 outline-none transition-all shadow-sm" 
+                    placeholder="ID OPONENTE" 
+                />
+            </div>
+
+            {/* Delete Row */}
+            <button 
+                onClick={() => handleRemoveRow(type, i)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            >
+                <Trash2 size={14} />
+            </button>
         </div>
       );
   };
 
   const pendingRequests = pkRequests.filter(req => req.status === 'pending');
+  const historyRequests = pkRequests.filter(req => req.status !== 'pending');
   const currentMode = homeConfig.maintenanceMode || 'off';
 
   return (
@@ -310,31 +385,16 @@ const AdminDashboard: React.FC = () => {
                              </div>
 
                              <div className="space-y-3">
-                                {localSchedule.potential.map((ev, i) => (
-                                    <div key={i} className="flex items-center gap-3 p-1">
-                                        {/* Time Box */}
-                                        {renderTimeBox(ev.time)}
-
-                                        {/* Inputs Container */}
-                                        <div className="flex-1 flex items-center gap-2">
-                                            <input 
-                                                value={ev.id1} 
-                                                onChange={e => handleScheduleChange('potential', i, 'id1', e.target.value)} 
-                                                className="w-full h-14 bg-white dark:bg-black/20 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-xs uppercase text-brand-black dark:text-white placeholder:text-gray-300 focus:border-brand-purple focus:ring-1 focus:ring-brand-purple/20 outline-none transition-all shadow-sm" 
-                                                placeholder="ID EMISOR" 
-                                            />
-                                            
-                                            <span className="text-[10px] font-black text-gray-300 italic flex-shrink-0">VS</span>
-                                            
-                                            <input 
-                                                value={ev.id2} 
-                                                onChange={e => handleScheduleChange('potential', i, 'id2', e.target.value)} 
-                                                className="w-full h-14 bg-white dark:bg-black/20 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-xs uppercase text-brand-black dark:text-white placeholder:text-gray-300 focus:border-brand-purple focus:ring-1 focus:ring-brand-purple/20 outline-none transition-all shadow-sm" 
-                                                placeholder="ID OPONENTE" 
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
+                                {localSchedule.potential.map((ev, i) => renderEditableRow(ev, i, 'potential'))}
+                                
+                                {/* Add Row Button */}
+                                <button 
+                                    onClick={() => handleAddRow('potential')}
+                                    className="w-full py-3 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-xl flex items-center justify-center text-gray-400 hover:text-brand-purple hover:border-brand-purple/50 transition-all uppercase text-[10px] font-black tracking-widest gap-2 group"
+                                >
+                                    <Plus size={14} className="group-hover:scale-110 transition-transform" />
+                                    Agregar Fila
+                                </button>
                              </div>
 
                              <button 
@@ -356,31 +416,16 @@ const AdminDashboard: React.FC = () => {
                              </div>
 
                              <div className="space-y-3">
-                                {localSchedule.supersmash.map((ev, i) => (
-                                    <div key={i} className="flex items-center gap-3 p-1">
-                                        {/* Time Box */}
-                                        {renderTimeBox(ev.time)}
+                                {localSchedule.supersmash.map((ev, i) => renderEditableRow(ev, i, 'supersmash'))}
 
-                                        {/* Inputs Container */}
-                                        <div className="flex-1 flex items-center gap-2">
-                                            <input 
-                                                value={ev.id1} 
-                                                onChange={e => handleScheduleChange('supersmash', i, 'id1', e.target.value)} 
-                                                className="w-full h-14 bg-white dark:bg-black/20 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-xs uppercase text-brand-black dark:text-white placeholder:text-gray-300 focus:border-brand-purple focus:ring-1 focus:ring-brand-purple/20 outline-none transition-all shadow-sm" 
-                                                placeholder="ID EMISOR" 
-                                            />
-                                            
-                                            <span className="text-[10px] font-black text-gray-300 italic flex-shrink-0">VS</span>
-                                            
-                                            <input 
-                                                value={ev.id2} 
-                                                onChange={e => handleScheduleChange('supersmash', i, 'id2', e.target.value)} 
-                                                className="w-full h-14 bg-white dark:bg-black/20 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-xs uppercase text-brand-black dark:text-white placeholder:text-gray-300 focus:border-brand-purple focus:ring-1 focus:ring-brand-purple/20 outline-none transition-all shadow-sm" 
-                                                placeholder="ID OPONENTE" 
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
+                                {/* Add Row Button */}
+                                <button 
+                                    onClick={() => handleAddRow('supersmash')}
+                                    className="w-full py-3 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-xl flex items-center justify-center text-gray-400 hover:text-orange-500 hover:border-orange-500/50 transition-all uppercase text-[10px] font-black tracking-widest gap-2 group"
+                                >
+                                    <Plus size={14} className="group-hover:scale-110 transition-transform" />
+                                    Agregar Fila
+                                </button>
                              </div>
 
                              <button 
@@ -394,8 +439,24 @@ const AdminDashboard: React.FC = () => {
 
                      </div>
                 ) : (
-                    // SOLICITUDES VIEW (UNCHANGED BUT CLEANER)
+                    // SOLICITUDES VIEW
                     <div className="space-y-4">
+                        {/* Header with Clear History */}
+                        <div className="flex justify-between items-center px-1 mb-2">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                Bandeja de Entrada
+                            </span>
+                            {historyRequests.length > 0 && (
+                                <button 
+                                    onClick={handleClearHistory}
+                                    disabled={isClearingHistory}
+                                    className="text-[9px] font-black text-red-500 bg-red-50 dark:bg-red-900/10 px-2 py-1 rounded flex items-center gap-1 hover:bg-red-100 transition-colors uppercase tracking-wide"
+                                >
+                                    {isClearingHistory ? 'Eliminando...' : <> <Trash2 size={10} /> Borrar Historial </>}
+                                </button>
+                            )}
+                        </div>
+
                         {pendingRequests.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-brand-dark-card rounded-[2rem] border border-dashed border-gray-200 dark:border-white/10">
                                 <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-full mb-4">
@@ -419,6 +480,26 @@ const AdminDashboard: React.FC = () => {
                                 </div>
                             </div>
                         ))}
+
+                        {/* History / Completed Section */}
+                        {historyRequests.length > 0 && (
+                            <div className="mt-8">
+                                <div className="flex items-center gap-2 mb-4 px-1 opacity-50">
+                                    <History size={12} />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Historial Reciente</span>
+                                </div>
+                                <div className="space-y-2 opacity-60 hover:opacity-100 transition-opacity">
+                                    {historyRequests.slice(0, 5).map(req => (
+                                        <div key={req.id} className="bg-gray-50 dark:bg-white/5 p-3 rounded-lg flex justify-between items-center">
+                                            <span className="text-xs font-bold text-gray-500">{req.bigoId}</span>
+                                            <span className={`text-[9px] font-black px-2 py-0.5 rounded ${req.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                {req.status === 'approved' ? 'APROBADO' : 'RECHAZADO'}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
