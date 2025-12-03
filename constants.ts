@@ -31,7 +31,7 @@ export const SALARY_TIERS = [
   { seeds: 400000, pay: 4604 },
   { seeds: 300000, pay: 3409 },
   { seeds: 250000, pay: 2840 },
-  { seeds: 20000, pay: 2272 }, 
+  { seeds: 200000, pay: 2272 }, 
   { seeds: 150000, pay: 1704 },
   { seeds: 100000, pay: 1136 }, 
   { seeds: 60000, pay: 708 },

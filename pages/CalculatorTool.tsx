@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calculator, Clock, DollarSign, TrendingUp, AlertTriangle, XCircle, CheckCircle, PartyPopper, Target, Layers } from 'lucide-react';
+import { Calculator, Clock, DollarSign, TrendingUp, AlertTriangle, XCircle, CheckCircle, PartyPopper, Target, Layers, Coins } from 'lucide-react';
 import { Header } from '../components/Header';
 import { SALARY_TIERS } from '../constants';
 
@@ -67,7 +67,7 @@ const CalculatorTool: React.FC = () => {
     
     const tier = SALARY_TIERS.find(t => numSeeds >= t.seeds);
     
-    if (numHours === 0) {
+    if (numHours === 0 && numSeeds === 0) {
         setStatus('neutral');
         setResult({ basePay: 0, excessPay: 0, totalPay: 0, tierReached: 0, excessSeeds: 0 });
         return;
@@ -76,7 +76,14 @@ const CalculatorTool: React.FC = () => {
     if (numHours < 20) {
         setStatus('danger');
         const exchangeVal = numSeeds / 210;
-        setResult({ basePay: 0, excessPay: exchangeVal, totalPay: exchangeVal, tierReached: tier ? tier.seeds : 0, excessSeeds: numSeeds });
+        // Si no cumple horas, la meta alcanzada sigue siendo el tier, pero el pago base es 0
+        setResult({ 
+            basePay: 0, 
+            excessPay: exchangeVal, 
+            totalPay: exchangeVal, 
+            tierReached: tier ? tier.seeds : 0, 
+            excessSeeds: numSeeds 
+        });
         return;
     }
 
@@ -93,11 +100,24 @@ const CalculatorTool: React.FC = () => {
             finalBasePay = tier.pay;
         }
 
-        setResult({ basePay: finalBasePay, excessPay: rawExcessPay, totalPay: finalBasePay + rawExcessPay, tierReached: tier.seeds, excessSeeds: rawExcessSeeds > 0 ? rawExcessSeeds : 0 });
+        setResult({ 
+            basePay: finalBasePay, 
+            excessPay: rawExcessPay, 
+            totalPay: finalBasePay + rawExcessPay, 
+            tierReached: tier.seeds, 
+            excessSeeds: rawExcessSeeds > 0 ? rawExcessSeeds : 0 
+        });
     } else {
+        // No llega a ninguna meta (menor a 10k o 20k según tabla)
         setStatus(numHours < 44 ? 'warning' : 'neutral');
         const pay = numSeeds / 210;
-        setResult({ basePay: 0, excessPay: pay, totalPay: pay, tierReached: 0, excessSeeds: numSeeds });
+        setResult({ 
+            basePay: 0, 
+            excessPay: pay, 
+            totalPay: pay, 
+            tierReached: 0, 
+            excessSeeds: numSeeds 
+        });
     }
   }, [seeds, hours]);
 
@@ -115,9 +135,9 @@ const CalculatorTool: React.FC = () => {
 
   const getStatusConfig = () => {
     switch (status) {
-        case 'danger': return { borderColor: 'border-red-500', shadowColor: 'shadow-red-500/30', icon: XCircle, iconColor: 'text-red-500', message: 'Horas insuficientes (<20h). No aplicas a bono.', textColor: 'text-red-400' };
-        case 'warning': return { borderColor: 'border-yellow-500', shadowColor: 'shadow-yellow-500/30', icon: AlertTriangle, iconColor: 'text-yellow-500', message: 'Horas parciales. Pago al 50%.', textColor: 'text-yellow-400' };
-        case 'success': return { borderColor: 'border-emerald-500', shadowColor: 'shadow-emerald-500/40', icon: CheckCircle, iconColor: 'text-emerald-500', message: '¡Meta Lograda!', textColor: 'text-emerald-400' };
+        case 'danger': return { borderColor: 'border-red-500', shadowColor: 'shadow-red-500/30', icon: XCircle, iconColor: 'text-red-500', message: 'Horas insuficientes (<20h). Solo cobras cambio.', textColor: 'text-red-400' };
+        case 'warning': return { borderColor: 'border-yellow-500', shadowColor: 'shadow-yellow-500/30', icon: AlertTriangle, iconColor: 'text-yellow-500', message: 'Horas parciales. Pago de meta al 50%.', textColor: 'text-yellow-400' };
+        case 'success': return { borderColor: 'border-emerald-500', shadowColor: 'shadow-emerald-500/40', icon: CheckCircle, iconColor: 'text-emerald-500', message: '¡Meta Lograda! Pago Completo.', textColor: 'text-emerald-400' };
         default: return { borderColor: 'border-gray-800', shadowColor: 'shadow-black/20', icon: Calculator, iconColor: 'text-gray-500', message: 'Ingresa tus datos.', textColor: 'text-gray-400' };
     }
   };
@@ -147,28 +167,32 @@ const CalculatorTool: React.FC = () => {
                 {/* Status Message */}
                 <div className="flex items-start space-x-2 mb-6 bg-white/5 p-3 rounded-sm backdrop-blur-sm"><StatusIcon size={16} className={`mt-0.5 flex-shrink-0 ${statusUI.iconColor}`} /><p className="text-xs font-bold leading-tight opacity-90">{statusUI.message}</p></div>
                 
-                <div className="space-y-3 pt-4 border-t border-white/10">
+                <div className="space-y-4 pt-4 border-t border-white/10">
                     
                     {/* DETAILS: Meta & Excess */}
                     <div className="grid grid-cols-2 gap-4 pb-4 border-b border-white/10 border-dashed">
-                        <div>
-                            <span className="text-[9px] font-black uppercase tracking-wider text-gray-500 flex items-center mb-1"><Target size={10} className="mr-1" /> Meta Alcanzada</span>
-                            <span className="font-bold text-white text-sm">{formatNumber(result.tierReached)}</span>
+                        <div className="bg-white/5 p-2 rounded-sm">
+                            <span className="text-[8px] font-black uppercase tracking-wider text-gray-400 flex items-center mb-1"><Target size={10} className="mr-1" /> Meta Alcanzada</span>
+                            <span className="font-black text-white text-sm block">{formatNumber(result.tierReached)}</span>
+                            <span className="text-[8px] text-emerald-400 font-bold uppercase">Semillas</span>
                         </div>
-                        <div className="text-right">
-                            <span className="text-[9px] font-black uppercase tracking-wider text-gray-500 flex items-center justify-end mb-1"><Layers size={10} className="mr-1" /> Semillas Excedentes</span>
-                            <span className="font-bold text-white text-sm">{formatNumber(result.excessSeeds)}</span>
+                        <div className="bg-white/5 p-2 rounded-sm text-right">
+                            <span className="text-[8px] font-black uppercase tracking-wider text-gray-400 flex items-center justify-end mb-1"><Layers size={10} className="mr-1" /> Excedente</span>
+                            <span className="font-black text-white text-sm block">{formatNumber(result.excessSeeds)}</span>
+                            <span className="text-[8px] text-orange-400 font-bold uppercase">Semillas (+{formatCurrency(result.excessPay)})</span>
                         </div>
                     </div>
 
                     {/* PAY BREAKDOWN */}
-                    <div className="flex justify-between items-center text-sm pt-2">
-                        <span className="font-medium opacity-60">Salario Base (Meta)</span>
-                        <span className={`font-bold ${status === 'danger' ? 'text-red-500 line-through' : 'text-white'}`}>{formatCurrency(result.basePay)}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="font-medium opacity-60">Pago Excedente</span>
-                        <span className="font-bold text-orange-400">+{formatCurrency(result.excessPay)}</span>
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="font-medium opacity-60 flex items-center"><Target size={12} className="mr-2 opacity-50"/>Pago por Meta</span>
+                            <span className={`font-bold ${status === 'danger' ? 'text-red-500 line-through' : 'text-white'}`}>{formatCurrency(result.basePay)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="font-medium opacity-60 flex items-center"><Coins size={12} className="mr-2 opacity-50"/>Pago por Excedente</span>
+                            <span className="font-bold text-orange-400">+{formatCurrency(result.excessPay)}</span>
+                        </div>
                     </div>
                 </div>
 
