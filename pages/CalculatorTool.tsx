@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calculator, Clock, DollarSign, TrendingUp, AlertTriangle, XCircle, CheckCircle, PartyPopper } from 'lucide-react';
+import { Calculator, Clock, DollarSign, TrendingUp, AlertTriangle, XCircle, CheckCircle, PartyPopper, Target, Layers } from 'lucide-react';
 import { Header } from '../components/Header';
 import { SALARY_TIERS } from '../constants';
 
@@ -9,7 +10,7 @@ const CalculatorTool: React.FC = () => {
   const [seeds, setSeeds] = useState<string>('');
   const [hours, setHours] = useState<string>('');
   const [status, setStatus] = useState<'neutral' | 'danger' | 'warning' | 'success'>('neutral');
-  const [result, setResult] = useState<any>({ basePay: 0, excessPay: 0, totalPay: 0, tierReached: null, excessSeeds: 0 });
+  const [result, setResult] = useState<any>({ basePay: 0, excessPay: 0, totalPay: 0, tierReached: 0, excessSeeds: 0 });
 
   const audioCtxRef = useRef<AudioContext | null>(null);
 
@@ -108,8 +109,8 @@ const CalculatorTool: React.FC = () => {
     }
   }, [status]);
 
-  const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val) + ' USD';
-  const formatNumber = (val: string) => val.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+  const formatNumber = (val: string | number) => val.toString().replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   const handleSeedChange = (e: React.ChangeEvent<HTMLInputElement>) => { const val = e.target.value.replace(/,/g, ''); if (!isNaN(Number(val))) setSeeds(val); };
 
   const getStatusConfig = () => {
@@ -133,15 +134,49 @@ const CalculatorTool: React.FC = () => {
             <div className="bg-white dark:bg-brand-dark-card p-4 rounded-sm border-l-4 border-orange-500 shadow-sm"><label className="flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2"><TrendingUp size={12} className="mr-1" /> Semillas Totales</label><div className="flex items-center"><input type="text" inputMode="numeric" value={formatNumber(seeds)} onChange={handleSeedChange} placeholder="0" className="w-full bg-transparent text-3xl font-black text-brand-black dark:text-white outline-none placeholder-gray-200" /></div></div>
             <div className="bg-white dark:bg-brand-dark-card p-4 rounded-sm border-l-4 border-brand-black dark:border-gray-600 shadow-sm"><label className="flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2"><Clock size={12} className="mr-1" /> Horas</label><div className="flex items-center"><input type="number" inputMode="numeric" value={hours} onChange={(e) => setHours(e.target.value)} placeholder="0" className="w-full bg-transparent text-3xl font-black text-brand-black dark:text-white outline-none placeholder-gray-200" /><span className="text-sm font-bold text-gray-400 uppercase">Hrs</span></div></div>
         </div>
+        
+        {/* RESULT CARD */}
         <div className={`relative overflow-hidden rounded-sm p-6 bg-brand-black text-white border-2 ${statusUI.borderColor} shadow-xl ${statusUI.shadowColor} transition-all duration-500 ease-out`}>
             {status === 'success' && <div className="absolute top-0 right-0 p-4 animate-bounce opacity-80"><PartyPopper className="text-emerald-400" size={32} /></div>}
             <DollarSign className="absolute -right-6 -bottom-6 text-white/5 rotate-12" size={180} />
+            
             <div className="relative z-10">
+                {/* Total Header */}
                 <div className="flex justify-between items-start mb-6"><div><p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${statusUI.textColor}`}>Pago Estimado Total</p><h2 className="text-4xl font-black tracking-tighter">{formatCurrency(result.totalPay)}</h2></div></div>
+                
+                {/* Status Message */}
                 <div className="flex items-start space-x-2 mb-6 bg-white/5 p-3 rounded-sm backdrop-blur-sm"><StatusIcon size={16} className={`mt-0.5 flex-shrink-0 ${statusUI.iconColor}`} /><p className="text-xs font-bold leading-tight opacity-90">{statusUI.message}</p></div>
+                
                 <div className="space-y-3 pt-4 border-t border-white/10">
-                    <div className="flex justify-between items-center text-sm"><span className="font-medium opacity-60">Salario Base</span><span className={`font-bold ${status === 'danger' ? 'text-red-500 line-through' : 'text-white'}`}>{formatCurrency(result.basePay)}</span></div>
-                    <div className="flex justify-between items-center text-sm"><span className="font-medium opacity-60">Excedente</span><span className="font-bold text-orange-400">+{formatCurrency(result.excessPay)}</span></div>
+                    
+                    {/* DETAILS: Meta & Excess */}
+                    <div className="grid grid-cols-2 gap-4 pb-4 border-b border-white/10 border-dashed">
+                        <div>
+                            <span className="text-[9px] font-black uppercase tracking-wider text-gray-500 flex items-center mb-1"><Target size={10} className="mr-1" /> Meta Alcanzada</span>
+                            <span className="font-bold text-white text-sm">{formatNumber(result.tierReached)}</span>
+                        </div>
+                        <div className="text-right">
+                            <span className="text-[9px] font-black uppercase tracking-wider text-gray-500 flex items-center justify-end mb-1"><Layers size={10} className="mr-1" /> Semillas Excedentes</span>
+                            <span className="font-bold text-white text-sm">{formatNumber(result.excessSeeds)}</span>
+                        </div>
+                    </div>
+
+                    {/* PAY BREAKDOWN */}
+                    <div className="flex justify-between items-center text-sm pt-2">
+                        <span className="font-medium opacity-60">Salario Base (Meta)</span>
+                        <span className={`font-bold ${status === 'danger' ? 'text-red-500 line-through' : 'text-white'}`}>{formatCurrency(result.basePay)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="font-medium opacity-60">Pago Excedente</span>
+                        <span className="font-bold text-orange-400">+{formatCurrency(result.excessPay)}</span>
+                    </div>
+                </div>
+
+                {/* Exchange Rate Footer */}
+                <div className="mt-6 pt-3 border-t border-white/10 text-center">
+                    <p className="text-[9px] text-gray-500 font-mono tracking-wider">
+                        TASA DE CAMBIO: 210 SEMILLAS = $1 USD
+                    </p>
                 </div>
             </div>
         </div>
