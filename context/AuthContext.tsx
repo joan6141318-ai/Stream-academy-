@@ -11,7 +11,7 @@ import {
 import { doc, setDoc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from '../firebaseConfig';
-import { DATA_VERSION } from '../constants';
+import { DATA_VERSION, ADMIN_EMAILS } from '../constants'; 
 import { ActivityLog } from '../types';
 
 export interface User {
@@ -57,14 +57,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (firebaseUser) {
         const email = firebaseUser.email?.toLowerCase() || "";
         
+        // --- RESTAURADO: VALIDACIÓN DE LISTA BLANCA DE ADMINS ---
+        const isWhitelistedAdmin = ADMIN_EMAILS.map(e => e.toLowerCase()).includes(email);
+
         // Base user structure
         let baseUser: User = {
             id: firebaseUser.uid,
             name: firebaseUser.displayName || "Usuario",
             email: email,
             avatarUrl: firebaseUser.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${firebaseUser.displayName || 'User'}`,
-            role: "Streamer", // Default role
-            isAdmin: false,   // Default admin status - SECURE DEFAULT
+            role: isWhitelistedAdmin ? "Administrador" : "Streamer", 
+            isAdmin: isWhitelistedAdmin, // Si está en la lista, es admin
             isOnboardingComplete: false,
             dataVersion: DATA_VERSION
         };
@@ -77,13 +80,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (userDoc.exists()) {
                     const dbData = userDoc.data();
                     
+                    // LÓGICA CRÍTICA: Si el correo está en la lista, asegurar que DB tenga isAdmin: true
+                    if (isWhitelistedAdmin && !dbData.isAdmin) {
+                        await setDoc(userDocRef, { isAdmin: true, role: 'Administrador' }, { merge: true });
+                        dbData.isAdmin = true; // Actualizar localmente también
+                        dbData.role = 'Administrador';
+                    }
+
                     // --- MIGRATION LOGIC ---
                     const needsMigration = !dbData.dataVersion || dbData.dataVersion < DATA_VERSION;
 
                     if (needsMigration) {
                         const updatedProfile = {
                             ...baseUser,
-                            ...dbData, // DB Data overrides base, preserving isAdmin from DB
+                            ...dbData, 
+                            // Prioridad: Si está en lista blanca OR si la DB dice que es admin
+                            isAdmin: isWhitelistedAdmin || dbData.isAdmin, 
                             isOnboardingComplete: dbData.isOnboardingComplete !== undefined ? dbData.isOnboardingComplete : true, 
                             dataVersion: DATA_VERSION
                         };
@@ -92,14 +104,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         setUser(updatedProfile);
 
                     } else {
-                        // Usamos estrictamente los datos de la DB
                         setUser({ 
                             ...baseUser, 
-                            ...dbData
+                            ...dbData,
+                            isAdmin: isWhitelistedAdmin || dbData.isAdmin
                         } as User);
                     }
                 } else {
-                    // Usuario nuevo (no existe doc) - Siempre isAdmin: false por defecto
+                    // Usuario nuevo: Guardar con permisos correctos desde el inicio
                     await setDoc(userDocRef, baseUser);
                     setUser(baseUser);
                 }
@@ -127,7 +139,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const credential = await signInWithEmailAndPassword(auth, email, pass);
       const fbUser = credential.user;
       
-      // --- CAPTURA DE DATOS DE ACTIVIDAD ---
       const now = new Date();
       const ua = navigator.userAgent;
       let deviceString = "Desconocido";
@@ -145,16 +156,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (db) {
           try {
               const userRef = doc(db, "users", fbUser.uid);
-              // CAMBIO CRÍTICO: Usar setDoc con merge en lugar de updateDoc
-              // Esto asegura que si 'accessLogs' no existe, se cree el documento correctamente
-              // y evita errores si la estructura del usuario era antigua.
-              await setDoc(userRef, {
+              // Verificar si es admin al hacer login también, por si acaso
+              const isWhitelisted = ADMIN_EMAILS.map(e => e.toLowerCase()).includes(email.toLowerCase());
+              
+              const updates: any = {
                   lastLogin: now.toISOString(),
                   deviceInfo: deviceString,
                   accessLogs: arrayUnion(newLog) 
-              }, { merge: true });
+              };
+
+              if (isWhitelisted) {
+                  updates.isAdmin = true;
+                  updates.role = 'Administrador';
+              }
+              
+              await setDoc(userRef, updates, { merge: true });
           } catch (e) {
-              // Fallo silencioso en logs para no bloquear el login
               console.warn("Log update warning:", e);
           }
       }
@@ -164,13 +181,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (email: string, pass: string, name: string, isAdmin: boolean = false) => {
       if (!auth) throw new Error("Firebase no configurado");
       
-      // SEGURIDAD: Forzamos isAdmin a false, ignorando el parámetro de entrada si viniera corrupto.
-      // Solo un admin existente puede promover a otro desde el panel de control.
-      const secureIsAdmin = false; 
+      const lowerEmail = email.toLowerCase();
+      
+      // Check lista maestra al registrar
+      const isWhitelistedAdmin = ADMIN_EMAILS.map(e => e.toLowerCase()).includes(lowerEmail);
+      const finalIsAdmin = isAdmin || isWhitelistedAdmin;
 
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       const fbUser = userCredential.user;
-      const userEmail = fbUser.email?.toLowerCase() || "";
 
       sendEmailVerification(fbUser).catch(e => console.warn("Email verification error", e));
 
@@ -180,10 +198,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const newUserProfile: User = {
         id: fbUser.uid,
         name: name,
-        email: userEmail,
+        email: lowerEmail,
         avatarUrl: `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${name}`,
-        role: "Nuevo Ingreso", // Role inicial seguro
-        isAdmin: secureIsAdmin, 
+        role: finalIsAdmin ? "Administrador" : "Nuevo Ingreso",
+        isAdmin: finalIsAdmin, 
         isOnboardingComplete: false,
         dataVersion: DATA_VERSION,
         lastLogin: now.toISOString(),
@@ -247,7 +265,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
              };
              try {
                 const userRef = doc(db, "users", user.id);
-                // Usamos setDoc con merge para máxima compatibilidad
                 await setDoc(userRef, { accessLogs: arrayUnion(log) }, { merge: true });
              } catch(e) {}
         }

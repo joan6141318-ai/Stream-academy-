@@ -10,15 +10,13 @@ import { PrivacyPolicyModal } from './PrivacyPolicyModal';
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login, register, user, loading } = useAuth(); 
-  const { homeConfig, loading: contentLoading } = useContent(); // Importar estado de carga del contenido
+  const { homeConfig, loading: contentLoading } = useContent(); 
   
-  // Estados para manejar el formulario
   const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   
-  // Estados para Agencia (Código de Invitación)
   const [agencyCode, setAgencyCode] = useState(''); 
   const [agencyError, setAgencyError] = useState<string | null>(null);
 
@@ -29,20 +27,30 @@ const Login: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
 
-  // EFECTO: Si el usuario ya está logueado, mandarlo a /welcome
+  // EFECTO: Si ya está logueado, redirigir
   useEffect(() => {
     if (!loading && user) {
         navigate('/welcome', { replace: true });
     }
   }, [user, loading, navigate]);
 
-  // Limpiar errores al escribir
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, value: string) => {
     setError(null);
     setAgencyError(null); 
     setIsNetworkError(false);
     setIsSecurityError(false);
     setter(value);
+  };
+
+  // --- DEV HELPER: MOSTRAR HASH DE CORREO EN CONSOLA ---
+  const handleEmailChange = async (val: string) => {
+      handleInputChange(setEmail, val);
+      if (val.includes('@') && val.length > 5) {
+          try {
+              const hash = await hashString(val.toLowerCase());
+              console.log("%c🔑 TU HASH DE ADMIN PARA COPIAR:", "color: yellow; font-weight: bold; background: black; padding: 4px;", hash);
+          } catch(e) {}
+      }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,19 +65,13 @@ const Login: React.FC = () => {
       if (isRegistering) {
         if (!name.trim()) throw new Error("Ingresa tu nombre para continuar.");
         
-        // --- VALIDACIÓN DE CÓDIGO DE INVITACIÓN (Gatekeeper) ---
-        // CRITICAL FIX: Ensure config is loaded or fallback strictly
         if (contentLoading) {
             throw new Error("Conectando con el servidor... Intenta en unos segundos.");
         }
 
         const normalizedAgency = agencyCode.trim().toLowerCase();
         
-        // Calcular Hash del input
         const inputHash = await hashString(normalizedAgency);
-        
-        // Obtener Hash Correcto de Firebase
-        // SEGURIDAD: Ya no hay hash por defecto ("moon"). Si no carga la config, no entra nadie.
         const validHash = homeConfig?.agencyCodeHash;
         
         if (!validHash) {
@@ -81,12 +83,10 @@ const Login: React.FC = () => {
             throw new Error("El código de invitación es incorrecto. Pídelo a tu líder.");
         }
 
-        // REGISTRO SEGURO: isAdmin siempre es false aquí.
         await register(email, password, name, false);
         setIsSuccess(true);
         navigate('/welcome', { replace: true });
       } else {
-        // Inicio de sesión normal
         await login(email, password);
         setIsSuccess(true);
         navigate('/welcome', { replace: true });
@@ -104,7 +104,6 @@ const Login: React.FC = () => {
           console.error("Firebase Auth Error:", errorCode, errorMessage);
       }
 
-      // --- MANEJO DE ERRORES ---
       if (errorMessage.includes('requests-from-referer') || errorMessage.includes('blocked')) {
          setError("Acceso bloqueado por Seguridad: Este dominio no está autorizado en Google Cloud. Usa el sitio oficial.");
          setIsSecurityError(true);
@@ -185,7 +184,7 @@ const Login: React.FC = () => {
               <input 
                 type="email" 
                 value={email}
-                onChange={(e) => handleInputChange(setEmail, e.target.value)}
+                onChange={(e) => handleEmailChange(e.target.value)}
                 placeholder="usuario@email.com"
                 required
                 className="w-full h-10 border-b-2 border-gray-100 dark:border-white/20 bg-transparent text-base font-bold text-brand-black dark:text-white placeholder-gray-200 dark:placeholder-gray-700 focus:outline-none focus:border-brand-black dark:focus:border-white transition-all rounded-none p-0"
@@ -278,7 +277,7 @@ const Login: React.FC = () => {
             Términos y Privacidad
          </button>
          <p className="text-[9px] font-bold text-gray-200 dark:text-gray-800 uppercase tracking-widest">
-           Secure Access • v2.6.1
+           Secure Access • v2.6.2
          </p>
       </div>
 

@@ -4,13 +4,16 @@ import { TrainingModule, UserProfile } from './types';
 // Incrementa este número para obligar a TODOS los usuarios a refrescar su perfil
 export const DATA_VERSION = 3; 
 
+// --- LISTA DE ADMINISTRADORES ---
+// Agrega aquí los correos exactos que deben tener acceso total y pasar el modo mantenimiento.
+export const ADMIN_EMAILS = [
+  "tu_correo@gmail.com",
+  "correo_socio@gmail.com", 
+  "admin@streamagency.com" 
+];
+
 // --- CONFIGURACIÓN PÚBLICA (NO SENSIBLE) ---
 export const ONESIGNAL_APP_ID = "3bbf8972-d8cb-4eed-a46b-6059a4f71cd1"; // ID Público de la App
-
-// --- SEGURIDAD: LISTA ELIMINADA ---
-// La gestión de administradores ahora se realiza estrictamente vía Base de Datos (Firestore).
-// No agregar correos aquí para evitar exposición en el código cliente.
-export const ADMIN_EMAILS: string[] = [];
 
 export const MOCK_USER: UserProfile = {
   name: "Alex Rivera",
@@ -33,7 +36,7 @@ export const SALARY_TIERS = [
   { seeds: 250000, pay: 2840 },
   { seeds: 20000, pay: 2272 }, 
   { seeds: 150000, pay: 1704 },
-  { seeds: 100000, pay: 1136 }, 
+  { seeds: 10000, pay: 1136 }, 
   { seeds: 60000, pay: 708 },
   { seeds: 30000, pay: 354 },
   { seeds: 20000, pay: 236 },
