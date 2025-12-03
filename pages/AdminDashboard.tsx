@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, Key, ArrowLeft, ArrowRight, ShieldCheck, UserX, Check, X, Save } from 'lucide-react';
+import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, Key, ArrowLeft, ArrowRight, ShieldCheck, UserX, Check, X, Save, Clock, Zap } from 'lucide-react';
 import { collection, updateDoc, doc, onSnapshot, query } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Header } from '../components/Header';
@@ -128,28 +128,42 @@ const AdminDashboard: React.FC = () => {
       if (localSchedule) { await updatePKSchedule(localSchedule); alert("Calendario actualizado"); }
   };
 
+  const renderTimeBox = (timeString: string) => {
+      const parts = timeString.split('-');
+      const start = parts[0]?.trim() || timeString;
+      const end = parts[1]?.trim() || '';
+      
+      return (
+        <div className="bg-white dark:bg-black/20 w-16 h-14 rounded-lg border border-gray-100 dark:border-white/10 flex flex-col items-center justify-center flex-shrink-0 shadow-sm">
+            <Clock size={10} className="text-gray-400 mb-0.5" />
+            <span className="text-[9px] font-black text-brand-black dark:text-white leading-none">{start}</span>
+            {end && <span className="text-[7px] font-bold text-gray-400 dark:text-gray-500 leading-none mt-0.5">{end}</span>}
+        </div>
+      );
+  };
+
   const pendingRequests = pkRequests.filter(req => req.status === 'pending');
   const currentMode = homeConfig.maintenanceMode || 'off';
 
   return (
     <div className="flex flex-col h-full w-full bg-gray-50 dark:bg-black transition-colors duration-300">
-      <Header title="Panel Admin" showBack onBack={() => navigate('/admin/selection')} />
+      <Header title="PANEL ADMIN" showBack onBack={() => navigate('/admin/selection')} />
       
-      {/* TABS CONTAINER - Fixed positioning below header */}
-      <div className="pt-[calc(3.5rem+env(safe-area-inset-top))] w-full bg-white dark:bg-black/95 z-30 border-b border-gray-100 dark:border-white/5 shadow-sm">
-        <div className="flex space-x-1 overflow-x-auto scrollbar-hide p-2 px-4">
+      {/* TABS CONTAINER - PILL STYLE */}
+      <div className="pt-[calc(3.5rem+env(safe-area-inset-top))] w-full bg-white dark:bg-black/95 z-30 border-b border-gray-100 dark:border-white/5 shadow-sm sticky top-0">
+        <div className="flex items-center justify-center space-x-2 overflow-x-auto scrollbar-hide p-3">
             {[
-                { id: 'users', label: 'Emisores', icon: Users },
-                { id: 'pk', label: 'Arena PK', icon: Swords },
-                { id: 'security', label: 'Seguridad', icon: Shield },
-                { id: 'comms', label: 'Push', icon: Bell },
+                { id: 'users', label: 'EMISORES', icon: Users },
+                { id: 'pk', label: 'ARENA PK', icon: Swords },
+                { id: 'security', label: 'SEGURIDAD', icon: Shield },
+                { id: 'comms', label: 'PUSH', icon: Bell },
             ].map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
                 return (
                     <button key={tab.id} onClick={() => { setActiveTab(tab.id as any); setSecurityView('menu'); }}
-                        className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl border transition-all duration-300 whitespace-nowrap ${isActive ? 'bg-brand-black dark:bg-white text-white dark:text-black border-transparent shadow-md' : 'bg-transparent text-gray-400 border-transparent hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-                        <Icon size={16} strokeWidth={isActive ? 2.5 : 2} /><span className="text-[11px] font-black uppercase tracking-wide">{tab.label}</span>
+                        className={`flex items-center space-x-1.5 px-4 py-2 rounded-full border transition-all duration-300 whitespace-nowrap shadow-sm ${isActive ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white' : 'bg-white text-gray-400 border-gray-200 dark:bg-white/5 dark:border-white/10 dark:text-gray-500 hover:border-gray-300'}`}>
+                        <Icon size={14} strokeWidth={2.5} /><span className="text-[10px] font-black uppercase tracking-wider">{tab.label}</span>
                     </button>
                 )
             })}
@@ -157,7 +171,8 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* SCROLLABLE CONTENT AREA */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide p-4 pb-24">
+      <div className="flex-1 overflow-y-auto scrollbar-hide p-4 pb-24 bg-[#FAFAFA] dark:bg-black">
+        {/* ... existing users tab ... */}
         {activeTab === 'users' && (
             <div className="space-y-4 animate-slide-up">
                 <div className="bg-white dark:bg-brand-dark-card p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center sticky top-0 z-20">
@@ -195,6 +210,7 @@ const AdminDashboard: React.FC = () => {
             </div>
         )}
         
+        {/* ... existing security tab ... */}
         {activeTab === 'security' && securityView === 'menu' && (
              <div className="space-y-4 animate-slide-up">
                  <button onClick={() => setSecurityView('agency_key')} className="w-full p-6 bg-brand-black dark:bg-white text-white dark:text-black rounded-3xl shadow-lg flex justify-between items-center group active:scale-[0.98] transition-all">
@@ -221,6 +237,7 @@ const AdminDashboard: React.FC = () => {
              </div>
         )}
 
+        {/* ... existing security sub-views ... */}
         {activeTab === 'security' && securityView === 'agency_key' && (
             <div className="space-y-4 animate-slide-up">
                 <div className="flex items-center mb-4"><button onClick={() => setSecurityView('menu')} className="mr-2 p-2 bg-gray-100 dark:bg-white/10 rounded-full"><ArrowLeft size={16} /></button><h3 className="font-black uppercase text-sm">Volver</h3></div>
@@ -266,57 +283,139 @@ const AdminDashboard: React.FC = () => {
             </div>
         )}
 
+         {/* ARENA PK SECTION - RESTYLED */}
          {activeTab === 'pk' && localSchedule && (
             <div className="space-y-6 animate-slide-up">
-                <div className="flex bg-gray-100 dark:bg-white/5 p-1 rounded-xl"><button onClick={() => setPkView('assign')} className={`flex-1 py-3 rounded-lg text-xs font-black uppercase transition-all ${pkView === 'assign' ? 'bg-white text-black shadow-sm' : 'text-gray-400'}`}>Programar</button><button onClick={() => setPkView('requests')} className={`flex-1 py-3 rounded-lg text-xs font-black uppercase transition-all ${pkView === 'requests' ? 'bg-white text-black shadow-sm' : 'text-gray-400'}`}>Solicitudes ({pendingRequests.length})</button></div>
+                
+                {/* SUB-TABS (Programar / Solicitudes) */}
+                <div className="flex bg-white dark:bg-brand-dark-card p-1 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5">
+                    <button onClick={() => setPkView('assign')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${pkView === 'assign' ? 'bg-brand-black dark:bg-white text-white dark:text-black shadow-md' : 'text-gray-400 hover:text-gray-600'}`}>
+                        PROGRAMAR
+                    </button>
+                    <button onClick={() => setPkView('requests')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${pkView === 'requests' ? 'bg-brand-black dark:bg-white text-white dark:text-black shadow-md' : 'text-gray-400 hover:text-gray-600'}`}>
+                        SOLICITUDES ({pendingRequests.length})
+                    </button>
+                </div>
+
                 {pkView === 'assign' ? (
-                     <div className="bg-white dark:bg-brand-dark-card p-6 rounded-3xl border border-gray-100 dark:border-white/5 space-y-6 shadow-sm">
-                         <div>
-                             <h3 className="font-black uppercase text-xs text-gray-400 mb-3 tracking-widest">PK Potencial (Principal)</h3>
-                             <div className="space-y-2">
+                     <div className="space-y-8">
+                         
+                         {/* PK POTENCIAL CARD */}
+                         <div className="bg-white dark:bg-brand-dark-card p-6 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5">
+                             <div className="flex items-center gap-3 mb-6">
+                                 <div className="bg-brand-black dark:bg-white text-white dark:text-black p-2 rounded-lg shadow-md">
+                                     <Swords size={20} />
+                                 </div>
+                                 <h3 className="font-black text-lg uppercase text-brand-black dark:text-white tracking-tight">PK Potencial</h3>
+                             </div>
+
+                             <div className="space-y-3">
                                 {localSchedule.potential.map((ev, i) => (
-                                    <div key={i} className="flex gap-2 items-center">
-                                        <div className="w-6 text-[10px] font-black text-gray-300">{ev.time}</div>
-                                        <input value={ev.id1} onChange={e => handleScheduleChange('potential', i, 'id1', e.target.value)} className="flex-1 p-3 bg-gray-50 dark:bg-white/5 rounded-lg border border-transparent focus:border-brand-purple dark:border-white/10 text-center font-black text-xs uppercase" placeholder="ID 1" />
-                                        <span className="text-[10px] font-black text-gray-300">VS</span>
-                                        <input value={ev.id2} onChange={e => handleScheduleChange('potential', i, 'id2', e.target.value)} className="flex-1 p-3 bg-gray-50 dark:bg-white/5 rounded-lg border border-transparent focus:border-brand-purple dark:border-white/10 text-center font-black text-xs uppercase" placeholder="ID 2" />
+                                    <div key={i} className="flex items-center gap-3 p-1">
+                                        {/* Time Box */}
+                                        {renderTimeBox(ev.time)}
+
+                                        {/* Inputs Container */}
+                                        <div className="flex-1 flex items-center gap-2">
+                                            <input 
+                                                value={ev.id1} 
+                                                onChange={e => handleScheduleChange('potential', i, 'id1', e.target.value)} 
+                                                className="w-full h-14 bg-white dark:bg-black/20 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-xs uppercase text-brand-black dark:text-white placeholder:text-gray-300 focus:border-brand-purple focus:ring-1 focus:ring-brand-purple/20 outline-none transition-all shadow-sm" 
+                                                placeholder="ID EMISOR" 
+                                            />
+                                            
+                                            <span className="text-[10px] font-black text-gray-300 italic flex-shrink-0">VS</span>
+                                            
+                                            <input 
+                                                value={ev.id2} 
+                                                onChange={e => handleScheduleChange('potential', i, 'id2', e.target.value)} 
+                                                className="w-full h-14 bg-white dark:bg-black/20 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-xs uppercase text-brand-black dark:text-white placeholder:text-gray-300 focus:border-brand-purple focus:ring-1 focus:ring-brand-purple/20 outline-none transition-all shadow-sm" 
+                                                placeholder="ID OPONENTE" 
+                                            />
+                                        </div>
                                     </div>
                                 ))}
                              </div>
+
+                             <button 
+                                onClick={saveSchedule} 
+                                className="w-full bg-brand-black dark:bg-white text-white dark:text-black h-14 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 mt-8 shadow-xl active:scale-95 transition-all hover:opacity-90"
+                             >
+                                <Save size={16} />
+                                Publicar Cambios (Potencial)
+                             </button>
                          </div>
                          
-                         <div className="border-t border-gray-100 dark:border-white/5 pt-6">
-                             <h3 className="font-black uppercase text-xs text-gray-400 mb-3 tracking-widest">PK SuperSmash</h3>
-                             <div className="space-y-2">
+                         {/* PK SUPERSMASH CARD */}
+                         <div className="bg-white dark:bg-brand-dark-card p-6 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5">
+                             <div className="flex items-center gap-3 mb-6">
+                                 <div className="bg-orange-500 text-white p-2 rounded-lg shadow-md shadow-orange-500/30">
+                                     <Zap size={20} />
+                                 </div>
+                                 <h3 className="font-black text-lg uppercase text-brand-black dark:text-white tracking-tight">PK SuperSmash</h3>
+                             </div>
+
+                             <div className="space-y-3">
                                 {localSchedule.supersmash.map((ev, i) => (
-                                    <div key={i} className="flex gap-2 items-center">
-                                        <div className="w-6 text-[10px] font-black text-gray-300">{ev.time}</div>
-                                        <input value={ev.id1} onChange={e => handleScheduleChange('supersmash', i, 'id1', e.target.value)} className="flex-1 p-3 bg-gray-50 dark:bg-white/5 rounded-lg border border-transparent focus:border-brand-purple dark:border-white/10 text-center font-black text-xs uppercase" placeholder="ID 1" />
-                                        <span className="text-[10px] font-black text-gray-300">VS</span>
-                                        <input value={ev.id2} onChange={e => handleScheduleChange('supersmash', i, 'id2', e.target.value)} className="flex-1 p-3 bg-gray-50 dark:bg-white/5 rounded-lg border border-transparent focus:border-brand-purple dark:border-white/10 text-center font-black text-xs uppercase" placeholder="ID 2" />
+                                    <div key={i} className="flex items-center gap-3 p-1">
+                                        {/* Time Box */}
+                                        {renderTimeBox(ev.time)}
+
+                                        {/* Inputs Container */}
+                                        <div className="flex-1 flex items-center gap-2">
+                                            <input 
+                                                value={ev.id1} 
+                                                onChange={e => handleScheduleChange('supersmash', i, 'id1', e.target.value)} 
+                                                className="w-full h-14 bg-white dark:bg-black/20 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-xs uppercase text-brand-black dark:text-white placeholder:text-gray-300 focus:border-brand-purple focus:ring-1 focus:ring-brand-purple/20 outline-none transition-all shadow-sm" 
+                                                placeholder="ID EMISOR" 
+                                            />
+                                            
+                                            <span className="text-[10px] font-black text-gray-300 italic flex-shrink-0">VS</span>
+                                            
+                                            <input 
+                                                value={ev.id2} 
+                                                onChange={e => handleScheduleChange('supersmash', i, 'id2', e.target.value)} 
+                                                className="w-full h-14 bg-white dark:bg-black/20 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-xs uppercase text-brand-black dark:text-white placeholder:text-gray-300 focus:border-brand-purple focus:ring-1 focus:ring-brand-purple/20 outline-none transition-all shadow-sm" 
+                                                placeholder="ID OPONENTE" 
+                                            />
+                                        </div>
                                     </div>
                                 ))}
                              </div>
+
+                             <button 
+                                onClick={saveSchedule} 
+                                className="w-full bg-brand-black dark:bg-white text-white dark:text-black h-14 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 mt-8 shadow-xl active:scale-95 transition-all hover:opacity-90"
+                             >
+                                <Save size={16} />
+                                Publicar Cambios (Supersmash)
+                             </button>
                          </div>
 
-                         <Button onClick={saveSchedule} fullWidth className="mt-4 shadow-xl"><Save size={16} className="mr-2"/> Publicar Cambios</Button>
                      </div>
                 ) : (
-                    <div className="space-y-3">
+                    // SOLICITUDES VIEW (UNCHANGED BUT CLEANER)
+                    <div className="space-y-4">
                         {pendingRequests.length === 0 ? (
-                            <div className="text-center py-10 bg-white dark:bg-brand-dark-card rounded-2xl border border-dashed border-gray-200 dark:border-white/10">
+                            <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-brand-dark-card rounded-[2rem] border border-dashed border-gray-200 dark:border-white/10">
+                                <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-full mb-4">
+                                    <Check size={32} className="text-gray-300" />
+                                </div>
                                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Sin solicitudes pendientes</p>
                             </div>
                         ) : pendingRequests.map(req => (
-                            <div key={req.id} className="bg-white dark:bg-brand-dark-card p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5 flex justify-between items-center group">
+                            <div key={req.id} className="bg-white dark:bg-brand-dark-card p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 flex justify-between items-center group">
                                 <div>
-                                    <h3 className="font-black text-brand-black dark:text-white uppercase text-lg">{req.bigoId}</h3>
-                                    <p className="text-xs font-bold text-brand-purple">{req.date}</p>
-                                    <p className="text-[10px] text-gray-400 mt-1">ID Usuario: {req.userId}</p>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <h3 className="font-black text-brand-black dark:text-white uppercase text-xl">{req.bigoId}</h3>
+                                        <span className="bg-yellow-100 text-yellow-700 text-[9px] font-black px-2 py-0.5 rounded uppercase">Pendiente</span>
+                                    </div>
+                                    <p className="text-sm font-bold text-brand-purple flex items-center gap-1"><Clock size={12}/> {req.date}</p>
+                                    <p className="text-[10px] text-gray-400 mt-1 font-mono">UID: {req.userId.substring(0,8)}...</p>
                                 </div>
-                                <div className="flex gap-2">
-                                    <button onClick={() => updatePKRequestStatus(req.id, 'rejected')} className="w-10 h-10 bg-red-50 text-red-500 rounded-lg flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"><X size={18} /></button>
-                                    <button onClick={() => updatePKRequestStatus(req.id, 'approved')} className="w-10 h-10 bg-green-50 text-green-500 rounded-lg flex items-center justify-center hover:bg-green-500 hover:text-white transition-colors"><Check size={18} /></button>
+                                <div className="flex gap-3">
+                                    <button onClick={() => updatePKRequestStatus(req.id, 'rejected')} className="w-12 h-12 bg-red-50 dark:bg-red-900/10 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm active:scale-90 border border-red-100 dark:border-red-900/20"><X size={20} strokeWidth={2.5} /></button>
+                                    <button onClick={() => updatePKRequestStatus(req.id, 'approved')} className="w-12 h-12 bg-green-50 dark:bg-green-900/10 text-green-500 rounded-xl flex items-center justify-center hover:bg-green-500 hover:text-white transition-all shadow-sm active:scale-90 border border-green-100 dark:border-green-900/20"><Check size={20} strokeWidth={2.5} /></button>
                                 </div>
                             </div>
                         ))}
@@ -325,6 +424,7 @@ const AdminDashboard: React.FC = () => {
             </div>
         )}
 
+        {/* ... existing comms tab ... */}
         {activeTab === 'comms' && (
              <div className="bg-white dark:bg-brand-dark-card p-6 rounded-3xl shadow-lg border border-gray-100 dark:border-white/5 space-y-4 animate-slide-up">
                  <div className="flex items-center space-x-3 mb-2">

@@ -141,7 +141,7 @@ const PKCalendar: React.FC = () => {
         {/* --- WIDGET: SOLICITAR PK (Diseño Igualado a Supersmash) --- */}
         <div className="mb-12 animate-fade-in mt-8">
             
-            {/* TOGGLE BUTTON */}
+            {/* TOGGLE BUTTON (Misma estructura visual que Supersmash) */}
             <button 
                 onClick={() => setOpenRequest(!openRequest)}
                 className="w-full flex flex-col items-start bg-[#0a0a0a] text-white p-6 rounded-2xl shadow-xl shadow-black/30 active:scale-[0.99] transition-all group relative overflow-hidden border border-white/10"
@@ -155,7 +155,7 @@ const PKCalendar: React.FC = () => {
                         </h2>
                         {openRequest ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
                     </div>
-                    <p className="text-[10px] font-bold text-gray-500 mt-2 uppercase tracking-[0.2em] group-hover:text-brand-purple transition-colors">
+                    <p className="text-sm font-bold text-gray-500 mt-2 uppercase tracking-widest group-hover:text-brand-purple transition-colors">
                         AGENDA TU BATALLA
                     </p>
                 </div>
@@ -164,8 +164,17 @@ const PKCalendar: React.FC = () => {
             {/* EXPANDABLE FORM AREA */}
             <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openRequest ? 'max-h-[1200px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
                 
-                <div className="w-full bg-[#111] border border-white/5 rounded-[2rem] p-6 shadow-inner relative overflow-hidden">
+                <div className="w-full bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
                     
+                    {/* Header Icon */}
+                    <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6 border border-white/5">
+                        <Swords className="text-white" size={24} />
+                    </div>
+
+                    <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-8 leading-none">
+                        Formulario de<br/>Solicitud
+                    </h2>
+
                     {hasPendingRequest ? (
                         <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6 flex items-start gap-4 animate-fade-in">
                             <AlertCircle className="text-yellow-500 flex-shrink-0 mt-1" size={24} />
@@ -178,6 +187,7 @@ const PKCalendar: React.FC = () => {
                         </div>
                     ) : (
                         <form onSubmit={handleRequestPK} className="space-y-6">
+                            
                             {/* Date Input */}
                             <div className="group">
                                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">
@@ -189,9 +199,9 @@ const PKCalendar: React.FC = () => {
                                         required 
                                         value={requestDate} 
                                         onChange={(e) => setRequestDate(e.target.value)} 
-                                        className="w-full bg-[#1a1a1a] border-2 border-[#2a2a2a] focus:border-brand-purple rounded-xl px-4 py-4 text-sm font-bold text-white outline-none transition-all uppercase placeholder-gray-500 appearance-none"
+                                        className="w-full bg-[#121212] border-2 border-brand-purple rounded-xl px-4 py-4 text-sm font-bold text-white outline-none focus:shadow-[0_0_30px_rgba(124,58,237,0.2)] transition-all uppercase placeholder-gray-500 appearance-none"
                                     />
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                                         <Calendar size={20} />
                                     </div>
                                 </div>
@@ -209,18 +219,18 @@ const PKCalendar: React.FC = () => {
                                         value={requestBigoId} 
                                         onChange={(e) => setRequestBigoId(e.target.value)} 
                                         placeholder="ID EXACTO" 
-                                        className="w-full bg-[#1a1a1a] border-2 border-[#2a2a2a] rounded-xl px-4 py-4 text-sm font-bold text-white placeholder-gray-600 focus:border-brand-purple outline-none transition-all uppercase"
+                                        className="w-full bg-[#121212] border-2 border-[#1f1f1f] rounded-xl px-4 py-4 text-sm font-bold text-white placeholder-gray-700 focus:border-white/20 outline-none transition-all uppercase"
                                     />
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-600">
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-700">
                                         <Shield size={20} />
                                     </div>
                                 </div>
                             </div>
 
                             {/* Static Schedule Info */}
-                            <div className="bg-[#1a1a1a] rounded-xl p-5 border border-white/5 flex justify-between items-center group">
+                            <div className="bg-[#121212] rounded-xl p-5 border border-white/5 flex justify-between items-center group">
                                 <div>
-                                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1">
+                                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-1 group-hover:text-brand-purple transition-colors">
                                         Horario Fijo
                                     </span>
                                     <span className="text-lg font-black text-white uppercase tracking-tight">

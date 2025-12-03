@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, PlayCircle, ExternalLink, X } from 'lucide-react';
+import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, PlayCircle, ExternalLink, X, ShieldAlert, Clock, Gavel, Crown } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { Button } from '../components/Button';
 import * as LucideIcons from 'lucide-react';
@@ -136,6 +136,68 @@ const TrainingDetail: React.FC = () => {
             )}
 
             <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed font-medium text-justify mb-8 whitespace-pre-line">{module.textContent}</p>
+
+            {/* --- MENÚ DE BLOQUEOS (NUEVO) --- */}
+            {module.id === 'bloqueos' && (
+                <div className="mb-10 space-y-3 animate-fade-in">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 border-b border-gray-100 dark:border-white/10 pb-2">
+                        Centro de Normas
+                    </h3>
+                    <div className="grid grid-cols-1 gap-3">
+                        <button 
+                            onClick={() => navigate('/training/bloqueos/motivos')}
+                            className="bg-gray-50 dark:bg-brand-dark-card p-4 rounded-xl flex items-center space-x-4 border border-gray-100 dark:border-white/5 active:scale-[0.98] transition-all group"
+                        >
+                            <div className="w-10 h-10 bg-rose-100 dark:bg-rose-900/20 text-rose-500 rounded-lg flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-colors">
+                                <ShieldAlert size={20} strokeWidth={2.5} />
+                            </div>
+                            <div className="text-left">
+                                <span className="block text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">Motivos de Bloqueo</span>
+                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Qué está prohibido</span>
+                            </div>
+                        </button>
+
+                        <button 
+                            onClick={() => navigate('/training/bloqueos/types')}
+                            className="bg-gray-50 dark:bg-brand-dark-card p-4 rounded-xl flex items-center space-x-4 border border-gray-100 dark:border-white/5 active:scale-[0.98] transition-all group"
+                        >
+                            <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 text-orange-500 rounded-lg flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                                <Clock size={20} strokeWidth={2.5} />
+                            </div>
+                            <div className="text-left">
+                                <span className="block text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">Tipos y Duración</span>
+                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Clase A y Clase B</span>
+                            </div>
+                        </button>
+
+                        <button 
+                            onClick={() => navigate('/training/bloqueos/appeal')}
+                            className="bg-gray-50 dark:bg-brand-dark-card p-4 rounded-xl flex items-center space-x-4 border border-gray-100 dark:border-white/5 active:scale-[0.98] transition-all group"
+                        >
+                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 text-blue-500 rounded-lg flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                                <Gavel size={20} strokeWidth={2.5} />
+                            </div>
+                            <div className="text-left">
+                                <span className="block text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">Apelaciones</span>
+                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Cómo recuperar tu cuenta</span>
+                            </div>
+                        </button>
+
+                        <button 
+                            onClick={() => navigate('/training/bloqueos/vip')}
+                            className="bg-brand-black dark:bg-white p-4 rounded-xl flex items-center space-x-4 shadow-xl active:scale-[0.98] transition-all group"
+                        >
+                            <div className="w-10 h-10 bg-white/20 dark:bg-black/10 text-white dark:text-black rounded-lg flex items-center justify-center">
+                                <Crown size={20} strokeWidth={2.5} fill="currentColor" />
+                            </div>
+                            <div className="text-left">
+                                <span className="block text-sm font-black text-white dark:text-black uppercase leading-none mb-1">Puntos VIP</span>
+                                <span className="text-[10px] text-white/60 dark:text-black/60 font-bold uppercase tracking-wide">Desbloqueo Especial</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {module.id === 'live-data' && (
                 <div className="mt-2 mb-10 space-y-8 animate-fade-in">
