@@ -29,7 +29,7 @@ import { MainLayout } from './components/MainLayout';
 import { InstallPrompt } from './components/InstallPrompt';
 import { useOneSignal } from './hooks/useOneSignal'; // Import Hook
 
-// System Version: v16.1.2 - Admin Guard Fix
+// System Version: v16.1.3 - Admin Escape Hatch Fixed
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -71,6 +71,13 @@ const AppContent: React.FC = () => {
   // --- INIT PUSH NOTIFICATIONS ---
   useOneSignal();
 
+  // --- 0. ADMIN ESCAPE HATCH (PRIORIDAD MÁXIMA) ---
+  // Si el usuario es ADMIN y está "atrapado" en la página de mantenimiento, lo sacamos al Home.
+  // Esto arregla el problema de ver la pantalla roja siendo admin.
+  if (!authLoading && user?.isAdmin && location.pathname === '/maintenance') {
+      return <Navigate to="/home" replace />;
+  }
+
   // --- 1. GLOBAL BLOCKED USER CHECK (KILL SWITCH) ---
   if (!authLoading && user?.isBlocked) {
       const isAccessDeniedPage = location.pathname === '/access-denied';
@@ -88,7 +95,7 @@ const AppContent: React.FC = () => {
   if (!contentLoading && !authLoading && activeMode !== 'off') {
       
       // EXCEPCIÓN SUPREMA: Si es Admin, el código de abajo NO se ejecuta.
-      // El Admin tiene pase libre total.
+      // El Admin tiene pase libre total y ya fue manejado en el punto 0 si estaba en /maintenance.
       if (user?.isAdmin) {
           // Pass-through: El administrador puede navegar a donde quiera.
       } else {

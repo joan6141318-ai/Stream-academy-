@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { ShieldAlert, Lock, RefreshCw, AlertTriangle, Bot, Wrench, Settings, Unlock, ArrowRight, ShieldCheck, Power } from 'lucide-react';
+import { ShieldAlert, Lock, RefreshCw, AlertTriangle, Bot, Wrench, Settings, Unlock, ArrowRight, ShieldCheck, Power, Loader2 } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const MaintenanceMode: React.FC = () => {
   const { homeConfig, updateHomeConfig } = useContent();
-  const { user } = useAuth();
+  const { user, loading } = useAuth(); // Import loading state
   const navigate = useNavigate();
   const activeMode = homeConfig?.maintenanceMode || 'lockdown'; // Default to red if undefined
 
@@ -27,6 +27,20 @@ const MaintenanceMode: React.FC = () => {
       }
   };
 
+  // --- LOADER ---
+  // Si Firebase aún está cargando el usuario, mostramos un spinner negro en lugar de la pantalla roja.
+  // Esto evita el "flash" de bloqueo al admin.
+  if (loading) {
+      return (
+          <div className="flex flex-col h-screen w-full bg-black items-center justify-center">
+              <Loader2 size={48} className="text-white animate-spin mb-4" />
+              <p className="text-white/50 text-[10px] font-black uppercase tracking-widest animate-pulse">
+                  Verificando credenciales de acceso...
+              </p>
+          </div>
+      );
+  }
+
   // --- MODO 1: RED LOCKDOWN (Seguridad/Peligro) ---
   if (activeMode === 'lockdown') {
       return (
@@ -41,7 +55,7 @@ const MaintenanceMode: React.FC = () => {
                   <div className="bg-black/30 backdrop-blur-md border border-white/20 p-5 rounded-2xl shadow-2xl">
                       <div className="flex items-center justify-center space-x-2 mb-4 border-b border-white/10 pb-3">
                           <ShieldCheck size={18} className="text-white" />
-                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Panel Admin</span>
+                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Panel Admin Detectado</span>
                       </div>
                       <div className="grid grid-cols-1 gap-3">
                           <button 
@@ -127,7 +141,7 @@ const MaintenanceMode: React.FC = () => {
               <div className="bg-white dark:bg-brand-dark-card border border-gray-100 dark:border-white/10 p-5 rounded-2xl shadow-xl">
                   <div className="flex items-center justify-center space-x-2 mb-4 border-b border-gray-100 dark:border-white/10 pb-3">
                       <ShieldCheck size={18} className="text-brand-purple" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-black dark:text-white">Panel Admin</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-black dark:text-white">Panel Admin Detectado</span>
                   </div>
                   <div className="grid grid-cols-1 gap-3">
                       <button 
