@@ -1,8 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { ContentProvider, useContent } from './context/ContentContext';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { ContentProvider } from './context/ContentContext';
+import { LoadingGate, AuthGate, BlockedGate, MaintenanceGate, AdminGate } from './components/RouteGuards';
+
+// Pages
 import Login from './pages/Login';
 import Onboarding from './pages/Onboarding'; 
 import OnboardingSetup from './pages/OnboardingSetup'; 
@@ -27,222 +29,74 @@ import MaintenanceMode from './pages/MaintenanceMode';
 import AccessDenied from './pages/AccessDenied';
 import { MainLayout } from './components/MainLayout';
 import { InstallPrompt } from './components/InstallPrompt';
-import { useOneSignal } from './hooks/useOneSignal'; // Import Hook
-
-// System Version: v16.2.0 - Maintenance Race Condition Fix
-
-const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
-  const { user, loading } = useAuth();
-  const location = useLocation();
-
-  if (loading) {
-    return <div className="flex items-center justify-center h-screen bg-white text-brand-black">Cargando...</div>;
-  }
-
-  if (!user) {
-    return <Navigate to="/" state={{ from: location }} replace />;
-  }
-
-  return <>{children}</>;
-};
-
-// Protección para rutas admin BASADA EN BASE DE DATOS
-const AdminRoute = ({ children }: { children?: React.ReactNode }) => {
-    const { user, loading } = useAuth();
-    
-    if (loading) return null;
-    
-    if (!user) return <Navigate to="/" />;
-
-    // STRICT CHECK: Trust only the DB value
-    if (!user.isAdmin) {
-        // Redirect silently to home if not admin to prevent errors
-        return <Navigate to="/home" replace />;
-    }
-
-    return <>{children}</>;
-};
+import { useOneSignal } from './hooks/useOneSignal';
 
 const AppContent: React.FC = () => {
-  const { homeConfig, loading: contentLoading } = useContent();
-  const { user, loading: authLoading } = useAuth();
-  const location = useLocation();
-
-  // --- INIT PUSH NOTIFICATIONS ---
+  // Inicializar notificaciones una sola vez
   useOneSignal();
-
-  // --- CRITICAL LOADING STATE ---
-  // Esperar a que cargue tanto Auth como Content antes de decidir rutas críticas
-  if (authLoading || contentLoading) {
-      return (
-          <div className="fixed inset-0 z-[200] bg-white dark:bg-black flex flex-col items-center justify-center">
-              <div className="w-10 h-10 border-4 border-brand-purple border-t-transparent rounded-full animate-spin mb-4"></div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 animate-pulse">
-                  Conectando con el servidor...
-              </p>
-          </div>
-      );
-  }
-
-  // --- 1. GLOBAL BLOCKED USER CHECK (KILL SWITCH) ---
-  if (user?.isBlocked) {
-      const isAccessDeniedPage = location.pathname === '/access-denied';
-      const isLoginPage = location.pathname === '/';
-      
-      if (!isAccessDeniedPage && !isLoginPage) {
-          return <Navigate to="/access-denied" replace />;
-      }
-  }
-
-  // --- 2. GLOBAL MAINTENANCE GUARD (DUAL MODE) ---
-  const activeMode = homeConfig?.maintenanceMode || 'off';
-  
-  if (activeMode !== 'off') {
-      const isMaintenancePage = location.pathname === '/maintenance';
-      const isLoginPage = location.pathname === '/';
-      const isBlockedPage = location.pathname === '/access-denied';
-      
-      // If user is not admin and trying to access anything but permitted pages
-      if (!user?.isAdmin && !isMaintenancePage && !isLoginPage && !isBlockedPage) {
-          return <Navigate to="/maintenance" replace />;
-      }
-  }
 
   return (
     <div className="w-full h-[100dvh] bg-white text-brand-black dark:bg-black dark:text-white overflow-hidden relative flex flex-col transition-colors duration-300">
-      {/* PWA INSTALL PROMPT - Visible on all pages if installable */}
       <InstallPrompt />
-
+      
       <Routes>
-        {/* Public Route */}
+        {/* === RUTAS PÚBLICAS Y DE SISTEMA (Fuera de Guards principales) === */}
         <Route path="/" element={<Login />} />
-        
-        {/* GLOBAL LOCKDOWN PAGE (Handles both Red/Purple visual internally) */}
         <Route path="/maintenance" element={<MaintenanceMode />} />
-
-        {/* BLOCKED USER PAGE */}
         <Route path="/access-denied" element={<AccessDenied />} />
 
-        {/* New Intermediate Page */}
-        <Route path="/welcome" element={
-          <ProtectedRoute>
-            <WelcomeIntermediate />
-          </ProtectedRoute>
-        } />
-        
-        {/* New PK Calendar Page */}
-        <Route path="/pk-calendar" element={
-          <ProtectedRoute>
-            <PKCalendar />
-          </ProtectedRoute>
-        } />
+        {/* === RUTAS PROTEGIDAS (Requieren Autenticación) === */}
+        <Route element={<AuthGate />}>
+            
+            {/* 1. Validación de Bloqueo Global (Prioridad Alta) */}
+            <Route element={<BlockedGate />}>
+                
+                {/* 2. Validación de Mantenimiento (Puede ser bypasseada por Admins) */}
+                <Route element={<MaintenanceGate />}>
+                    
+                    {/* --- Rutas de Onboarding (Sin Layout) --- */}
+                    <Route path="/onboarding" element={<Onboarding />} />
+                    <Route path="/onboarding/setup" element={<OnboardingSetup />} />
+                    
+                    {/* --- Rutas Intermedias --- */}
+                    <Route path="/welcome" element={<WelcomeIntermediate />} />
+                    <Route path="/pk-calendar" element={<PKCalendar />} />
 
-        {/* Onboarding Routes - Protected but standalone */}
-        <Route path="/onboarding" element={
-          <ProtectedRoute>
-            <Onboarding />
-          </ProtectedRoute>
-        } />
-        <Route path="/onboarding/setup" element={
-          <ProtectedRoute>
-            <OnboardingSetup />
-          </ProtectedRoute>
-        } />
+                    {/* --- Layout Principal con Navegación Inferior --- */}
+                    <Route element={<MainLayout />}>
+                        <Route path="/home" element={<Profile />} />
+                        <Route path="/training" element={<TrainingList />} />
+                        <Route path="/settings" element={<UserSettings />} />
+                    </Route>
 
-        {/* Authenticated Routes with Bottom Nav */}
-        <Route element={<MainLayout />}>
-          <Route path="/home" element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } />
-          <Route path="/training" element={
-            <ProtectedRoute>
-              <TrainingList />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings" element={
-            <ProtectedRoute>
-              <UserSettings />
-            </ProtectedRoute>
-          } />
-        </Route>
+                    {/* --- Rutas de Detalle (Sin BottomNav) --- */}
+                    <Route path="/training/:topicId" element={<TrainingDetail />} />
+                    
+                    {/* Sub-secciones de Entrenamiento */}
+                    <Route path="/training/bloqueos/motivos" element={<BloqueoMotivos />} />
+                    <Route path="/training/bloqueos/types" element={<BloqueoTypes />} />
+                    <Route path="/training/bloqueos/vip" element={<BloqueoVip />} />
+                    <Route path="/training/bloqueos/appeal" element={<BloqueoAppeal />} />
 
-        {/* Detail View - Protected */}
-        <Route path="/training/:topicId" element={
-          <ProtectedRoute>
-            <TrainingDetail />
-          </ProtectedRoute>
-        } />
-        
-        {/* Sub-pages for Training - Protected */}
-        <Route path="/training/bloqueos/motivos" element={
-          <ProtectedRoute>
-            <BloqueoMotivos />
-          </ProtectedRoute>
-        } />
-        <Route path="/training/bloqueos/types" element={
-          <ProtectedRoute>
-            <BloqueoTypes />
-          </ProtectedRoute>
-        } />
-        <Route path="/training/bloqueos/vip" element={
-          <ProtectedRoute>
-            <BloqueoVip />
-          </ProtectedRoute>
-        } />
-        <Route path="/training/bloqueos/appeal" element={
-          <ProtectedRoute>
-            <BloqueoAppeal />
-          </ProtectedRoute>
-        } />
+                    {/* Herramientas */}
+                    <Route path="/tools/calculator" element={<CalculatorTool />} />
+                    <Route path="/tools/payment-table" element={<PaymentTableTool />} />
+                    <Route path="/tools/gamer" element={<GamerTool />} />
+                    <Route path="/tools/gamer/setup" element={<GameRunTool />} />
 
-        {/* Tools Routes - Protected */}
-        <Route path="/tools/calculator" element={
-          <ProtectedRoute>
-            <CalculatorTool />
-          </ProtectedRoute>
-        } />
-        <Route path="/tools/payment-table" element={
-          <ProtectedRoute>
-            <PaymentTableTool />
-          </ProtectedRoute>
-        } />
-        <Route path="/tools/gamer" element={
-          <ProtectedRoute>
-            <GamerTool />
-          </ProtectedRoute>
-        } />
-        <Route path="/tools/gamer/setup" element={
-          <ProtectedRoute>
-            <GameRunTool />
-          </ProtectedRoute>
-        } />
+                    {/* --- RUTAS DE ADMINISTRADOR --- */}
+                    <Route element={<AdminGate />}>
+                        <Route path="/admin" element={<Navigate to="/admin/selection" replace />} />
+                        <Route path="/admin/selection" element={<AdminSelection />} />
+                        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                        <Route path="/admin/editor" element={<EditorDashboard />} />
+                    </Route>
 
-        {/* Admin Routes */}
-        <Route path="/admin" element={
-           <Navigate to="/admin/selection" replace />
-        } />
-        
-        <Route path="/admin/selection" element={
-          <AdminRoute>
-            <AdminSelection />
-          </AdminRoute>
-        } />
+                </Route> {/* Fin MaintenanceGate */}
+            </Route> {/* Fin BlockedGate */}
+        </Route> {/* Fin AuthGate */}
 
-        <Route path="/admin/dashboard" element={
-          <AdminRoute>
-            <AdminDashboard />
-          </AdminRoute>
-        } />
-
-        <Route path="/admin/editor" element={
-          <AdminRoute>
-            <EditorDashboard />
-          </AdminRoute>
-        } />
-        
-        {/* Redirect unknown routes to home or login */}
+        {/* Catch all: Redirigir a login */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
@@ -250,7 +104,7 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  // Splash Screen State
+  // Splash Screen Inicial (Branding)
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
@@ -262,11 +116,9 @@ const App: React.FC = () => {
 
   if (showSplash) {
     return (
-       <div className="fixed inset-0 z-[100] bg-white dark:bg-black flex flex-col items-center justify-center animate-fade-in transition-colors duration-500">
+       <div className="fixed inset-0 z-[300] bg-white dark:bg-black flex flex-col items-center justify-center animate-fade-in transition-colors duration-500">
           <div className="relative w-40 h-40 mb-8 flex items-center justify-center">
-              {/* Glow Effect */}
               <div className="absolute inset-0 bg-brand-purple/30 rounded-full blur-2xl animate-pulse"></div>
-              {/* Logo with breathing animation */}
               <img
                 src="https://i.postimg.cc/65zvGzJL/IMG_20251102_060134.png"
                 alt="StreamAgency Logo"
@@ -285,14 +137,17 @@ const App: React.FC = () => {
     );
   }
 
+  // --- RECONSTRUCCIÓN: Usando BrowserRouter y LoadingGate ---
   return (
-    <Router>
+    <BrowserRouter>
       <AuthProvider>
         <ContentProvider>
-           <AppContent />
+           <LoadingGate>
+              <AppContent />
+           </LoadingGate>
         </ContentProvider>
       </AuthProvider>
-    </Router>
+    </BrowserRouter>
   );
 };
 
