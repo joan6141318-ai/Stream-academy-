@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, Key, ArrowLeft, ArrowRight, ShieldCheck, UserX, Check, X, Save, Clock, Zap, Plus, Trash2, History } from 'lucide-react';
+import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, Key, ArrowLeft, ArrowRight, ShieldCheck, UserX, Check, X, Save, Clock, Zap, Plus, Trash2, History, Edit2 } from 'lucide-react';
 import { collection, updateDoc, doc, onSnapshot, query, writeBatch } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Header } from '../components/Header';
@@ -32,6 +32,15 @@ const AdminDashboard: React.FC = () => {
   const [newAgencyCode, setNewAgencyCode] = useState('');
   const [isUpdatingKey, setIsUpdatingKey] = useState(false);
   const [isClearingHistory, setIsClearingHistory] = useState(false);
+
+  // --- TIME MODAL STATE ---
+  const [showTimeModal, setShowTimeModal] = useState(false);
+  const [editingTimeIndex, setEditingTimeIndex] = useState<{ type: 'potential' | 'supersmash', index: number } | null>(null);
+  const [tempTimeData, setTempTimeData] = useState({
+      startH: '08', startM: '00',
+      endH: '08', endM: '15',
+      ampm: 'PM'
+  });
 
   // --- REAL TIME USERS ---
   useEffect(() => {
@@ -127,11 +136,60 @@ const AdminDashboard: React.FC = () => {
       setLocalSchedule({ ...localSchedule, [type]: updatedList });
   };
 
+  const openTimeEditor = (type: 'potential' | 'supersmash', index: number, currentTime: string) => {
+      // Parse current time string "08:00 - 08:15 PM"
+      let startH = '08', startM = '00', endH = '08', endM = '15', ampm = 'PM';
+      
+      try {
+          // Basic parser
+          const parts = currentTime.split('-');
+          if (parts.length === 2) {
+              const startParts = parts[0].trim().split(':');
+              const endPartsRaw = parts[1].trim();
+              
+              startH = startParts[0] || '08';
+              startM = startParts[1] || '00';
+              
+              // Extract AM/PM from end
+              if (endPartsRaw.includes('PM')) ampm = 'PM';
+              else if (endPartsRaw.includes('AM')) ampm = 'AM';
+              
+              const endClean = endPartsRaw.replace('PM', '').replace('AM', '').trim();
+              const endParts = endClean.split(':');
+              
+              endH = endParts[0] || '08';
+              endM = endParts[1] || '15';
+          }
+      } catch (e) {
+          console.warn("Could not parse time", e);
+      }
+
+      setTempTimeData({ startH, startM, endH, endM, ampm });
+      setEditingTimeIndex({ type, index });
+      setShowTimeModal(true);
+  };
+
+  const saveTimeFromModal = () => {
+      if (!editingTimeIndex) return;
+      const { startH, startM, endH, endM, ampm } = tempTimeData;
+      // Pad single digits
+      const fSH = startH.padStart(2, '0');
+      const fSM = startM.padStart(2, '0');
+      const fEH = endH.padStart(2, '0');
+      const fEM = endM.padStart(2, '0');
+      
+      const timeString = `${fSH}:${fSM} - ${fEH}:${fEM} ${ampm}`;
+      
+      handleScheduleChange(editingTimeIndex.type, editingTimeIndex.index, 'time', timeString);
+      setShowTimeModal(false);
+      setEditingTimeIndex(null);
+  };
+
   const handleAddRow = (type: 'potential' | 'supersmash') => {
       if (!localSchedule) return;
       const newRow: PKEvent = {
           id: Date.now().toString(),
-          time: '00:00 - 00:00 PM',
+          time: '08:00 - 08:15 PM',
           user1: '', id1: '',
           user2: '', id2: '',
           confirmed: false
@@ -171,20 +229,24 @@ const AdminDashboard: React.FC = () => {
   };
 
   const renderEditableRow = (ev: PKEvent, i: number, type: 'potential' | 'supersmash') => {
+      // Parse time for visual display
+      const parts = ev.time.split('-');
+      const start = parts[0]?.trim() || ev.time;
+      const end = parts[1]?.trim() || '';
+
       return (
         <div key={i} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5 transition-all hover:bg-gray-100 dark:hover:bg-white/10 group">
-            {/* Editable Time Box */}
-            <div className="w-20 h-12 bg-white dark:bg-black/40 rounded-lg border border-gray-200 dark:border-white/10 flex flex-col items-center justify-center shadow-sm relative overflow-hidden group-focus-within:border-brand-purple transition-colors">
-                <div className="absolute top-1 left-0 w-full flex justify-center pointer-events-none">
-                    <Clock size={8} className="text-gray-400" />
+            {/* Clickable Time Box */}
+            <button 
+                onClick={() => openTimeEditor(type, i, ev.time)}
+                className="w-20 h-12 bg-white dark:bg-black/40 rounded-lg border border-gray-200 dark:border-white/10 flex flex-col items-center justify-center shadow-sm relative overflow-hidden group-hover:border-brand-purple/50 transition-all active:scale-95"
+            >
+                <div className="absolute top-1 right-1">
+                    <Edit2 size={8} className="text-gray-300 dark:text-gray-600" />
                 </div>
-                <input 
-                    value={ev.time}
-                    onChange={e => handleScheduleChange(type, i, 'time', e.target.value)}
-                    className="w-full h-full bg-transparent text-center text-[9px] font-black text-brand-black dark:text-white outline-none px-1 pt-2 uppercase"
-                    placeholder="00:00"
-                />
-            </div>
+                <span className="text-[10px] font-black text-brand-black dark:text-white leading-none uppercase">{start}</span>
+                {end && <span className="text-[8px] font-bold text-gray-400 dark:text-gray-500 leading-none mt-0.5 uppercase">{end}</span>}
+            </button>
 
             {/* Inputs Container */}
             <div className="flex-1 flex items-center gap-1.5">
@@ -532,6 +594,58 @@ const AdminDashboard: React.FC = () => {
              </div>
         )}
       </div>
+
+      {/* --- MODAL EDITOR DE HORA --- */}
+      {showTimeModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={() => setShowTimeModal(false)}>
+              <div 
+                className="bg-white dark:bg-[#121212] rounded-3xl p-6 w-full max-w-sm border border-gray-100 dark:border-white/10 shadow-2xl relative overflow-hidden"
+                onClick={e => e.stopPropagation()}
+              >
+                  <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-xl font-black uppercase text-brand-black dark:text-white tracking-tighter">Configurar Horario</h3>
+                      <button onClick={() => setShowTimeModal(false)} className="bg-gray-100 dark:bg-white/10 p-2 rounded-full text-gray-500 hover:text-black dark:hover:text-white transition-colors">
+                          <X size={20} />
+                      </button>
+                  </div>
+
+                  <div className="space-y-6">
+                      {/* START TIME */}
+                      <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Inicio</span>
+                          <div className="flex items-center gap-2">
+                              <input type="number" min="1" max="12" value={tempTimeData.startH} onChange={e => setTempTimeData({...tempTimeData, startH: e.target.value})} className="w-14 h-14 bg-gray-50 dark:bg-black/40 rounded-xl text-center text-xl font-black text-brand-black dark:text-white border-none outline-none focus:ring-2 ring-brand-purple/50" />
+                              <span className="text-xl font-black text-gray-300">:</span>
+                              <input type="number" min="0" max="59" value={tempTimeData.startM} onChange={e => setTempTimeData({...tempTimeData, startM: e.target.value})} className="w-14 h-14 bg-gray-50 dark:bg-black/40 rounded-xl text-center text-xl font-black text-brand-black dark:text-white border-none outline-none focus:ring-2 ring-brand-purple/50" />
+                          </div>
+                      </div>
+
+                      {/* END TIME */}
+                      <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Fin</span>
+                          <div className="flex items-center gap-2">
+                              <input type="number" min="1" max="12" value={tempTimeData.endH} onChange={e => setTempTimeData({...tempTimeData, endH: e.target.value})} className="w-14 h-14 bg-gray-50 dark:bg-black/40 rounded-xl text-center text-xl font-black text-brand-black dark:text-white border-none outline-none focus:ring-2 ring-brand-purple/50" />
+                              <span className="text-xl font-black text-gray-300">:</span>
+                              <input type="number" min="0" max="59" value={tempTimeData.endM} onChange={e => setTempTimeData({...tempTimeData, endM: e.target.value})} className="w-14 h-14 bg-gray-50 dark:bg-black/40 rounded-xl text-center text-xl font-black text-brand-black dark:text-white border-none outline-none focus:ring-2 ring-brand-purple/50" />
+                          </div>
+                      </div>
+
+                      {/* AM/PM TOGGLE */}
+                      <div className="bg-gray-50 dark:bg-white/5 p-1 rounded-xl flex">
+                          <button onClick={() => setTempTimeData({...tempTimeData, ampm: 'AM'})} className={`flex-1 py-3 rounded-lg text-xs font-black uppercase transition-all ${tempTimeData.ampm === 'AM' ? 'bg-white dark:bg-brand-purple text-brand-black dark:text-white shadow-md' : 'text-gray-400'}`}>AM</button>
+                          <button onClick={() => setTempTimeData({...tempTimeData, ampm: 'PM'})} className={`flex-1 py-3 rounded-lg text-xs font-black uppercase transition-all ${tempTimeData.ampm === 'PM' ? 'bg-white dark:bg-brand-purple text-brand-black dark:text-white shadow-md' : 'text-gray-400'}`}>PM</button>
+                      </div>
+
+                      <button 
+                        onClick={saveTimeFromModal}
+                        className="w-full bg-brand-black dark:bg-white text-white dark:text-black py-4 rounded-xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all"
+                      >
+                          Aplicar Horario
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
     </div>
   );
 };
