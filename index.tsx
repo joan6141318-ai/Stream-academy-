@@ -1,8 +1,9 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
-// Force reload timestamp: 2024-BIGO-UPDATE-V9
+// Force reload timestamp: 2024-BIGO-UPDATE-V10
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");
