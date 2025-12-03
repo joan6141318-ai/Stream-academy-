@@ -4,6 +4,9 @@ import { TrainingModule, UserProfile } from './types';
 // Incrementa este número para obligar a TODOS los usuarios a refrescar su perfil
 export const DATA_VERSION = 3; 
 
+// --- CONFIGURACIÓN PÚBLICA (NO SENSIBLE) ---
+export const ONESIGNAL_APP_ID = "3bbf8972-d8cb-4eed-a46b-6059a4f71cd1"; // ID Público de la App
+
 // --- SEGURIDAD: LISTA ELIMINADA ---
 // La gestión de administradores ahora se realiza estrictamente vía Base de Datos (Firestore).
 // No agregar correos aquí para evitar exposición en el código cliente.

@@ -8,6 +8,7 @@ import { Header } from '../components/Header';
 import { Button } from '../components/Button';
 import { useContent, hashString } from '../context/ContentContext';
 import { PKSchedule, PKEvent, ActivityLog, PKRequest } from '../types';
+import { ONESIGNAL_APP_ID } from '../constants';
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -157,7 +158,7 @@ const AdminDashboard: React.FC = () => {
                 Authorization: `Basic ${restApiKey}`
             },
             body: JSON.stringify({
-                app_id: "3bbf8972-d8cb-4eed-a46b-6059a4f71cd1",
+                app_id: ONESIGNAL_APP_ID,
                 included_segments: ["Subscribed Users"], 
                 contents: { "en": alertMessage, "es": alertMessage },
                 headings: { "en": "StreamAgency Aviso", "es": "StreamAgency Aviso" },

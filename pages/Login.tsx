@@ -68,9 +68,13 @@ const Login: React.FC = () => {
         // Calcular Hash del input
         const inputHash = await hashString(normalizedAgency);
         
-        // Obtener Hash Correcto
-        // Default hash es SHA-256 de 'moon' como fallback final, pero esperamos a contentLoading
-        const validHash = homeConfig?.agencyCodeHash || "a43c1b0aa53a0c908810c03ab1d7cb9922c2a05d605c567839356b20677275c5";
+        // Obtener Hash Correcto de Firebase
+        // SEGURIDAD: Ya no hay hash por defecto ("moon"). Si no carga la config, no entra nadie.
+        const validHash = homeConfig?.agencyCodeHash;
+        
+        if (!validHash) {
+             throw new Error("Error de configuración del sistema. Contacta soporte.");
+        }
         
         if (inputHash !== validHash) {
             setAgencyError("Código inválido");
@@ -94,7 +98,7 @@ const Login: React.FC = () => {
       
       const errorCode = err.code || '';
       const errorMessage = err.message || '';
-      const isCustomError = errorMessage.includes("código de invitación") || errorMessage.includes("Conectando");
+      const isCustomError = errorMessage.includes("código de invitación") || errorMessage.includes("Conectando") || errorMessage.includes("configuración");
 
       if (!isCustomError) {
           console.error("Firebase Auth Error:", errorCode, errorMessage);
@@ -274,7 +278,7 @@ const Login: React.FC = () => {
             Términos y Privacidad
          </button>
          <p className="text-[9px] font-bold text-gray-200 dark:text-gray-800 uppercase tracking-widest">
-           Secure Access • v2.6
+           Secure Access • v2.6.1
          </p>
       </div>
 

@@ -1,5 +1,6 @@
 
 import { useEffect, useState, useRef } from 'react';
+import { ONESIGNAL_APP_ID } from '../constants';
 
 // Extend window object to include OneSignal
 declare global {
@@ -36,7 +37,7 @@ export const useOneSignal = () => {
             if (initDone.current) return; // Doble check por seguridad interna de la librería
             
             OneSignal.init({
-              appId: "3bbf8972-d8cb-4eed-a46b-6059a4f71cd1",
+              appId: ONESIGNAL_APP_ID,
               safari_web_id: "web.onesignal.auto.5f4f9ed9-fb2e-4d6a-935d-81aa46fccce0",
               notifyButton: {
                 enable: false, 
