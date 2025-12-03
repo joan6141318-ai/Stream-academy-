@@ -141,6 +141,9 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return;
     }
 
+    // --- AUTO-RECOVERY REMOVED to prevent permission errors ---
+    // User has manually fixed the block state, so we don't need to force write to DB on load.
+
     // 1. Listen Banners
     const unsubBanners = onSnapshot(collection(db, "banners"), (snapshot) => {
         if (!snapshot.empty) {
