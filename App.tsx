@@ -29,15 +29,11 @@ import { MainLayout } from './components/MainLayout';
 import { InstallPrompt } from './components/InstallPrompt';
 import { useOneSignal } from './hooks/useOneSignal'; // Import Hook
 
-// System Version: v16.1.3 - Admin Escape Hatch Fixed
+// System Version: v16.2.0 - Root Fix Architecture
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
-
-  if (loading) {
-    return <div className="flex items-center justify-center h-screen bg-white text-brand-black">Cargando...</div>;
-  }
 
   if (!user) {
     return <Navigate to="/" state={{ from: location }} replace />;
@@ -48,15 +44,12 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
 
 // Protección para rutas admin BASADA EN BASE DE DATOS
 const AdminRoute = ({ children }: { children?: React.ReactNode }) => {
-    const { user, loading } = useAuth();
-    
-    if (loading) return null;
+    const { user } = useAuth();
     
     if (!user) return <Navigate to="/" />;
 
     // STRICT CHECK: Trust only the DB value
     if (!user.isAdmin) {
-        // Redirect silently to home if not admin to prevent errors
         return <Navigate to="/home" replace />;
     }
 
@@ -71,15 +64,37 @@ const AppContent: React.FC = () => {
   // --- INIT PUSH NOTIFICATIONS ---
   useOneSignal();
 
-  // --- 0. ADMIN ESCAPE HATCH (PRIORIDAD MÁXIMA) ---
-  // Si el usuario es ADMIN y está "atrapado" en la página de mantenimiento, lo sacamos al Home.
-  // Esto arregla el problema de ver la pantalla roja siendo admin.
-  if (!authLoading && user?.isAdmin && location.pathname === '/maintenance') {
+  // =================================================================================
+  // 1. GLOBAL GATEKEEPER (SOLUCIÓN DE RAÍZ)
+  // =================================================================================
+  // Bloqueamos el renderizado de TODA la app hasta que sepamos quién es el usuario
+  // y cuál es la configuración. Esto evita que la pantalla de mantenimiento salte
+  // "mientras" carga el perfil del admin.
+  if (authLoading || contentLoading) {
+      return (
+         <div className="flex flex-col h-[100dvh] w-full bg-white dark:bg-black items-center justify-center transition-colors duration-300">
+            <div className="relative">
+                <div className="w-12 h-12 border-4 border-brand-purple border-t-transparent rounded-full animate-spin"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-2 h-2 bg-brand-purple rounded-full"></div>
+                </div>
+            </div>
+         </div>
+      );
+  }
+
+  // =================================================================================
+  // 2. LOGIC AFTER LOADING (DATA IS 100% READY)
+  // =================================================================================
+
+  // A. ADMIN IMMUNITY (Prioridad Absoluta)
+  // Si es Admin y está atrapado en la pantalla de mantenimiento, sacarlo inmediatamente.
+  if (user?.isAdmin && location.pathname === '/maintenance') {
       return <Navigate to="/home" replace />;
   }
 
-  // --- 1. GLOBAL BLOCKED USER CHECK (KILL SWITCH) ---
-  if (!authLoading && user?.isBlocked) {
+  // B. GLOBAL BLOCKED USER CHECK (Kill Switch)
+  if (user?.isBlocked) {
       const isAccessDeniedPage = location.pathname === '/access-denied';
       const isLoginPage = location.pathname === '/';
       
@@ -88,26 +103,16 @@ const AppContent: React.FC = () => {
       }
   }
 
-  // --- 2. GLOBAL MAINTENANCE GUARD (DUAL MODE) ---
+  // C. MAINTENANCE MODE GUARD
+  // Solo se ejecuta si NO es admin.
   const activeMode = homeConfig?.maintenanceMode || 'off';
-  
-  // SOLUCIÓN DE CARRERA: Solo ejecutamos la lógica si tenemos datos de configuración y autenticación
-  if (!contentLoading && !authLoading && activeMode !== 'off') {
+  if (activeMode !== 'off' && !user?.isAdmin) {
+      const isMaintenancePage = location.pathname === '/maintenance';
+      const isLoginPage = location.pathname === '/'; // Permitir ver el Login
+      const isBlockedPage = location.pathname === '/access-denied';
       
-      // EXCEPCIÓN SUPREMA: Si es Admin, el código de abajo NO se ejecuta.
-      // El Admin tiene pase libre total y ya fue manejado en el punto 0 si estaba en /maintenance.
-      if (user?.isAdmin) {
-          // Pass-through: El administrador puede navegar a donde quiera.
-      } else {
-          // Lógica para usuarios normales (NO Admins)
-          const isMaintenancePage = location.pathname === '/maintenance';
-          const isLoginPage = location.pathname === '/';
-          const isBlockedPage = location.pathname === '/access-denied';
-          
-          // Si no está en una página permitida, enviarlo a mantenimiento
-          if (!isMaintenancePage && !isLoginPage && !isBlockedPage) {
-              return <Navigate to="/maintenance" replace />;
-          }
+      if (!isMaintenancePage && !isLoginPage && !isBlockedPage) {
+          return <Navigate to="/maintenance" replace />;
       }
   }
 
