@@ -4,12 +4,10 @@ import { TrainingModule, UserProfile } from './types';
 // Incrementa este número para obligar a TODOS los usuarios a refrescar su perfil
 export const DATA_VERSION = 3; 
 
-// --- LISTA DE CORREOS ADMINISTRADORES ---
-// IMPORTANTE: Agrega aquí tus correos exactos (en minúsculas) para obtener acceso automático.
-export const ADMIN_EMAILS = [
-    "joan6141318@gmail.com", 
-    "elianaloor86@gmail.com"
-];
+// --- SEGURIDAD: LISTA ELIMINADA ---
+// La gestión de administradores ahora se realiza estrictamente vía Base de Datos (Firestore).
+// No agregar correos aquí para evitar exposición en el código cliente.
+export const ADMIN_EMAILS: string[] = [];
 
 export const MOCK_USER: UserProfile = {
   name: "Alex Rivera",

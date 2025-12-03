@@ -189,28 +189,10 @@ const UserSettings: React.FC = () => {
     }
   };
 
-  const handleAdminAccess = async () => {
-      if (!user) return;
-
-      if (user.isAdmin) {
+  // Solo navegación admin si ya es admin. Eliminado el prompt de código.
+  const handleAdminNavigation = () => {
+      if (user?.isAdmin) {
           navigate('/admin');
-      } else {
-          // Recovery Flow - Emergency Backdoor for Owner
-          // SIMPLIFICADO: Solo "moon" funciona, sin hashes, sin complejidad.
-          const code = prompt("Ingresa la Llave Maestra 'moon':");
-          if (!code) return;
-
-          if (code.trim().toLowerCase() === 'moon') {
-              try {
-                  await updateProfile({ isAdmin: true, role: 'Administrador' });
-                  alert("¡Acceso de Administración ACTIVADO! Bienvenido.");
-                  window.location.reload(); 
-              } catch (e) {
-                  alert("Error de conexión al actualizar perfil.");
-              }
-          } else {
-              alert("Código incorrecto.");
-          }
       }
   };
 
@@ -316,17 +298,19 @@ const UserSettings: React.FC = () => {
             )}
         </div>
 
-        {/* --- ADMIN ACCESS --- */}
-        <div className="bg-white dark:bg-brand-dark-card mb-3 shadow-sm">
-            <div className="flex flex-col">
-                <SettingItem 
-                    icon={<Shield size={18} />} 
-                    label={user.isAdmin ? "Panel de Agencia" : "Acceso Administrativo"} 
-                    highlight={user.isAdmin}
-                    onClick={handleAdminAccess}
-                />
+        {/* --- ADMIN ACCESS (Solo si ya es admin) --- */}
+        {user.isAdmin && (
+            <div className="bg-white dark:bg-brand-dark-card mb-3 shadow-sm">
+                <div className="flex flex-col">
+                    <SettingItem 
+                        icon={<Shield size={18} />} 
+                        label="Panel de Agencia"
+                        highlight={true}
+                        onClick={handleAdminNavigation}
+                    />
+                </div>
             </div>
-        </div>
+        )}
 
         {/* --- DETALLES DE PERFIL --- */}
         <div className="bg-white dark:bg-brand-dark-card mb-3 shadow-sm">
@@ -429,7 +413,7 @@ const UserSettings: React.FC = () => {
             </button>
 
             <p className="text-center text-[9px] font-bold text-gray-300 dark:text-gray-600 mt-2 uppercase">
-                StreamAgency v2.4 • Secure Build
+                StreamAgency v2.5 • Secure Build
             </p>
         </div>
 

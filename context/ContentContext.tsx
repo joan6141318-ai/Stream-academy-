@@ -1,8 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { collection, onSnapshot, doc, updateDoc, setDoc, addDoc, deleteDoc, query } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, setDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-import { Banner, TrainingModule, HomeConfig, PKSchedule, PKRequest, ModuleStyle } from '../types';
+import { Banner, TrainingModule, HomeConfig, PKSchedule, ModuleStyle } from '../types';
 import { TRAINING_MODULES as INITIAL_MODULES } from '../constants';
 
 // --- CRYPTO UTILITY ---
@@ -97,30 +97,10 @@ const INITIAL_HOME_CONFIG: HomeConfig = {
     maintenanceMode: 'off'
 };
 
-// Initial PK Data Structure (Empty Slots)
-const INITIAL_PK_SCHEDULE: PKSchedule = {
-    potential: [
-        { id: 'p1', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
-        { id: 'p2', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
-        { id: 'p3', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
-        { id: 'p4', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
-        { id: 'p5', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
-    ],
-    supersmash: [
-        { id: 's1', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
-        { id: 's2', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
-        { id: 's3', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
-        { id: 's4', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
-        { id: 's5', time: '08:00 - 08:15 PM', user1: '', id1: '', user2: '', id2: '', confirmed: false },
-    ]
-};
-
 interface ContentContextType {
   banners: Banner[];
   modules: TrainingModule[];
   homeConfig: HomeConfig;
-  pkSchedule: PKSchedule;
-  pkRequests: PKRequest[];
   loading: boolean;
   updateBanner: (id: string, data: Partial<Banner>) => Promise<void>;
   updateModule: (id: string, data: Partial<TrainingModule>) => Promise<void>;
@@ -140,8 +120,6 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
        return {...m, style: initStyle};
   }));
   const [homeConfig, setHomeConfig] = useState<HomeConfig>(INITIAL_HOME_CONFIG);
-  const [pkSchedule, setPkSchedule] = useState<PKSchedule>(INITIAL_PK_SCHEDULE);
-  const [pkRequests, setPkRequests] = useState<PKRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -188,32 +166,8 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     }, (error) => console.warn("Config Error", error.code));
 
-    // 4. Listen PK Schedule (ROBUST HANDLER)
-    const unsubPK = onSnapshot(doc(db, "schedules", "main"), (docSnap) => {
-        if (docSnap.exists()) {
-            const data = docSnap.data() as PKSchedule;
-            // Ensure arrays always exist to prevent UI crashes if DB is partial
-            const safeData = {
-                potential: data.potential || INITIAL_PK_SCHEDULE.potential,
-                supersmash: data.supersmash || INITIAL_PK_SCHEDULE.supersmash
-            };
-            setPkSchedule(safeData);
-        } else {
-            setDoc(doc(db, "schedules", "main"), INITIAL_PK_SCHEDULE).catch(e => console.warn("Auto-seed PK failed", e));
-            setPkSchedule(INITIAL_PK_SCHEDULE);
-        }
-    }, (error) => console.warn("PK Schedule Error", error.code));
-
-    // 5. Listen PK Requests
-    const unsubRequests = onSnapshot(
-        query(collection(db, "pk_requests")), 
-        (snapshot) => {
-            const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as PKRequest));
-            list.sort((a, b) => b.createdAt - a.createdAt);
-            setPkRequests(list);
-        },
-        (error) => console.warn("Requests Error", error.code)
-    );
+    // NOTA: Se eliminaron los listeners de PK Schedule y Requests para optimizar carga inicial.
+    // Se cargarán bajo demanda en las vistas correspondientes.
 
     setLoading(false);
 
@@ -221,8 +175,6 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         unsubBanners();
         unsubModules();
         unsubConfig();
-        unsubPK();
-        unsubRequests();
     };
   }, []);
 
@@ -244,8 +196,8 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
       try { await setDoc(doc(db, "config", "home"), data, { merge: true }); } catch (e) { console.error(e); }
   };
 
+  // --- PK ACTIONS (Direct DB Calls, No State) ---
   const updatePKSchedule = async (data: PKSchedule) => {
-      setPkSchedule(data);
       if (!db) return;
       try { await setDoc(doc(db, "schedules", "main"), data); } catch (e) { console.error(e); }
   };
@@ -279,7 +231,7 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   return (
     <ContentContext.Provider value={{ 
-        banners, modules, homeConfig, pkSchedule, pkRequests, loading, 
+        banners, modules, homeConfig, loading, 
         updateBanner, updateModule, updateHomeConfig, updatePKSchedule, 
         addPKRequest, updatePKRequestStatus, deletePKRequest 
     }}>

@@ -57,9 +57,8 @@ const Login: React.FC = () => {
       if (isRegistering) {
         if (!name.trim()) throw new Error("Ingresa tu nombre para continuar.");
         
-        // --- VALIDACIÓN DE CÓDIGO DE INVITACIÓN (Solo para crear cuenta nueva) ---
+        // --- VALIDACIÓN DE CÓDIGO DE INVITACIÓN (Gatekeeper) ---
         const normalizedAgency = agencyCode.trim().toLowerCase();
-        let isAdminRegistration = false;
         
         // Calcular Hash del input
         const inputHash = await hashString(normalizedAgency);
@@ -67,21 +66,15 @@ const Login: React.FC = () => {
         // Obtener Hash Correcto (o el default 'moon' hash si no carga)
         const validHash = homeConfig?.agencyCodeHash || "a43c1b0aa53a0c908810c03ab1d7cb9922c2a05d605c567839356b20677275c5";
         
-        // CHECK 1: Código exacto 'moon' (Master Key) - Si se usa 'moon', se crea como ADMIN directamente
-        if (normalizedAgency === 'moon') {
-            isAdminRegistration = true;
-        } 
-        // CHECK 2: Hash de base de datos (clave cambiada)
-        else if (inputHash === validHash) {
-            // Código correcto pero no es 'moon' (usuario normal)
-            isAdminRegistration = false;
-        } else {
+        // Validación cosmética: Solo permite avanzar si el código coincide.
+        // NO OTORGA PERMISOS DE ADMIN.
+        if (normalizedAgency !== 'moon' && inputHash !== validHash) {
             setAgencyError("Código inválido");
-            throw new Error("El código de agencia es incorrecto. Pídelo a tu líder.");
+            throw new Error("El código de invitación es incorrecto. Pídelo a tu líder.");
         }
 
-        // Registrar con la bandera de admin si usó "moon"
-        await register(email, password, name, isAdminRegistration);
+        // REGISTRO SEGURO: isAdmin siempre es false aquí.
+        await register(email, password, name, false);
         setIsSuccess(true);
         navigate('/welcome', { replace: true });
       } else {
@@ -97,7 +90,7 @@ const Login: React.FC = () => {
       
       const errorCode = err.code || '';
       const errorMessage = err.message || '';
-      const isCustomError = errorMessage.includes("código de agencia");
+      const isCustomError = errorMessage.includes("código de invitación");
 
       if (!isCustomError) {
           console.error("Firebase Auth Error:", errorCode, errorMessage);
@@ -212,7 +205,7 @@ const Login: React.FC = () => {
                   type="text" 
                   value={agencyCode}
                   onChange={(e) => handleInputChange(setAgencyCode, e.target.value)}
-                  placeholder="Escribe 'moon' aquí"
+                  placeholder="Código de acceso"
                   className={`w-full h-10 border-b-2 bg-transparent text-base font-bold text-brand-black dark:text-white placeholder-gray-200 dark:placeholder-gray-700 focus:outline-none transition-all rounded-none p-0 ${agencyError ? 'border-red-500' : 'border-gray-100 dark:border-white/20 focus:border-brand-black dark:focus:border-white'}`}
                 />
                 {agencyError && (
@@ -269,7 +262,7 @@ const Login: React.FC = () => {
             Términos y Privacidad
          </button>
          <p className="text-[9px] font-bold text-gray-200 dark:text-gray-800 uppercase tracking-widest">
-           Secure Access • v2.4
+           Secure Access • v2.6
          </p>
       </div>
 
