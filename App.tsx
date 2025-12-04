@@ -27,6 +27,7 @@ import AdminSelection from './pages/AdminSelection';
 import EditorDashboard from './pages/EditorDashboard'; 
 import WelcomeIntermediate from './pages/WelcomeIntermediate';
 import PKCalendar from './pages/PKCalendar'; 
+import AppTour from './pages/AppTour';
 import MaintenanceMode from './pages/MaintenanceMode';
 import AccessDenied from './pages/AccessDenied';
 import { MainLayout } from './components/MainLayout';
@@ -76,6 +77,7 @@ const AppContent: React.FC = () => {
                     {/* --- PÁGINAS INDIVIDUALES (Pantalla completa sin Nav) --- */}
                     <Route path="/training/:topicId" element={<TrainingDetail />} />
                     <Route path="/pk-calendar" element={<PKCalendar />} />
+                    <Route path="/app-tour" element={<AppTour />} />
                     
                     {/* Sub-secciones de Entrenamiento */}
                     <Route path="/training/bloqueos/motivos" element={<BloqueoMotivos />} />

@@ -166,7 +166,7 @@ const WelcomeIntermediate: React.FC = () => {
 
            {/* Card 4: Conoce la App (Morado Minimalista) */}
            <button 
-            onClick={() => navigate('/onboarding')}
+            onClick={() => navigate('/app-tour')}
             className="bg-brand-purple text-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl shadow-purple-500/20 active:scale-[0.96] transition-all group relative overflow-hidden border-[5px] border-violet-500"
            >
               <div className="flex justify-between items-start w-full relative z-10">
