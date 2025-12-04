@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, PlayCircle, ExternalLink, X, ShieldAlert, Clock, Gavel, Crown } from 'lucide-react';
+import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, PlayCircle, ExternalLink, X, ShieldAlert, Clock, Gavel, Crown, ArrowUpRight } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { Button } from '../components/Button';
 import * as LucideIcons from 'lucide-react';
@@ -56,12 +56,12 @@ const TrainingDetail: React.FC = () => {
 
   const getResourceConfig = (type: string) => {
     switch(type) {
-      case 'table': return { bg: 'bg-blue-500 dark:bg-blue-600', shadow: 'shadow-blue-500/30' };
-      case 'calc': return { bg: 'bg-orange-500 dark:bg-orange-600', shadow: 'shadow-orange-500/30' };
-      case 'wallet': return { bg: 'bg-emerald-500 dark:bg-emerald-600', shadow: 'shadow-emerald-500/30' };
-      case 'card': return { bg: 'bg-violet-500 dark:bg-violet-600', shadow: 'shadow-violet-500/30' };
-      case 'doc': return { bg: 'bg-rose-500 dark:bg-rose-600', shadow: 'shadow-rose-500/30' };
-      default: return { bg: 'bg-gray-500', shadow: 'shadow-gray-500/30' };
+      case 'table': return { bg: 'bg-blue-600', shadow: 'shadow-blue-600/30' };
+      case 'calc': return { bg: 'bg-orange-500', shadow: 'shadow-orange-500/30' };
+      case 'wallet': return { bg: 'bg-emerald-600', shadow: 'shadow-emerald-600/30' };
+      case 'card': return { bg: 'bg-violet-600', shadow: 'shadow-violet-600/30' };
+      case 'doc': return { bg: 'bg-rose-600', shadow: 'shadow-rose-600/30' };
+      default: return { bg: 'bg-gray-800', shadow: 'shadow-gray-800/30' };
     }
   };
 
@@ -71,9 +71,7 @@ const TrainingDetail: React.FC = () => {
     else alert(`Abriendo recurso: ${title}`);
   };
 
-  // Función corregida para manejar el clic en el video
   const handleOpenVideo = () => {
-      // Verificamos si hay URL y no es el placeholder '#'
       if (module?.videoUrl && module.videoUrl !== '#' && module.videoUrl.trim() !== '') {
           window.open(module.videoUrl, '_blank', 'noopener,noreferrer');
       } else {
@@ -81,170 +79,211 @@ const TrainingDetail: React.FC = () => {
       }
   };
 
-  if (loading) return <div className="h-full w-full bg-white dark:bg-black flex items-center justify-center text-xs">Cargando...</div>;
-  if (!module) return <div className="h-full w-full bg-white dark:bg-black flex items-center justify-center text-xs">Módulo no encontrado</div>;
+  if (loading) return <div className="h-full w-full bg-white dark:bg-black flex items-center justify-center text-xs font-bold uppercase tracking-widest animate-pulse">Cargando contenido...</div>;
+  if (!module) return <div className="h-full w-full bg-white dark:bg-black flex items-center justify-center text-xs font-bold uppercase tracking-widest">Módulo no encontrado</div>;
 
   const liveDataSteps = [ "https://i.postimg.cc/gJkXHjq3/4_20251123_185808_0001.png", "https://i.postimg.cc/SsN2fR7W/5_20251123_185808_0002.png", "https://i.postimg.cc/ZRKBxnFN/6_20251123_185808_0003.png" ];
 
   return (
-    <div className="flex flex-col h-full w-full bg-white dark:bg-black relative transition-colors duration-300">
+    <div className="flex flex-col h-full w-full bg-black relative transition-colors duration-300">
+      
+      {/* Lightbox */}
       {selectedImage && (
-        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" onClick={() => setSelectedImage(null)}>
+        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in" onClick={() => setSelectedImage(null)}>
             <button onClick={() => setSelectedImage(null)} className="absolute top-safe right-4 text-white/70 hover:text-white p-2"><X size={32} /></button>
-            <img src={selectedImage} alt="Zoom" className="max-w-full max-h-[85vh] object-contain rounded-sm shadow-2xl" onClick={(e) => e.stopPropagation()} />
+            <img src={selectedImage} alt="Zoom" className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl border border-white/10" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
 
+      {/* Floating Back Button */}
       <div className="absolute top-0 left-0 w-full z-50 pointer-events-none">
           <div className="pt-safe w-full">
-            <div className="flex items-center justify-between px-4 h-16">
-                <button onClick={() => navigate('/training')} className="w-10 h-10 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white active:bg-black/60 pointer-events-auto cursor-pointer transition-transform active:scale-95 shadow-lg border border-white/10">
-                  <ChevronLeft size={24} strokeWidth={2.5} />
+            <div className="flex items-center justify-between px-6 h-20">
+                <button onClick={() => navigate('/training')} className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/20 pointer-events-auto cursor-pointer transition-all active:scale-95 border border-white/10 shadow-lg">
+                  <ChevronLeft size={20} strokeWidth={3} />
                 </button>
             </div>
           </div>
       </div>
 
-      <div className="h-[40vh] w-full relative flex-shrink-0 bg-brand-black">
-        <img src={module.imageUrl} alt={module.title} className="w-full h-full object-cover opacity-90" />
-        <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-black via-transparent to-black/40 transition-colors duration-300"></div>
-        <div className="absolute bottom-0 left-0 w-full px-6 pb-6">
-            <span className="text-[10px] font-black text-white bg-brand-purple px-2 py-1 uppercase tracking-widest mb-3 inline-block shadow-sm">Módulo</span>
-            <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-[0.9] drop-shadow-sm mb-1">{module.title}</h1>
-        </div>
+      {/* --- HERO IMAGE (FULL SCREEN BG) --- */}
+      <div className="fixed inset-0 w-full h-[55vh] z-0">
+        <img src={module.imageUrl} alt={module.title} className="w-full h-full object-cover opacity-80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black"></div>
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-hide bg-white dark:bg-black flex flex-col px-6 pt-4 pb-safe transition-colors duration-300 -mt-1 relative z-10">
-        <div className="mb-8">
-            <div className="h-1 w-10 bg-brand-purple mb-4"></div>
-            <h2 className="text-lg font-bold text-brand-black dark:text-white leading-tight mb-4">{module.description}</h2>
-            
-            {/* BOTÓN DE VIDEO ACTIVO */}
-            {module.videoUrl && module.videoUrl !== '#' && (
-                <button 
-                    onClick={handleOpenVideo}
-                    className="w-full bg-gray-900 dark:bg-white text-white dark:text-black py-4 px-4 rounded-xl flex items-center justify-center space-x-3 mb-6 shadow-xl active:scale-98 transition-transform group"
-                >
-                    <div className="bg-white/20 dark:bg-black/10 p-1 rounded-full group-hover:bg-brand-purple group-hover:text-white transition-colors">
-                        <PlayCircle size={20} fill="currentColor" className="text-white dark:text-black group-hover:text-white" />
-                    </div>
-                    <div className="text-left">
-                        <span className="text-xs font-black uppercase tracking-widest block">Ver Video Tutorial</span>
-                    </div>
-                    <ExternalLink size={14} className="opacity-50" />
-                </button>
-            )}
-
-            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed font-medium text-justify mb-8 whitespace-pre-line">{module.textContent}</p>
-
-            {/* --- MENÚ DE BLOQUEOS (NUEVO) --- */}
-            {module.id === 'bloqueos' && (
-                <div className="mb-10 space-y-3 animate-fade-in">
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 border-b border-gray-100 dark:border-white/10 pb-2">
-                        Centro de Normas
-                    </h3>
-                    <div className="grid grid-cols-1 gap-3">
-                        <button 
-                            onClick={() => navigate('/training/bloqueos/motivos')}
-                            className="bg-gray-50 dark:bg-brand-dark-card p-4 rounded-xl flex items-center space-x-4 border border-gray-100 dark:border-white/5 active:scale-[0.98] transition-all group"
-                        >
-                            <div className="w-10 h-10 bg-rose-100 dark:bg-rose-900/20 text-rose-500 rounded-lg flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-colors">
-                                <ShieldAlert size={20} strokeWidth={2.5} />
-                            </div>
-                            <div className="text-left">
-                                <span className="block text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">Motivos de Bloqueo</span>
-                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Qué está prohibido</span>
-                            </div>
-                        </button>
-
-                        <button 
-                            onClick={() => navigate('/training/bloqueos/types')}
-                            className="bg-gray-50 dark:bg-brand-dark-card p-4 rounded-xl flex items-center space-x-4 border border-gray-100 dark:border-white/5 active:scale-[0.98] transition-all group"
-                        >
-                            <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 text-orange-500 rounded-lg flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-colors">
-                                <Clock size={20} strokeWidth={2.5} />
-                            </div>
-                            <div className="text-left">
-                                <span className="block text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">Tipos y Duración</span>
-                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Clase A y Clase B</span>
-                            </div>
-                        </button>
-
-                        <button 
-                            onClick={() => navigate('/training/bloqueos/appeal')}
-                            className="bg-gray-50 dark:bg-brand-dark-card p-4 rounded-xl flex items-center space-x-4 border border-gray-100 dark:border-white/5 active:scale-[0.98] transition-all group"
-                        >
-                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 text-blue-500 rounded-lg flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors">
-                                <Gavel size={20} strokeWidth={2.5} />
-                            </div>
-                            <div className="text-left">
-                                <span className="block text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">Apelaciones</span>
-                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Cómo recuperar tu cuenta</span>
-                            </div>
-                        </button>
-
-                        <button 
-                            onClick={() => navigate('/training/bloqueos/vip')}
-                            className="bg-brand-black dark:bg-white p-4 rounded-xl flex items-center space-x-4 shadow-xl active:scale-[0.98] transition-all group"
-                        >
-                            <div className="w-10 h-10 bg-white/20 dark:bg-black/10 text-white dark:text-black rounded-lg flex items-center justify-center">
-                                <Crown size={20} strokeWidth={2.5} fill="currentColor" />
-                            </div>
-                            <div className="text-left">
-                                <span className="block text-sm font-black text-white dark:text-black uppercase leading-none mb-1">Puntos VIP</span>
-                                <span className="text-[10px] text-white/60 dark:text-black/60 font-bold uppercase tracking-wide">Desbloqueo Especial</span>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {module.id === 'live-data' && (
-                <div className="mt-2 mb-10 space-y-8 animate-fade-in">
-                    <div className="w-[calc(100%+3rem)] -ml-6 relative group">
-                         <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-black to-transparent z-20 pointer-events-none"></div>
-                         <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-black to-transparent z-20 pointer-events-none"></div>
-                         <div ref={scrollRef} className="overflow-x-auto scrollbar-hide flex space-x-4 py-4 px-6 cursor-grab active:cursor-grabbing" onTouchStart={() => setIsPaused(true)} onTouchEnd={() => setIsPaused(false)} onMouseDown={() => setIsPaused(true)} onMouseUp={() => setIsPaused(false)} onMouseLeave={() => setIsPaused(false)}>
-                            {[...liveDataSteps, ...liveDataSteps].map((imgUrl, index) => (
-                                <div key={index} className="relative group/card w-64 flex-shrink-0 select-none">
-                                    <button onClick={() => setSelectedImage(imgUrl)} className="w-full relative rounded-lg overflow-hidden shadow-lg border border-gray-100 dark:border-white/10">
-                                        <img src={imgUrl} alt="Step" className="w-full h-auto block pointer-events-none" />
-                                    </button>
-                                </div>
-                            ))}
-                         </div>
-                    </div>
-                </div>
-            )}
-
-            {module.resources && module.resources.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 border-b border-gray-100 dark:border-white/10 pb-2">Herramientas</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {module.resources.map((resource: any, index: number) => {
-                    const defaultStyle = getResourceConfig(resource.type);
-                    const style = resource.style || defaultStyle;
-                    const Icon = getResourceIcon(resource.style?.iconName, resource.type);
-                    return (
-                      <button key={index} onClick={() => handleResourceClick(resource.type, resource.title)} className={`relative flex flex-col justify-between p-3 h-20 w-full text-left rounded-sm active:scale-[0.97] transition-transform duration-200 shadow-md ${style.shadow} overflow-hidden group`}>
-                         <img src={resource.imageUrl || module.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover z-0" onError={(e) => (e.currentTarget.style.display = 'none')} />
-                         <div className={`absolute inset-0 z-10 ${style.bg}`} style={{ opacity: style.cardOpacity !== undefined ? style.cardOpacity : 1 }}></div>
-                        <div className="relative z-20 flex flex-col h-full justify-between">
-                           <div className="bg-white/20 w-fit p-1 rounded-[2px] backdrop-blur-sm"><Icon size={14} className="text-white" strokeWidth={3} /></div>
-                           <span className="text-[11px] font-black uppercase leading-tight text-white tracking-wide pr-4">{resource.title}</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-        </div>
+      {/* --- SCROLLABLE CONTENT SHEET --- */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide z-10 mt-[35vh]">
         
-        <div className="space-y-3 mt-auto pb-8">
-            <div className="grid grid-cols-2 gap-3">
-                <Button fullWidth variant="outline" icon={<FileText size={18} />} className="dark:border-white/20 dark:text-white dark:hover:bg-white/10" onClick={() => alert('Abriendo modo lectura...')}>Leer Guía</Button>
-                <Button fullWidth variant="secondary" icon={<Download size={18} />} className="bg-gray-100 text-brand-black dark:bg-white/10 dark:text-white dark:hover:bg-white/20" onClick={() => alert('Descargando PDF...')}>PDF</Button>
+        {/* Title Overlay */}
+        <div className="px-8 mb-6 relative z-20">
+            <span className="inline-block px-3 py-1 bg-brand-purple text-white text-[9px] font-black uppercase tracking-widest rounded-full mb-3 shadow-lg shadow-purple-500/30 border border-white/10">
+                Módulo Oficial
+            </span>
+            <h1 className="text-4xl font-black text-white uppercase leading-[0.9] drop-shadow-xl tracking-tighter mb-2">
+                {module.title}
+            </h1>
+        </div>
+
+        {/* White/Dark Sheet Container */}
+        <div className="bg-white dark:bg-[#0a0a0a] min-h-[70vh] rounded-t-[2.5rem] relative px-8 pt-10 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+            
+            {/* Handle Bar (Visual cue) */}
+            <div className="w-12 h-1.5 bg-gray-200 dark:bg-white/10 rounded-full mx-auto mb-8"></div>
+
+            <div className="mb-8">
+                <h2 className="text-xl font-black text-brand-black dark:text-white leading-none tracking-tight mb-4">
+                    {module.description}
+                </h2>
+                
+                {/* --- VIDEO CARD (REDESIGNED) --- */}
+                {module.videoUrl && module.videoUrl !== '#' && (
+                    <button 
+                        onClick={handleOpenVideo}
+                        className="w-full relative h-28 bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl shadow-xl shadow-orange-500/20 mb-8 group overflow-hidden active:scale-[0.98] transition-all"
+                    >
+                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                        <div className="absolute inset-0 flex items-center justify-between px-6 z-10">
+                            <div className="text-left">
+                                <div className="flex items-center space-x-2 mb-1">
+                                    <div className="bg-white text-orange-600 p-1 rounded-full animate-pulse">
+                                        <PlayCircle size={16} fill="currentColor" />
+                                    </div>
+                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Masterclass</span>
+                                </div>
+                                <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">Ver Tutorial</h3>
+                            </div>
+                            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 group-hover:bg-white/30 transition-colors">
+                                <ArrowUpRight size={24} className="text-white" />
+                            </div>
+                        </div>
+                        {/* Decor */}
+                        <PlayCircle className="absolute -right-4 -bottom-6 text-white/10 rotate-[-15deg] group-hover:scale-110 transition-transform duration-500" size={100} />
+                    </button>
+                )}
+
+                {/* Text Content */}
+                <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 leading-7 font-medium text-justify whitespace-pre-line">
+                        {module.textContent}
+                    </p>
+                </div>
+
+                {/* --- MENÚ DE BLOQUEOS (SI APLICA) --- */}
+                {module.id === 'bloqueos' && (
+                    <div className="mt-10 space-y-3 animate-fade-in">
+                        <div className="flex items-center space-x-2 mb-4 border-b border-gray-100 dark:border-white/5 pb-2">
+                            <ShieldAlert size={16} className="text-brand-purple" />
+                            <h3 className="text-xs font-black uppercase tracking-widest text-brand-black dark:text-white">
+                                Centro de Normas
+                            </h3>
+                        </div>
+                        <div className="grid grid-cols-1 gap-3">
+                            <button onClick={() => navigate('/training/bloqueos/motivos')} className="bg-gray-50 dark:bg-brand-dark-card p-4 rounded-2xl flex items-center justify-between border border-gray-100 dark:border-white/5 active:scale-[0.98] transition-all group shadow-sm hover:shadow-md">
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-10 h-10 bg-rose-100 dark:bg-rose-900/20 text-rose-500 rounded-xl flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-colors">
+                                        <ShieldAlert size={20} strokeWidth={2.5} />
+                                    </div>
+                                    <div className="text-left">
+                                        <span className="block text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">Motivos</span>
+                                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wide">Qué está prohibido</span>
+                                    </div>
+                                </div>
+                                <ChevronLeft size={16} className="text-gray-300 rotate-180" />
+                            </button>
+
+                            <button onClick={() => navigate('/training/bloqueos/types')} className="bg-gray-50 dark:bg-brand-dark-card p-4 rounded-2xl flex items-center justify-between border border-gray-100 dark:border-white/5 active:scale-[0.98] transition-all group shadow-sm hover:shadow-md">
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 text-orange-500 rounded-xl flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                                        <Clock size={20} strokeWidth={2.5} />
+                                    </div>
+                                    <div className="text-left">
+                                        <span className="block text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">Duración</span>
+                                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wide">Tiempos de sanción</span>
+                                    </div>
+                                </div>
+                                <ChevronLeft size={16} className="text-gray-300 rotate-180" />
+                            </button>
+
+                            <button onClick={() => navigate('/training/bloqueos/appeal')} className="bg-gray-50 dark:bg-brand-dark-card p-4 rounded-2xl flex items-center justify-between border border-gray-100 dark:border-white/5 active:scale-[0.98] transition-all group shadow-sm hover:shadow-md">
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 text-blue-500 rounded-xl flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                                        <Gavel size={20} strokeWidth={2.5} />
+                                    </div>
+                                    <div className="text-left">
+                                        <span className="block text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">Apelaciones</span>
+                                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wide">Recuperar cuenta</span>
+                                    </div>
+                                </div>
+                                <ChevronLeft size={16} className="text-gray-300 rotate-180" />
+                            </button>
+
+                            <button onClick={() => navigate('/training/bloqueos/vip')} className="bg-brand-black dark:bg-white p-4 rounded-2xl flex items-center justify-between shadow-xl active:scale-[0.98] transition-all group border border-white/10">
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-10 h-10 bg-white/20 dark:bg-black/10 text-white dark:text-black rounded-xl flex items-center justify-center">
+                                        <Crown size={20} strokeWidth={2.5} fill="currentColor" />
+                                    </div>
+                                    <div className="text-left">
+                                        <span className="block text-sm font-black text-white dark:text-black uppercase leading-none mb-1">Puntos VIP</span>
+                                        <span className="text-[9px] text-white/60 dark:text-black/60 font-bold uppercase tracking-wide">Desbloqueo Especial</span>
+                                    </div>
+                                </div>
+                                <ChevronLeft size={16} className="text-white/50 dark:text-black/50 rotate-180" />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {module.id === 'live-data' && (
+                    <div className="mt-8 mb-10 space-y-8 animate-fade-in">
+                        <div className="w-[calc(100%+4rem)] -ml-8 relative group">
+                             <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-[#0a0a0a] to-transparent z-20 pointer-events-none"></div>
+                             <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-[#0a0a0a] to-transparent z-20 pointer-events-none"></div>
+                             <div ref={scrollRef} className="overflow-x-auto scrollbar-hide flex space-x-4 py-4 px-8 cursor-grab active:cursor-grabbing" onTouchStart={() => setIsPaused(true)} onTouchEnd={() => setIsPaused(false)} onMouseDown={() => setIsPaused(true)} onMouseUp={() => setIsPaused(false)} onMouseLeave={() => setIsPaused(false)}>
+                                {[...liveDataSteps, ...liveDataSteps].map((imgUrl, index) => (
+                                    <div key={index} className="relative group/card w-64 flex-shrink-0 select-none">
+                                        <button onClick={() => setSelectedImage(imgUrl)} className="w-full relative rounded-2xl overflow-hidden shadow-lg border border-gray-100 dark:border-white/10 active:scale-95 transition-transform">
+                                            <img src={imgUrl} alt="Step" className="w-full h-auto block pointer-events-none" />
+                                        </button>
+                                    </div>
+                                ))}
+                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {module.resources && module.resources.length > 0 && (
+                  <div className="mt-10 mb-6">
+                    <div className="flex items-center space-x-2 mb-4 border-b border-gray-100 dark:border-white/5 pb-2">
+                        <Folder size={16} className="text-brand-purple" />
+                        <h3 className="text-xs font-black uppercase tracking-widest text-brand-black dark:text-white">Herramientas</h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {module.resources.map((resource: any, index: number) => {
+                        const defaultStyle = getResourceConfig(resource.type);
+                        const style = resource.style || defaultStyle;
+                        const Icon = getResourceIcon(resource.style?.iconName, resource.type);
+                        return (
+                          <button key={index} onClick={() => handleResourceClick(resource.type, resource.title)} className={`relative flex flex-col justify-between p-4 h-24 w-full text-left rounded-2xl active:scale-[0.96] transition-transform duration-200 shadow-lg ${style.shadow} overflow-hidden group`}>
+                             <img src={resource.imageUrl || module.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover z-0 opacity-0 group-hover:opacity-20 transition-opacity" />
+                             <div className={`absolute inset-0 z-10 ${style.bg}`} style={{ opacity: style.cardOpacity !== undefined ? style.cardOpacity : 1 }}></div>
+                            <div className="relative z-20 flex flex-col h-full justify-between">
+                               <div className="bg-white/20 w-fit p-1.5 rounded-lg backdrop-blur-sm border border-white/10"><Icon size={16} className="text-white" strokeWidth={2.5} /></div>
+                               <span className="text-[10px] font-black uppercase leading-tight text-white tracking-wide pr-2">{resource.title}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+            </div>
+            
+            <div className="space-y-3 mt-auto pb-8 pt-4 border-t border-gray-100 dark:border-white/5">
+                <div className="grid grid-cols-2 gap-3">
+                    <Button fullWidth variant="outline" icon={<FileText size={16} />} className="dark:border-white/20 dark:text-white dark:hover:bg-white/10 rounded-xl h-12 text-[10px]" onClick={() => alert('Abriendo modo lectura...')}>Leer Guía</Button>
+                    <Button fullWidth variant="secondary" icon={<Download size={16} />} className="bg-gray-100 text-brand-black dark:bg-white/10 dark:text-white dark:hover:bg-white/20 rounded-xl h-12 text-[10px]" onClick={() => alert('Descargando PDF...')}>PDF</Button>
+                </div>
             </div>
         </div>
       </div>
