@@ -8,6 +8,49 @@ import { useContent } from '../context/ContentContext';
 import * as LucideIcons from 'lucide-react';
 import { PrivacyPolicyModal } from './PrivacyPolicyModal';
 
+const CARD_VARIANTS = [
+    {
+      bg: 'bg-orange-500',
+      border: 'border-orange-400',
+      text: 'text-white',
+      subText: 'text-orange-100',
+      iconBg: 'bg-white/20',
+      iconColor: 'text-white',
+      arrowColor: 'text-white/60',
+      decorColor: 'text-white/10'
+    },
+    {
+      bg: 'bg-black',
+      border: 'border-[#1A1A1A]',
+      text: 'text-white',
+      subText: 'text-gray-400',
+      iconBg: 'bg-white/10',
+      iconColor: 'text-white',
+      arrowColor: 'text-gray-500',
+      decorColor: 'text-white/5'
+    },
+    {
+      bg: 'bg-gray-200',
+      border: 'border-white',
+      text: 'text-brand-black',
+      subText: 'text-gray-500',
+      iconBg: 'bg-white',
+      iconColor: 'text-brand-black',
+      arrowColor: 'text-gray-400',
+      decorColor: 'text-white'
+    },
+    {
+      bg: 'bg-brand-purple',
+      border: 'border-violet-500',
+      text: 'text-white',
+      subText: 'text-purple-200',
+      iconBg: 'bg-white/20',
+      iconColor: 'text-white',
+      arrowColor: 'text-white/60',
+      decorColor: 'text-white/10'
+    }
+];
+
 const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -194,9 +237,12 @@ const Profile: React.FC = () => {
                   {loading ? (
                       [1,2,3,4].map(i => <div key={i} className="h-48 w-full bg-gray-50 dark:bg-white/5 rounded-[2rem] animate-pulse"></div>)
                   ) : modules.map((module, index) => {
-                      const style = module.style || { bg: 'bg-gray-800', shadow: 'shadow-gray-800/40', iconName: 'PlayCircle', cardOpacity: 1 };
+                      const style = module.style || { iconName: 'PlayCircle' };
                       const Icon = getIconComponent(style.iconName);
                       
+                      // Color sequence: Orange, Black, Gray, Purple
+                      const variant = CARD_VARIANTS[index % CARD_VARIANTS.length];
+
                       // Alternate Large Card logic (Every 3rd item is full width)
                       const isLarge = (index + 1) % 3 === 0;
 
@@ -204,29 +250,29 @@ const Profile: React.FC = () => {
                         <button 
                             key={module.id}
                             onClick={() => navigate(`/training/${module.id}`)}
-                            className={`relative flex flex-col justify-between p-6 ${isLarge ? 'col-span-2 aspect-[2/1]' : 'aspect-square'} bg-white dark:bg-[#111] rounded-[2.5rem] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.08)] border border-gray-100 dark:border-white/5 active:scale-[0.96] transition-all duration-300 group overflow-hidden`}
+                            className={`relative flex flex-col justify-between p-6 ${isLarge ? 'col-span-2 aspect-[2/1]' : 'aspect-square'} ${variant.bg} rounded-[2.5rem] shadow-xl border-[5px] ${variant.border} active:scale-[0.96] transition-all duration-300 group overflow-hidden`}
                         >
                             {/* Header: Icon Container */}
                             <div className="flex justify-between items-start w-full relative z-10">
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors duration-300 bg-gray-50 dark:bg-white/10 group-hover:bg-brand-black group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black`}>
-                                    <Icon size={20} className="text-brand-black dark:text-white group-hover:text-white dark:group-hover:text-black transition-colors" strokeWidth={2.5} />
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors duration-300 ${variant.iconBg} backdrop-blur-sm border border-white/5`}>
+                                    <Icon size={20} className={`${variant.iconColor}`} strokeWidth={2.5} />
                                 </div>
-                                <ArrowUpRight size={20} className="text-gray-300 group-hover:text-brand-purple transition-colors" />
+                                <ArrowUpRight size={20} className={`${variant.arrowColor}`} />
                             </div>
                             
                             {/* Body: Title */}
                             <div className="relative z-10 mt-auto text-left">
-                                <span className={`font-black uppercase leading-[0.9] block text-brand-black dark:text-white tracking-tighter mb-1 group-hover:translate-x-1 transition-transform duration-300 ${isLarge ? 'text-2xl' : 'text-sm'}`}>
+                                <span className={`font-black uppercase leading-[0.9] block ${variant.text} tracking-tighter mb-1 group-hover:translate-x-1 transition-transform duration-300 ${isLarge ? 'text-2xl' : 'text-sm'}`}>
                                     {module.title}
                                 </span>
-                                <span className="text-[8px] text-gray-400 font-bold uppercase tracking-widest line-clamp-1 group-hover:text-brand-purple transition-colors">
+                                <span className={`text-[8px] ${variant.subText} font-bold uppercase tracking-widest line-clamp-1`}>
                                     Explorar Módulo
                                 </span>
                             </div>
 
                             {/* Decorative Big Icon (Watermark) */}
                             <Icon 
-                                className={`absolute -bottom-6 -right-6 text-gray-50 dark:text-white/5 rotate-[-15deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500 pointer-events-none`} 
+                                className={`absolute -bottom-6 -right-6 ${variant.decorColor} rotate-[-15deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500 pointer-events-none`} 
                                 size={isLarge ? 140 : 100} 
                                 strokeWidth={1} 
                             />
