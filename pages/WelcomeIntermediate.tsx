@@ -103,25 +103,25 @@ const WelcomeIntermediate: React.FC = () => {
               <Zap className="absolute -bottom-4 -right-4 text-white/5 rotate-[-15deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500" size={160} />
           </button>
 
-          {/* Card 1: Calendario de PK */}
+          {/* Card 1: Calendario de PK (Gris Minimalista) */}
           <button 
             onClick={() => navigate('/pk-calendar')}
-            className="bg-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] border border-gray-100 active:scale-[0.96] transition-all group relative overflow-hidden"
+            className="bg-gray-100 dark:bg-[#1A1A1A] p-5 rounded-[2rem] flex flex-col justify-between aspect-square active:scale-[0.96] transition-all group relative overflow-hidden border border-transparent dark:border-white/5"
           >
               <div className="flex justify-between items-start w-full relative z-10">
-                  <div className="w-10 h-10 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-brand-black group-hover:text-white transition-colors duration-300">
-                      <Calendar size={18} strokeWidth={2.5} />
+                  <div className="w-10 h-10 bg-white dark:bg-black/40 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                      <Calendar size={18} strokeWidth={2.5} className="text-brand-black dark:text-white" />
                   </div>
-                  <ArrowUpRight size={18} className="text-gray-300 group-hover:text-brand-black transition-colors" />
+                  <ArrowUpRight size={18} className="text-gray-400 group-hover:text-brand-black dark:group-hover:text-white transition-colors" />
               </div>
               
               <div className="relative z-10 text-left">
-                  <span className="text-sm font-black uppercase leading-tight block mb-0.5 text-brand-black">Calendario<br/>de PK</span>
+                  <span className="text-sm font-black uppercase leading-tight block mb-0.5 text-brand-black dark:text-white">Calendario<br/>de PK</span>
                   <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wide group-hover:text-brand-purple transition-colors">Eventos & Batallas</span>
               </div>
               
               {/* Decor */}
-              <Calendar className="absolute -right-5 -bottom-5 text-gray-50 rotate-[-15deg] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500" size={90} strokeWidth={1.5} />
+              <Calendar className="absolute -right-5 -bottom-5 text-gray-200 dark:text-white/5 rotate-[-15deg] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500" size={90} strokeWidth={1.5} />
           </button>
 
           {/* Card 2: Evaluaciones */}
