@@ -127,7 +127,7 @@ const WelcomeIntermediate: React.FC = () => {
           {/* Card 2: Evaluaciones (Gris Oscuro Minimalista) */}
           <button 
             onClick={() => alert('Próximamente: Exámenes')}
-            className="bg-[#262626] text-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl shadow-black/10 active:scale-[0.96] transition-all group relative overflow-hidden"
+            className="bg-[#262626] text-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl shadow-black/10 active:scale-[0.96] transition-all group relative overflow-hidden border-[5px] border-[#333333]"
           >
               <div className="flex justify-between items-start w-full relative z-10">
                   <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors duration-300 backdrop-blur-sm">
@@ -147,7 +147,7 @@ const WelcomeIntermediate: React.FC = () => {
            {/* Card 3: Tu Opinión (Naranja Minimalista) */}
            <button 
             onClick={() => alert('Próximamente: Buzón')}
-            className="bg-orange-500 text-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl shadow-orange-500/20 active:scale-[0.96] transition-all group relative overflow-hidden"
+            className="bg-orange-500 text-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl shadow-orange-500/20 active:scale-[0.96] transition-all group relative overflow-hidden border-[5px] border-orange-400"
            >
               <div className="flex justify-between items-start w-full relative z-10">
                   <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white group-hover:text-orange-600 transition-colors duration-300 backdrop-blur-sm border border-white/10">
@@ -167,7 +167,7 @@ const WelcomeIntermediate: React.FC = () => {
            {/* Card 4: Conoce la App (Morado Minimalista) */}
            <button 
             onClick={() => navigate('/onboarding')}
-            className="bg-brand-purple text-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl shadow-purple-500/20 active:scale-[0.96] transition-all group relative overflow-hidden"
+            className="bg-brand-purple text-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl shadow-purple-500/20 active:scale-[0.96] transition-all group relative overflow-hidden border-[5px] border-violet-500"
            >
               <div className="flex justify-between items-start w-full relative z-10">
                   <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white group-hover:text-brand-purple transition-colors duration-300 backdrop-blur-sm border border-white/10">
