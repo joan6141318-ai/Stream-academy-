@@ -103,10 +103,10 @@ const WelcomeIntermediate: React.FC = () => {
               <Zap className="absolute -bottom-4 -right-4 text-white/5 rotate-[-15deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500" size={160} />
           </button>
 
-          {/* Card 1: Calendario de PK (Gris Claro) */}
+          {/* Card 1: Calendario de PK (Gris con Marco Blanco) */}
           <button 
             onClick={() => navigate('/pk-calendar')}
-            className="bg-gray-100 dark:bg-[#1A1A1A] p-5 rounded-[2rem] flex flex-col justify-between aspect-square active:scale-[0.96] transition-all group relative overflow-hidden border border-transparent dark:border-white/5"
+            className="bg-gray-200 dark:bg-[#1A1A1A] p-5 rounded-[2rem] flex flex-col justify-between aspect-square active:scale-[0.96] transition-all group relative overflow-hidden border-[5px] border-white dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none"
           >
               <div className="flex justify-between items-start w-full relative z-10">
                   <div className="w-10 h-10 bg-white dark:bg-black/40 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-sm">
@@ -121,7 +121,7 @@ const WelcomeIntermediate: React.FC = () => {
               </div>
               
               {/* Decor */}
-              <Calendar className="absolute -right-5 -bottom-5 text-gray-200 dark:text-white/5 rotate-[-15deg] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500" size={90} strokeWidth={1.5} />
+              <Calendar className="absolute -right-5 -bottom-5 text-white dark:text-white/5 rotate-[-15deg] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500" size={90} strokeWidth={1.5} />
           </button>
 
           {/* Card 2: Evaluaciones (Gris Oscuro Minimalista) */}
