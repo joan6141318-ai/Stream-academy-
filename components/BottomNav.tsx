@@ -65,7 +65,7 @@ export const BottomNav: React.FC = () => {
 
   return (
     <div className={`fixed bottom-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none pb-safe transition-transform duration-500 ease-in-out ${isVisible ? 'translate-y-0' : 'translate-y-[150%]'}`}>
-      <div className="pointer-events-auto bg-white/90 dark:bg-[#121212]/90 backdrop-blur-xl border border-gray-100 dark:border-white/10 rounded-full shadow-2xl shadow-black/10 h-14 w-full max-w-[280px] flex items-center justify-between px-3 transition-all duration-300">
+      <div className="pointer-events-auto bg-white/90 dark:bg-[#121212]/90 backdrop-blur-2xl border border-gray-200/50 dark:border-white/10 rounded-full shadow-[0_20px_40px_-5px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.9)] h-14 w-full max-w-[280px] flex items-center justify-between px-3 transition-all duration-300">
         {navItems.map((item) => {
           const isActive = location.pathname.startsWith(item.path) || (item.label === 'Admin' && location.pathname.startsWith('/admin'));
           const Icon = item.icon;
