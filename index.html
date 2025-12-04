@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
   <head>
@@ -5,6 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     
     <!-- PWA Setup -->
+    <!-- SCRIPT DE COLOR DINÁMICO INMEDIATO -->
+    <script>
+      (function() {
+        try {
+          var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var meta = document.createElement('meta');
+          meta.name = 'theme-color';
+          meta.content = isDark ? '#000000' : '#ffffff';
+          document.head.appendChild(meta);
+        } catch (e) {}
+      })();
+    </script>
+    
     <link rel="manifest" href="/manifest.json" />
     
     <!-- iOS Support -->

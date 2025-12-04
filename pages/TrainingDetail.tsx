@@ -23,6 +23,24 @@ const TrainingDetail: React.FC = () => {
       }
   }, [modules, topicId]);
 
+  // --- STATUS BAR EFFECT: FORCE BLACK ON THIS PAGE ---
+  useEffect(() => {
+      // 1. Force Black Status Bar for Immersive Image
+      const metaThemeColor = document.querySelector("meta[name=theme-color]");
+      if (metaThemeColor) {
+          metaThemeColor.setAttribute("content", "#000000");
+      }
+
+      // 2. Cleanup: Restore dynamic behavior based on current theme when leaving
+      return () => {
+          const isDark = document.documentElement.classList.contains('dark');
+          const color = isDark ? '#000000' : '#ffffff';
+          if (metaThemeColor) {
+              metaThemeColor.setAttribute("content", color);
+          }
+      };
+  }, []);
+
   // Auto-scroll logic
   useEffect(() => {
     const scrollContainer = scrollRef.current;
