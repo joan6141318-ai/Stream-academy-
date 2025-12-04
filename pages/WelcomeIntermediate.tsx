@@ -75,62 +75,62 @@ const WelcomeIntermediate: React.FC = () => {
       {/* Grid de Módulos */}
       <div className="flex-1 grid grid-cols-2 gap-4 mb-6 content-start animate-slide-up pb-10 z-10 relative">
           
-          {/* Main Card: Capacítate (Blanco) */}
+          {/* Main Card: Capacítate (Black) */}
           <button 
             onClick={() => navigate('/home')}
-            className="col-span-2 bg-white text-brand-black p-8 rounded-[2rem] relative overflow-hidden group shadow-xl shadow-gray-200/50 active:scale-[0.98] transition-all duration-300 text-left h-48 flex flex-col justify-between border-[5px] border-gray-50"
+            className="col-span-2 bg-brand-black text-white p-8 rounded-[2rem] relative overflow-hidden group shadow-2xl shadow-black/20 active:scale-[0.98] transition-all duration-300 text-left h-48 flex flex-col justify-between"
           >
               <div className="flex justify-between items-start w-full relative z-10">
-                  <div className="bg-gray-100 p-3 rounded-2xl border border-gray-200">
-                      <Zap className="text-brand-black" size={24} fill="currentColor" />
+                  <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md border border-white/10">
+                      <Zap className="text-white" size={24} fill="currentColor" />
                   </div>
-                  <div className="bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Principal</span>
+                  <div className="bg-white/10 px-3 py-1 rounded-full border border-white/5">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-white/80">Principal</span>
                   </div>
               </div>
 
               <div className="relative z-10">
                   <h3 className="text-3xl font-black uppercase leading-none mb-1 tracking-tight">Capacítate</h3>
-                  <p className="text-xs text-gray-500 font-medium tracking-wide">Ingresar al Campus Virtual</p>
+                  <p className="text-xs text-gray-400 font-medium tracking-wide">Ingresar al Campus Virtual</p>
               </div>
               
               {/* Decor Effects */}
               <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-x-2 group-hover:translate-x-0">
-                  <div className="w-10 h-10 rounded-full bg-brand-black text-white flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center">
                       <ArrowRight size={20} />
                   </div>
               </div>
-              <Zap className="absolute -bottom-4 -right-4 text-black/5 rotate-[-15deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500" size={160} />
+              <Zap className="absolute -bottom-4 -right-4 text-white/5 rotate-[-15deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500" size={160} />
           </button>
 
-          {/* Card 1: Calendario de PK (Naranja) */}
+          {/* Card 1: Calendario de PK (Gris con Marco Blanco) */}
           <button 
             onClick={() => navigate('/pk-calendar')}
-            className="bg-orange-500 text-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl shadow-orange-500/20 active:scale-[0.96] transition-all group relative overflow-hidden border-[5px] border-orange-400"
+            className="bg-gray-200 dark:bg-[#1A1A1A] p-5 rounded-[2rem] flex flex-col justify-between aspect-square active:scale-[0.96] transition-all group relative overflow-hidden border-[5px] border-white dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none"
           >
               <div className="flex justify-between items-start w-full relative z-10">
-                  <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white group-hover:text-orange-600 transition-colors duration-300 backdrop-blur-sm border border-white/10">
-                      <Calendar size={18} strokeWidth={2.5} />
+                  <div className="w-10 h-10 bg-white dark:bg-black/40 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                      <Calendar size={18} strokeWidth={2.5} className="text-brand-black dark:text-white" />
                   </div>
-                  <ArrowUpRight size={18} className="text-white/60 group-hover:text-white transition-colors" />
+                  <ArrowUpRight size={18} className="text-gray-400 group-hover:text-brand-black dark:group-hover:text-white transition-colors" />
               </div>
               
               <div className="relative z-10 text-left">
-                  <span className="text-sm font-black uppercase leading-tight block mb-0.5 text-white">Calendario<br/>de PK</span>
-                  <span className="text-[9px] font-bold text-white/80 uppercase tracking-wide group-hover:text-white transition-colors">Eventos</span>
+                  <span className="text-sm font-black uppercase leading-tight block mb-0.5 text-brand-black dark:text-white">Calendario<br/>de PK</span>
+                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wide group-hover:text-brand-purple transition-colors">Eventos & Batallas</span>
               </div>
               
               {/* Decor */}
-              <Calendar className="absolute -right-5 -bottom-5 text-white/10 rotate-[-15deg] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500" size={90} strokeWidth={1.5} />
+              <Calendar className="absolute -right-5 -bottom-5 text-white dark:text-white/5 rotate-[-15deg] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500" size={90} strokeWidth={1.5} />
           </button>
 
-          {/* Card 2: Evaluaciones (Negro) */}
+          {/* Card 2: Evaluaciones (Negro Puro Minimalista) */}
           <button 
             onClick={() => alert('Próximamente: Exámenes')}
             className="bg-black text-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl shadow-black/20 active:scale-[0.96] transition-all group relative overflow-hidden border-[5px] border-[#1A1A1A]"
           >
               <div className="flex justify-between items-start w-full relative z-10">
-                  <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors duration-300 backdrop-blur-sm border border-white/10">
+                  <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors duration-300 backdrop-blur-sm">
                       <ClipboardCheck size={18} strokeWidth={2.5} />
                   </div>
                   <ArrowUpRight size={18} className="text-gray-500 group-hover:text-white transition-colors" />
@@ -144,13 +144,13 @@ const WelcomeIntermediate: React.FC = () => {
               <ClipboardCheck className="absolute -right-5 -bottom-5 text-white/5 rotate-[-15deg] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500" size={90} strokeWidth={1.5} />
           </button>
           
-           {/* Card 3: Tu Opinión (Gris) */}
+           {/* Card 3: Tu Opinión (Naranja Minimalista) */}
            <button 
             onClick={() => alert('Próximamente: Buzón')}
-            className="bg-gray-600 text-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl shadow-gray-600/20 active:scale-[0.96] transition-all group relative overflow-hidden border-[5px] border-gray-500"
+            className="bg-orange-500 text-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl shadow-orange-500/20 active:scale-[0.96] transition-all group relative overflow-hidden border-[5px] border-orange-400"
            >
               <div className="flex justify-between items-start w-full relative z-10">
-                  <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white group-hover:text-gray-600 transition-colors duration-300 backdrop-blur-sm border border-white/10">
+                  <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white group-hover:text-orange-600 transition-colors duration-300 backdrop-blur-sm border border-white/10">
                       <MessageCircle size={18} strokeWidth={2.5} />
                   </div>
                   <ArrowUpRight size={18} className="text-white/60 group-hover:text-white transition-colors" />
@@ -164,7 +164,7 @@ const WelcomeIntermediate: React.FC = () => {
               <MessageCircle className="absolute -right-5 -bottom-5 text-white/10 rotate-[-15deg] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500" size={90} strokeWidth={1.5} />
           </button>
 
-           {/* Card 4: Conoce la App (Morado) */}
+           {/* Card 4: Conoce la App (Morado Minimalista) */}
            <button 
             onClick={() => navigate('/onboarding')}
             className="bg-brand-purple text-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl shadow-purple-500/20 active:scale-[0.96] transition-all group relative overflow-hidden border-[5px] border-violet-500"
