@@ -10,17 +10,6 @@ import { PrivacyPolicyModal } from './PrivacyPolicyModal';
 
 const CARD_VARIANTS = [
     {
-      // BLANCO
-      bg: 'bg-white',
-      border: 'border-gray-100', 
-      text: 'text-brand-black',
-      subText: 'text-gray-500',
-      iconBg: 'bg-gray-100',
-      iconColor: 'text-brand-black',
-      arrowColor: 'text-gray-300',
-      decorColor: 'text-gray-50'
-    },
-    {
       // NARANJA
       bg: 'bg-orange-500',
       border: 'border-orange-400',
@@ -43,7 +32,7 @@ const CARD_VARIANTS = [
       decorColor: 'text-white/5'
     },
     {
-      // GRIS
+      // GRIS LIGERO
       bg: 'bg-gray-200',
       border: 'border-white',
       text: 'text-brand-black',
@@ -174,7 +163,7 @@ const Profile: React.FC = () => {
               </div>
 
               {/* BANNERS CAROUSEL (Rounded 2.5rem & Clean) */}
-              <div className="relative w-full rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 dark:shadow-none group transform transition-all hover:scale-[1.01]">
+              <div className="relative w-full rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 dark:shadow-none group transform transition-all hover:scale-[1.01] border-[5px] border-white/20">
                   {loading ? (
                       <div className="w-full aspect-[16/9] bg-gray-100 dark:bg-white/5 animate-pulse"></div>
                   ) : (
@@ -255,7 +244,7 @@ const Profile: React.FC = () => {
                       const style = module.style || { iconName: 'PlayCircle' };
                       const Icon = getIconComponent(style.iconName);
                       
-                      // Sequence: White, Orange, Black, Gray, Purple
+                      // Sequence: Orange, Black, Gray, Purple
                       const variant = CARD_VARIANTS[index % CARD_VARIANTS.length];
 
                       // Alternate Large Card logic (Every 3rd item is full width)
