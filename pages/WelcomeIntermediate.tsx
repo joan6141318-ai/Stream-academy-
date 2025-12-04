@@ -103,7 +103,7 @@ const WelcomeIntermediate: React.FC = () => {
               <Zap className="absolute -bottom-4 -right-4 text-white/5 rotate-[-15deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500" size={160} />
           </button>
 
-          {/* Card 1: Calendario de PK (Gris Minimalista) */}
+          {/* Card 1: Calendario de PK (Gris Claro) */}
           <button 
             onClick={() => navigate('/pk-calendar')}
             className="bg-gray-100 dark:bg-[#1A1A1A] p-5 rounded-[2rem] flex flex-col justify-between aspect-square active:scale-[0.96] transition-all group relative overflow-hidden border border-transparent dark:border-white/5"
@@ -124,64 +124,64 @@ const WelcomeIntermediate: React.FC = () => {
               <Calendar className="absolute -right-5 -bottom-5 text-gray-200 dark:text-white/5 rotate-[-15deg] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500" size={90} strokeWidth={1.5} />
           </button>
 
-          {/* Card 2: Evaluaciones */}
+          {/* Card 2: Evaluaciones (Gris Oscuro Minimalista) */}
           <button 
             onClick={() => alert('Próximamente: Exámenes')}
-            className="bg-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] border border-gray-100 active:scale-[0.96] transition-all group relative overflow-hidden"
+            className="bg-[#262626] text-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl shadow-black/10 active:scale-[0.96] transition-all group relative overflow-hidden"
           >
               <div className="flex justify-between items-start w-full relative z-10">
-                  <div className="w-10 h-10 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-brand-black group-hover:text-white transition-colors duration-300">
+                  <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors duration-300 backdrop-blur-sm">
                       <ClipboardCheck size={18} strokeWidth={2.5} />
                   </div>
-                  <ArrowUpRight size={18} className="text-gray-300 group-hover:text-brand-black transition-colors" />
+                  <ArrowUpRight size={18} className="text-gray-500 group-hover:text-white transition-colors" />
               </div>
               
               <div className="relative z-10 text-left">
-                  <span className="text-sm font-black uppercase leading-tight block mb-0.5 text-brand-black">Evaluaciones<br/>Mensuales</span>
-                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wide group-hover:text-brand-purple transition-colors">Test de Nivel</span>
+                  <span className="text-sm font-black uppercase leading-tight block mb-0.5 text-white">Evaluaciones<br/>Mensuales</span>
+                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wide group-hover:text-white transition-colors">Test de Nivel</span>
               </div>
               
-              <ClipboardCheck className="absolute -right-5 -bottom-5 text-gray-50 rotate-[-15deg] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500" size={90} strokeWidth={1.5} />
+              <ClipboardCheck className="absolute -right-5 -bottom-5 text-white/5 rotate-[-15deg] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500" size={90} strokeWidth={1.5} />
           </button>
           
-           {/* Card 3: Tu Opinión */}
+           {/* Card 3: Tu Opinión (Naranja Minimalista) */}
            <button 
             onClick={() => alert('Próximamente: Buzón')}
-            className="bg-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] border border-gray-100 active:scale-[0.96] transition-all group relative overflow-hidden"
+            className="bg-orange-500 text-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl shadow-orange-500/20 active:scale-[0.96] transition-all group relative overflow-hidden"
            >
               <div className="flex justify-between items-start w-full relative z-10">
-                  <div className="w-10 h-10 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-brand-black group-hover:text-white transition-colors duration-300">
+                  <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white group-hover:text-orange-600 transition-colors duration-300 backdrop-blur-sm border border-white/10">
                       <MessageCircle size={18} strokeWidth={2.5} />
                   </div>
-                  <ArrowUpRight size={18} className="text-gray-300 group-hover:text-brand-black transition-colors" />
+                  <ArrowUpRight size={18} className="text-white/60 group-hover:text-white transition-colors" />
               </div>
 
                <div className="relative z-10 text-left">
-                  <span className="text-sm font-black uppercase leading-tight block mb-0.5 text-brand-black">Tu Opinión<br/>Cuenta</span>
-                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wide group-hover:text-brand-purple transition-colors">Sugerencias</span>
+                  <span className="text-sm font-black uppercase leading-tight block mb-0.5 text-white">Tu Opinión<br/>Cuenta</span>
+                  <span className="text-[9px] font-bold text-white/80 uppercase tracking-wide group-hover:text-white transition-colors">Sugerencias</span>
               </div>
               
-              <MessageCircle className="absolute -right-5 -bottom-5 text-gray-50 rotate-[-15deg] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500" size={90} strokeWidth={1.5} />
+              <MessageCircle className="absolute -right-5 -bottom-5 text-white/10 rotate-[-15deg] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500" size={90} strokeWidth={1.5} />
           </button>
 
-           {/* Card 4: Conoce la App */}
+           {/* Card 4: Conoce la App (Morado Minimalista) */}
            <button 
             onClick={() => navigate('/onboarding')}
-            className="bg-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] border border-gray-100 active:scale-[0.96] transition-all group relative overflow-hidden"
+            className="bg-brand-purple text-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl shadow-purple-500/20 active:scale-[0.96] transition-all group relative overflow-hidden"
            >
               <div className="flex justify-between items-start w-full relative z-10">
-                  <div className="w-10 h-10 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-brand-black group-hover:text-white transition-colors duration-300">
+                  <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white group-hover:text-brand-purple transition-colors duration-300 backdrop-blur-sm border border-white/10">
                       <PlayCircle size={18} strokeWidth={2.5} />
                   </div>
-                  <ArrowUpRight size={18} className="text-gray-300 group-hover:text-brand-black transition-colors" />
+                  <ArrowUpRight size={18} className="text-white/60 group-hover:text-white transition-colors" />
               </div>
 
                <div className="relative z-10 text-left">
-                  <span className="text-sm font-black uppercase leading-tight block mb-0.5 text-brand-black">Conoce<br/>la App</span>
-                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wide group-hover:text-brand-purple transition-colors">Tutoriales</span>
+                  <span className="text-sm font-black uppercase leading-tight block mb-0.5 text-white">Conoce<br/>la App</span>
+                  <span className="text-[9px] font-bold text-white/80 uppercase tracking-wide group-hover:text-white transition-colors">Tutoriales</span>
               </div>
               
-              <PlayCircle className="absolute -right-5 -bottom-5 text-gray-50 rotate-[-15deg] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500" size={90} strokeWidth={1.5} />
+              <PlayCircle className="absolute -right-5 -bottom-5 text-white/10 rotate-[-15deg] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500" size={90} strokeWidth={1.5} />
           </button>
 
       </div>
