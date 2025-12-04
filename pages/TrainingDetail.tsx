@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, PlayCircle, ExternalLink, X, ShieldAlert, Clock, Gavel, Crown, ArrowUpRight, Play } from 'lucide-react';
+import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, PlayCircle, ExternalLink, X, ShieldAlert, Clock, Gavel, Crown, ArrowUpRight, Play, Share2, Info } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { Button } from '../components/Button';
 import * as LucideIcons from 'lucide-react';
@@ -23,7 +23,7 @@ const TrainingDetail: React.FC = () => {
       }
   }, [modules, topicId]);
 
-  // Auto-scroll logic for live-data
+  // Auto-scroll logic
   useEffect(() => {
     const scrollContainer = scrollRef.current;
     if (!scrollContainer || isPaused) return;
@@ -87,7 +87,7 @@ const TrainingDetail: React.FC = () => {
   const hasVideo = module.videoUrl && module.videoUrl !== '#';
 
   return (
-    <div className="flex flex-col h-full w-full bg-white dark:bg-black transition-colors duration-300">
+    <div className="flex flex-col h-full w-full bg-black relative transition-colors duration-300">
       
       {/* Lightbox */}
       {selectedImage && (
@@ -97,198 +97,187 @@ const TrainingDetail: React.FC = () => {
         </div>
       )}
 
-      {/* Floating Header Actions */}
+      {/* Floating Header Actions (Glassmorphism) */}
       <div className="fixed top-0 left-0 w-full z-50 pointer-events-none">
-          <div className="pt-safe w-full">
-            <div className="flex items-center justify-between px-6 h-20">
-                <button onClick={() => navigate('/training')} className="w-10 h-10 bg-black/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/40 pointer-events-auto cursor-pointer transition-all active:scale-95 border border-white/10 shadow-lg">
+          <div className="pt-safe w-full px-6 h-24 flex items-center justify-between">
+              <button 
+                onClick={() => navigate('/training')} 
+                className="w-10 h-10 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center text-white pointer-events-auto active:scale-90 transition-transform border border-white/10 shadow-xl"
+              >
                   <ChevronLeft size={20} strokeWidth={3} />
-                </button>
-            </div>
+              </button>
+              
+              <button 
+                className="w-10 h-10 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center text-white pointer-events-auto active:scale-90 transition-transform border border-white/10 shadow-xl"
+                onClick={() => alert("Compartir módulo")}
+              >
+                  <Share2 size={18} strokeWidth={2.5} />
+              </button>
           </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-hide pb-safe">
-        
-        {/* === SEMI-CIRCULAR BANNER (HERO) === */}
-        <div className="relative w-full h-[55vh] z-0">
-            {/* The Curve Container */}
-            <div className="absolute inset-0 w-full h-full rounded-b-[3.5rem] overflow-hidden shadow-2xl shadow-brand-purple/20 bg-brand-black">
-                <img src={module.imageUrl} alt={module.title} className="w-full h-full object-cover opacity-90" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
-                
-                {/* Banner Content */}
-                <div className="absolute bottom-0 left-0 w-full p-8 pb-16 text-center">
-                    <span className="inline-block px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 text-white text-[9px] font-black uppercase tracking-widest rounded-full mb-4 shadow-lg">
-                        Módulo Oficial
-                    </span>
-                    <h1 className="text-4xl font-black text-white uppercase leading-[0.9] drop-shadow-xl tracking-tighter mb-2">
-                        {module.title}
-                    </h1>
-                    <p className="text-xs text-white/70 font-bold uppercase tracking-wide max-w-xs mx-auto line-clamp-2">
-                        {module.description}
-                    </p>
-                </div>
-            </div>
+      {/* === HERO IMAGE (Immersive Background) === */}
+      <div className="fixed inset-0 w-full h-[60vh] z-0">
+          <img src={module.imageUrl} alt={module.title} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90"></div>
+      </div>
 
-            {/* FLOATING PLAY ACTION (On the curve edge) */}
-            {hasVideo && (
-                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 z-20">
-                    <button 
-                        onClick={handleOpenVideo}
-                        className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center shadow-xl shadow-orange-500/40 border-4 border-white dark:border-black active:scale-95 transition-transform group"
-                    >
-                        <Play size={24} className="text-white ml-1 fill-white" />
-                        {/* Ping Effect */}
-                        <div className="absolute inset-0 rounded-full bg-orange-500 animate-ping opacity-20 -z-10"></div>
-                    </button>
-                </div>
-            )}
-        </div>
+      {/* === CONTENT SHEET (Scrollable) === */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide z-10 mt-[45vh] relative pb-safe">
+          
+          {/* Main Card Container */}
+          <div className="bg-white dark:bg-[#0a0a0a] min-h-[60vh] rounded-t-[2.5rem] relative shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+              
+              {/* --- FLOATING ACTION BUTTON (VIDEO) --- */}
+              {hasVideo && (
+                  <div className="absolute -top-8 right-8 z-20">
+                      <button 
+                          onClick={handleOpenVideo}
+                          className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center shadow-xl shadow-orange-500/40 border-[6px] border-white dark:border-[#0a0a0a] active:scale-90 transition-transform group"
+                      >
+                          <Play size={24} className="text-white ml-1 fill-white" />
+                          <div className="absolute inset-0 rounded-full bg-orange-500 animate-ping opacity-20 -z-10"></div>
+                      </button>
+                  </div>
+              )}
 
-        {/* === CONTENT SECTION === */}
-        <div className="px-6 pt-16 pb-12">
-            
-            {/* Main Text */}
-            <div className="mb-10 animate-slide-up">
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <p className="text-sm text-gray-600 dark:text-gray-300 leading-7 font-medium text-justify whitespace-pre-line first-letter:text-3xl first-letter:font-black first-letter:text-brand-purple first-letter:mr-1 first-letter:float-left">
-                        {module.textContent}
-                    </p>
-                </div>
-            </div>
+              {/* Handle Bar */}
+              <div className="w-full flex justify-center pt-4 pb-2">
+                  <div className="w-12 h-1 bg-gray-200 dark:bg-white/10 rounded-full"></div>
+              </div>
 
-            {/* --- MENÚ DE BLOQUEOS (Special Module) --- */}
-            {module.id === 'bloqueos' && (
-                <div className="mb-12 space-y-4">
-                    <div className="flex items-center space-x-2 border-b-2 border-gray-100 dark:border-white/5 pb-2">
-                        <ShieldAlert size={18} className="text-brand-purple" />
-                        <h3 className="text-xs font-black uppercase tracking-widest text-brand-black dark:text-white">
-                            Centro de Normas
-                        </h3>
-                    </div>
-                    <div className="grid grid-cols-1 gap-4">
-                        <button onClick={() => navigate('/training/bloqueos/motivos')} className="bg-white dark:bg-brand-dark-card p-5 rounded-2xl flex items-center justify-between border border-gray-100 dark:border-white/5 shadow-lg shadow-gray-200/50 dark:shadow-none active:scale-[0.98] transition-all group">
-                            <div className="flex items-center space-x-4">
-                                <div className="w-10 h-10 bg-rose-100 dark:bg-rose-900/20 text-rose-500 rounded-xl flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-colors">
-                                    <ShieldAlert size={20} strokeWidth={2.5} />
-                                </div>
-                                <div className="text-left">
-                                    <span className="block text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">Motivos</span>
-                                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wide">Qué está prohibido</span>
-                                </div>
-                            </div>
-                            <ChevronLeft size={16} className="text-gray-300 rotate-180" />
-                        </button>
+              <div className="px-8 pt-4 pb-12">
+                  
+                  {/* Title Section */}
+                  <div className="mb-8">
+                      <div className="flex items-center space-x-2 mb-3">
+                          <span className="px-2.5 py-1 bg-brand-purple/10 text-brand-purple dark:text-purple-400 text-[9px] font-black uppercase tracking-widest rounded-md border border-brand-purple/20">
+                              Módulo Oficial
+                          </span>
+                          {module.id === 'bigo-live' && (
+                              <span className="px-2.5 py-1 bg-orange-500/10 text-orange-500 text-[9px] font-black uppercase tracking-widest rounded-md border border-orange-500/20">
+                                  Básico
+                              </span>
+                          )}
+                      </div>
+                      
+                      <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-[0.95] tracking-tighter mb-4">
+                          {module.title}
+                      </h1>
+                      
+                      <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide leading-relaxed border-l-2 border-brand-purple pl-3">
+                          {module.description}
+                      </p>
+                  </div>
 
-                        <button onClick={() => navigate('/training/bloqueos/types')} className="bg-white dark:bg-brand-dark-card p-5 rounded-2xl flex items-center justify-between border border-gray-100 dark:border-white/5 shadow-lg shadow-gray-200/50 dark:shadow-none active:scale-[0.98] transition-all group">
-                            <div className="flex items-center space-x-4">
-                                <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 text-orange-500 rounded-xl flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-colors">
-                                    <Clock size={20} strokeWidth={2.5} />
-                                </div>
-                                <div className="text-left">
-                                    <span className="block text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">Duración</span>
-                                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wide">Tiempos de sanción</span>
-                                </div>
-                            </div>
-                            <ChevronLeft size={16} className="text-gray-300 rotate-180" />
-                        </button>
+                  {/* Main Content */}
+                  <div className="mb-10">
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-7 font-medium text-justify whitespace-pre-line">
+                              {module.textContent}
+                          </p>
+                      </div>
+                  </div>
 
-                        <button onClick={() => navigate('/training/bloqueos/appeal')} className="bg-white dark:bg-brand-dark-card p-5 rounded-2xl flex items-center justify-between border border-gray-100 dark:border-white/5 shadow-lg shadow-gray-200/50 dark:shadow-none active:scale-[0.98] transition-all group">
-                            <div className="flex items-center space-x-4">
-                                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 text-blue-500 rounded-xl flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors">
-                                    <Gavel size={20} strokeWidth={2.5} />
-                                </div>
-                                <div className="text-left">
-                                    <span className="block text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">Apelaciones</span>
-                                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wide">Recuperar cuenta</span>
-                                </div>
-                            </div>
-                            <ChevronLeft size={16} className="text-gray-300 rotate-180" />
-                        </button>
+                  {/* --- MENÚ DE BLOQUEOS (Si aplica) --- */}
+                  {module.id === 'bloqueos' && (
+                      <div className="mb-10 space-y-4 animate-fade-in">
+                          <div className="flex items-center space-x-2 border-b border-gray-100 dark:border-white/5 pb-2">
+                              <ShieldAlert size={16} className="text-brand-purple" />
+                              <h3 className="text-xs font-black uppercase tracking-widest text-brand-black dark:text-white">Normativa</h3>
+                          </div>
+                          <div className="grid grid-cols-1 gap-3">
+                              {/* Botones de navegación de bloqueos con diseño App-Like */}
+                              {[
+                                  { title: 'Motivos', sub: 'Prohibiciones', icon: ShieldAlert, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/20', path: '/training/bloqueos/motivos' },
+                                  { title: 'Duración', sub: 'Tiempos', icon: Clock, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-900/20', path: '/training/bloqueos/types' },
+                                  { title: 'Apelaciones', sub: 'Soporte', icon: Gavel, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', path: '/training/bloqueos/appeal' },
+                                  { title: 'Puntos VIP', sub: 'Desbloqueo', icon: Crown, color: 'text-brand-black dark:text-white', bg: 'bg-gray-100 dark:bg-white/10', path: '/training/bloqueos/vip' },
+                              ].map((btn, idx) => (
+                                  <button 
+                                      key={idx} 
+                                      onClick={() => navigate(btn.path)}
+                                      className="flex items-center justify-between p-4 bg-gray-50 dark:bg-brand-dark-card rounded-2xl border border-gray-100 dark:border-white/5 active:scale-95 transition-all group"
+                                  >
+                                      <div className="flex items-center space-x-4">
+                                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${btn.bg}`}>
+                                              <btn.icon size={18} className={btn.color} strokeWidth={2.5} />
+                                          </div>
+                                          <div className="text-left">
+                                              <span className="block text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">{btn.title}</span>
+                                              <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wide">{btn.sub}</span>
+                                          </div>
+                                      </div>
+                                      <div className="bg-white dark:bg-black/20 p-1.5 rounded-full text-gray-300 group-hover:text-brand-purple transition-colors">
+                                          <ArrowUpRight size={16} />
+                                      </div>
+                                  </button>
+                              ))}
+                          </div>
+                      </div>
+                  )}
 
-                        <button onClick={() => navigate('/training/bloqueos/vip')} className="bg-brand-black dark:bg-white p-5 rounded-2xl flex items-center justify-between shadow-xl active:scale-[0.98] transition-all group border border-white/10 relative overflow-hidden">
-                            <div className="absolute inset-0 bg-brand-purple/10 dark:bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="flex items-center space-x-4 relative z-10">
-                                <div className="w-10 h-10 bg-white/20 dark:bg-black/10 text-white dark:text-black rounded-xl flex items-center justify-center">
-                                    <Crown size={20} strokeWidth={2.5} fill="currentColor" />
-                                </div>
-                                <div className="text-left">
-                                    <span className="block text-sm font-black text-white dark:text-black uppercase leading-none mb-1">Puntos VIP</span>
-                                    <span className="text-[9px] text-white/60 dark:text-black/60 font-bold uppercase tracking-wide">Desbloqueo Especial</span>
-                                </div>
-                            </div>
-                            <ChevronLeft size={16} className="text-white/50 dark:text-black/50 rotate-180 relative z-10" />
-                        </button>
-                    </div>
-                </div>
-            )}
+                  {/* --- LIVE DATA STEPS (Si aplica) --- */}
+                  {module.id === 'live-data' && (
+                      <div className="mb-10 animate-fade-in">
+                          <div className="w-[calc(100%+4rem)] -ml-8 relative">
+                               <div ref={scrollRef} className="overflow-x-auto scrollbar-hide flex space-x-4 py-4 px-8 cursor-grab active:cursor-grabbing" onTouchStart={() => setIsPaused(true)} onTouchEnd={() => setIsPaused(false)}>
+                                  {[...liveDataSteps, ...liveDataSteps].map((imgUrl, index) => (
+                                      <div key={index} className="relative group/card w-64 flex-shrink-0 select-none">
+                                          <button onClick={() => setSelectedImage(imgUrl)} className="w-full relative rounded-2xl overflow-hidden shadow-lg border border-gray-100 dark:border-white/10 active:scale-95 transition-transform">
+                                              <img src={imgUrl} alt="Step" className="w-full h-auto block pointer-events-none" />
+                                          </button>
+                                      </div>
+                                  ))}
+                               </div>
+                          </div>
+                      </div>
+                  )}
 
-            {/* --- LIVE DATA STEPS (Special Module) --- */}
-            {module.id === 'live-data' && (
-                <div className="mb-10 space-y-8 animate-fade-in">
-                    <div className="w-[calc(100%+3rem)] -ml-6 relative group">
-                            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-black to-transparent z-20 pointer-events-none"></div>
-                            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-black to-transparent z-20 pointer-events-none"></div>
-                            <div ref={scrollRef} className="overflow-x-auto scrollbar-hide flex space-x-4 py-4 px-6 cursor-grab active:cursor-grabbing" onTouchStart={() => setIsPaused(true)} onTouchEnd={() => setIsPaused(false)} onMouseDown={() => setIsPaused(true)} onMouseUp={() => setIsPaused(false)} onMouseLeave={() => setIsPaused(false)}>
-                            {[...liveDataSteps, ...liveDataSteps].map((imgUrl, index) => (
-                                <div key={index} className="relative group/card w-64 flex-shrink-0 select-none">
-                                    <button onClick={() => setSelectedImage(imgUrl)} className="w-full relative rounded-2xl overflow-hidden shadow-lg border border-gray-100 dark:border-white/10 active:scale-95 transition-transform">
-                                        <img src={imgUrl} alt="Step" className="w-full h-auto block pointer-events-none" />
-                                    </button>
-                                </div>
-                            ))}
-                            </div>
-                    </div>
-                </div>
-            )}
+                  {/* --- RESOURCES GRID (Tools) --- */}
+                  {module.resources && module.resources.length > 0 && (
+                      <div className="mb-8">
+                          <div className="flex items-center space-x-2 border-b border-gray-100 dark:border-white/5 pb-2 mb-4">
+                              <Folder size={16} className="text-brand-purple" />
+                              <h3 className="text-xs font-black uppercase tracking-widest text-brand-black dark:text-white">Herramientas</h3>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                              {module.resources.map((resource: any, index: number) => {
+                                  const defaultStyle = getResourceConfig(resource.type);
+                                  const style = resource.style || defaultStyle;
+                                  const Icon = getResourceIcon(resource.style?.iconName, resource.type);
+                                  return (
+                                      <button 
+                                          key={index} 
+                                          onClick={() => handleResourceClick(resource.type, resource.title)} 
+                                          className={`relative p-4 h-24 w-full text-left rounded-2xl active:scale-[0.96] transition-transform shadow-lg ${style.shadow} overflow-hidden group flex flex-col justify-between`}
+                                      >
+                                          <div className={`absolute inset-0 z-0 ${style.bg} opacity-100`}></div>
+                                          <img src={resource.imageUrl || module.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover z-0 opacity-20 mix-blend-overlay group-hover:scale-110 transition-transform duration-700" />
+                                          
+                                          <div className="relative z-10 bg-white/20 w-fit p-1.5 rounded-lg backdrop-blur-sm border border-white/20">
+                                              <Icon size={16} className="text-white" strokeWidth={2.5} />
+                                          </div>
+                                          <span className="relative z-10 text-[10px] font-black uppercase leading-tight text-white tracking-wide pr-2">
+                                              {resource.title}
+                                          </span>
+                                      </button>
+                                  );
+                              })}
+                          </div>
+                      </div>
+                  )}
 
-            {/* --- RESOURCES GRID --- */}
-            {module.resources && module.resources.length > 0 && (
-                <div className="mb-8">
-                    <div className="flex items-center space-x-2 border-b-2 border-gray-100 dark:border-white/5 pb-2 mb-4">
-                        <Folder size={18} className="text-brand-purple" />
-                        <h3 className="text-xs font-black uppercase tracking-widest text-brand-black dark:text-white">Herramientas</h3>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        {module.resources.map((resource: any, index: number) => {
-                        const defaultStyle = getResourceConfig(resource.type);
-                        const style = resource.style || defaultStyle;
-                        const Icon = getResourceIcon(resource.style?.iconName, resource.type);
-                        return (
-                            <button 
-                                key={index} 
-                                onClick={() => handleResourceClick(resource.type, resource.title)} 
-                                className={`relative flex flex-col justify-between p-4 h-28 w-full text-left rounded-3xl active:scale-[0.96] transition-transform duration-200 shadow-lg ${style.shadow} overflow-hidden group`}
-                            >
-                                <img src={resource.imageUrl || module.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover z-0 opacity-0 group-hover:opacity-20 transition-opacity" />
-                                <div className={`absolute inset-0 z-10 ${style.bg}`} style={{ opacity: style.cardOpacity !== undefined ? style.cardOpacity : 1 }}></div>
-                                <div className="relative z-20 flex flex-col h-full justify-between">
-                                    <div className="bg-white/20 w-fit p-2 rounded-xl backdrop-blur-sm border border-white/10">
-                                        <Icon size={18} className="text-white" strokeWidth={2.5} />
-                                    </div>
-                                    <span className="text-[10px] font-black uppercase leading-tight text-white tracking-wide pr-2">
-                                        {resource.title}
-                                    </span>
-                                </div>
-                                {/* Decor */}
-                                <Icon className="absolute -bottom-4 -right-4 text-white/10 rotate-[-15deg] group-hover:scale-110 transition-transform" size={60} />
-                            </button>
-                        );
-                        })}
-                    </div>
-                </div>
-            )}
+                  {/* --- FOOTER ACTIONS --- */}
+                  <div className="space-y-3 pt-6 border-t border-gray-100 dark:border-white/5">
+                      <div className="grid grid-cols-2 gap-3">
+                          <Button fullWidth variant="outline" icon={<FileText size={16} />} className="dark:border-white/20 dark:text-white dark:hover:bg-white/10 rounded-xl h-12 text-[10px]" onClick={() => alert('Abriendo modo lectura...')}>Leer Guía</Button>
+                          <Button fullWidth variant="secondary" icon={<Download size={16} />} className="bg-gray-100 text-brand-black dark:bg-white/10 dark:text-white dark:hover:bg-white/20 rounded-xl h-12 text-[10px]" onClick={() => alert('Descargando PDF...')}>PDF</Button>
+                      </div>
+                  </div>
 
-            {/* --- DOWNLOAD ACTIONS --- */}
-            <div className="space-y-3 pt-6 border-t border-gray-100 dark:border-white/5">
-                <div className="grid grid-cols-2 gap-3">
-                    <Button fullWidth variant="outline" icon={<FileText size={16} />} className="dark:border-white/20 dark:text-white dark:hover:bg-white/10 rounded-xl h-12 text-[10px]" onClick={() => alert('Abriendo modo lectura...')}>Leer Guía</Button>
-                    <Button fullWidth variant="secondary" icon={<Download size={16} />} className="bg-gray-100 text-brand-black dark:bg-white/10 dark:text-white dark:hover:bg-white/20 rounded-xl h-12 text-[10px]" onClick={() => alert('Descargando PDF...')}>PDF</Button>
-                </div>
-            </div>
-
-        </div>
+              </div>
+          </div>
       </div>
     </div>
   );
