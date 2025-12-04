@@ -10,6 +10,18 @@ import { PrivacyPolicyModal } from './PrivacyPolicyModal';
 
 const CARD_VARIANTS = [
     {
+      // BLANCO
+      bg: 'bg-white',
+      border: 'border-gray-100', 
+      text: 'text-brand-black',
+      subText: 'text-gray-500',
+      iconBg: 'bg-gray-100',
+      iconColor: 'text-brand-black',
+      arrowColor: 'text-gray-300',
+      decorColor: 'text-gray-50'
+    },
+    {
+      // NARANJA
       bg: 'bg-orange-500',
       border: 'border-orange-400',
       text: 'text-white',
@@ -20,6 +32,7 @@ const CARD_VARIANTS = [
       decorColor: 'text-white/10'
     },
     {
+      // NEGRO
       bg: 'bg-black',
       border: 'border-[#1A1A1A]',
       text: 'text-white',
@@ -30,6 +43,7 @@ const CARD_VARIANTS = [
       decorColor: 'text-white/5'
     },
     {
+      // GRIS
       bg: 'bg-gray-200',
       border: 'border-white',
       text: 'text-brand-black',
@@ -40,6 +54,7 @@ const CARD_VARIANTS = [
       decorColor: 'text-white'
     },
     {
+      // MORADO
       bg: 'bg-brand-purple',
       border: 'border-violet-500',
       text: 'text-white',
@@ -142,7 +157,7 @@ const Profile: React.FC = () => {
                   
                   <div className="flex items-start justify-between">
                       <h1 className="text-4xl font-black text-brand-black dark:text-white uppercase leading-[0.9] tracking-tighter mb-6 max-w-[80%]">
-                          Hola,<br/>
+                          Hola!<br/>
                           <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
                               {user.name.split(' ')[0]}
                           </span>
@@ -240,7 +255,7 @@ const Profile: React.FC = () => {
                       const style = module.style || { iconName: 'PlayCircle' };
                       const Icon = getIconComponent(style.iconName);
                       
-                      // Color sequence: Orange, Black, Gray, Purple
+                      // Sequence: White, Orange, Black, Gray, Purple
                       const variant = CARD_VARIANTS[index % CARD_VARIANTS.length];
 
                       // Alternate Large Card logic (Every 3rd item is full width)

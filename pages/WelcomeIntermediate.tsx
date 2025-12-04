@@ -78,7 +78,7 @@ const WelcomeIntermediate: React.FC = () => {
           {/* Main Card: Capacítate (Black) */}
           <button 
             onClick={() => navigate('/home')}
-            className="col-span-2 bg-brand-black text-white p-8 rounded-[2rem] relative overflow-hidden group shadow-2xl shadow-black/20 active:scale-[0.98] transition-all duration-300 text-left h-48 flex flex-col justify-between"
+            className="col-span-2 bg-brand-black text-white p-8 rounded-[2rem] relative overflow-hidden group shadow-2xl shadow-black/20 active:scale-[0.98] transition-all duration-300 text-left h-48 flex flex-col justify-between border-[5px] border-[#1A1A1A]"
           >
               <div className="flex justify-between items-start w-full relative z-10">
                   <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md border border-white/10">
