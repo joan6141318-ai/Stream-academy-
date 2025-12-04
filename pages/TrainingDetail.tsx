@@ -6,6 +6,49 @@ import { useContent } from '../context/ContentContext';
 import { Button } from '../components/Button';
 import * as LucideIcons from 'lucide-react';
 
+const RESOURCE_VARIANTS = [
+    {
+      // NARANJA
+      bg: 'bg-orange-500',
+      border: 'border-orange-400',
+      text: 'text-white',
+      iconBg: 'bg-white/20',
+      iconColor: 'text-white'
+    },
+    {
+      // GRIS LIGERO
+      bg: 'bg-gray-200',
+      border: 'border-white',
+      text: 'text-brand-black',
+      iconBg: 'bg-white',
+      iconColor: 'text-brand-black'
+    },
+    {
+      // MORADO
+      bg: 'bg-brand-purple',
+      border: 'border-violet-500',
+      text: 'text-white',
+      iconBg: 'bg-white/20',
+      iconColor: 'text-white'
+    },
+    {
+      // NEGRO
+      bg: 'bg-black',
+      border: 'border-[#1A1A1A]',
+      text: 'text-white',
+      iconBg: 'bg-white/10',
+      iconColor: 'text-white'
+    },
+    {
+      // BLANCO
+      bg: 'bg-white',
+      border: 'border-gray-100',
+      text: 'text-brand-black',
+      iconBg: 'bg-gray-100',
+      iconColor: 'text-brand-black'
+    }
+];
+
 const TrainingDetail: React.FC = () => {
   const { topicId } = useParams();
   const navigate = useNavigate();
@@ -70,18 +113,6 @@ const TrainingDetail: React.FC = () => {
       case 'card': return CreditCard;
       case 'doc': return ScrollText;
       default: return Folder;
-    }
-  };
-
-  const getResourceConfig = (type: string) => {
-    // Colores vibrantes sobre fondo oscuro
-    switch(type) {
-      case 'table': return { bg: 'bg-blue-600', shadow: 'shadow-blue-500/20' };
-      case 'calc': return { bg: 'bg-orange-500', shadow: 'shadow-orange-500/20' };
-      case 'wallet': return { bg: 'bg-emerald-600', shadow: 'shadow-emerald-500/20' };
-      case 'card': return { bg: 'bg-violet-600', shadow: 'shadow-violet-500/20' };
-      case 'doc': return { bg: 'bg-rose-600', shadow: 'shadow-rose-500/20' };
-      default: return { bg: 'bg-gray-800', shadow: 'shadow-black/40' };
     }
   };
 
@@ -268,7 +299,7 @@ const TrainingDetail: React.FC = () => {
                       </div>
                   )}
 
-                  {/* --- RESOURCES GRID (Dark Cards) --- */}
+                  {/* --- RESOURCES GRID (Colored Cards) --- */}
                   {module.resources && module.resources.length > 0 && (
                       <div className="mb-8">
                           <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-2">
@@ -277,28 +308,31 @@ const TrainingDetail: React.FC = () => {
                           </div>
                           <div className="grid grid-cols-2 gap-3">
                               {module.resources.map((resource: any, index: number) => {
-                                  const defaultStyle = getResourceConfig(resource.type);
-                                  const style = resource.style || defaultStyle;
                                   const Icon = getResourceIcon(resource.style?.iconName, resource.type);
+                                  const variant = RESOURCE_VARIANTS[index % RESOURCE_VARIANTS.length];
+                                  
                                   return (
                                       <button 
                                           key={index} 
                                           onClick={() => handleResourceClick(resource.type, resource.title)} 
-                                          className={`relative p-5 h-32 w-full text-left rounded-3xl active:scale-[0.96] transition-transform shadow-lg overflow-hidden group flex flex-col justify-between border border-white/5 bg-[#111]`}
+                                          className={`relative p-5 h-32 w-full text-left rounded-[2rem] active:scale-[0.96] transition-transform shadow-lg overflow-hidden group flex flex-col justify-between border-[5px] ${variant.bg} ${variant.border}`}
                                       >
-                                          {/* Background Splash */}
-                                          <div className={`absolute -right-4 -top-4 w-20 h-20 rounded-full ${style.bg} blur-2xl opacity-20 group-hover:opacity-40 transition-opacity`}></div>
-                                          
-                                          <div className="relative z-10 bg-white/5 w-fit p-2 rounded-xl backdrop-blur-md border border-white/10">
-                                              <Icon size={20} className="text-white" strokeWidth={2} />
+                                          <div className={`relative z-10 w-fit p-2 rounded-xl backdrop-blur-md ${variant.iconBg}`}>
+                                              <Icon size={20} className={variant.iconColor} strokeWidth={2} />
                                           </div>
                                           
                                           <div className="relative z-10">
-                                              <span className="block text-xs font-black uppercase leading-tight text-white tracking-wide pr-2">
+                                              <span className={`block text-xs font-black uppercase leading-tight tracking-wide pr-2 ${variant.text}`}>
                                                   {resource.title}
                                               </span>
-                                              <div className="h-0.5 w-4 bg-brand-purple mt-2 rounded-full"></div>
                                           </div>
+
+                                          {/* Decorative Icon */}
+                                          <Icon 
+                                              className={`absolute -bottom-4 -right-4 opacity-10 rotate-[-15deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500 pointer-events-none ${variant.text === 'text-white' ? 'text-white' : 'text-black'}`} 
+                                              size={80} 
+                                              strokeWidth={1} 
+                                          />
                                       </button>
                                   );
                               })}
