@@ -181,18 +181,13 @@ const Profile: React.FC = () => {
 
           {/* === MODULES GRID (ESTILO "CAPACITATE" - BENTO) === */}
           <div className="mb-12">
-                <div className="flex items-end justify-between mb-6 px-1">
-                    <h3 className="text-4xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tighter opacity-10">
-                        01
+                <div className="mb-6 px-1 text-left">
+                    <span className="block text-[10px] font-black uppercase tracking-widest text-brand-purple mb-1">
+                        Librería de Recursos
+                    </span>
+                    <h3 className="text-xl font-black uppercase tracking-tight text-brand-black dark:text-white leading-none">
+                        {homeConfig?.modulesTitle || "Capacitación"}
                     </h3>
-                    <div className="text-right">
-                        <span className="block text-[10px] font-black uppercase tracking-widest text-brand-purple mb-1">
-                            Librería de Recursos
-                        </span>
-                        <h3 className="text-xl font-black uppercase tracking-tight text-brand-black dark:text-white leading-none">
-                            {homeConfig?.modulesTitle || "Capacitación"}
-                        </h3>
-                    </div>
                 </div>
             
                 <div className="grid grid-cols-2 gap-4">
