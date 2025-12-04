@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
@@ -91,17 +92,17 @@ const AppTour: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full w-full bg-[#FAFAFA] dark:bg-black transition-colors duration-300">
-      <Header title="Conoce la App" showBack onBack={() => navigate('/welcome')} />
+      <Header title="Guía Visual" showBack onBack={() => navigate('/welcome')} />
       
       <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] pb-24">
         
         {/* Intro */}
         <div className="px-6 mt-6 mb-2">
             <h1 className="text-4xl font-black text-brand-black dark:text-white uppercase tracking-tighter leading-[0.9] mb-3">
-                Tu Guía<br/>Visual
+                GUÍA<br/>VISUAL
             </h1>
-            <p className="text-xs text-gray-500 font-medium max-w-[250px] leading-relaxed">
-                Explora las interfaces, herramientas y funciones clave a través de nuestros simuladores interactivos.
+            <p className="text-xs text-gray-500 font-medium max-w-[280px] leading-relaxed">
+                Hemos preparado una serie de guías visuales para que conozcas la aplicación antes de tu primera transmisión.
             </p>
         </div>
 
