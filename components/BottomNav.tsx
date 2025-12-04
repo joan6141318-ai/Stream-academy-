@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, Layers, User, Shield } from 'lucide-react';
@@ -20,10 +21,9 @@ export const BottomNav: React.FC = () => {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-black border-t border-gray-100 dark:border-white/10 pb-safe z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)] transition-colors duration-300">
-      <div className="flex items-center justify-around h-16 px-2">
+    <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none pb-safe">
+      <div className="pointer-events-auto bg-white/90 dark:bg-[#121212]/90 backdrop-blur-xl border border-gray-100 dark:border-white/10 rounded-full shadow-2xl shadow-black/10 h-14 w-full max-w-[280px] flex items-center justify-between px-3 transition-all duration-300">
         {navItems.map((item) => {
-          // Check especial para rutas anidadas de admin
           const isActive = location.pathname.startsWith(item.path) || (item.label === 'Admin' && location.pathname.startsWith('/admin'));
           const Icon = item.icon;
           
@@ -31,19 +31,17 @@ export const BottomNav: React.FC = () => {
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`flex-1 flex flex-col items-center justify-center h-full space-y-1 active:scale-95 transition-transform ${
-                isActive ? 'text-brand-purple dark:text-brand-purple' : 'text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-400'
+              className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 active:scale-90 ${
+                isActive 
+                  ? 'bg-brand-black text-white dark:bg-white dark:text-black shadow-lg transform scale-105' 
+                  : 'text-gray-400 hover:text-brand-purple dark:hover:text-white'
               }`}
             >
               <Icon 
-                size={24} 
+                size={20} 
                 strokeWidth={isActive ? 2.5 : 2} 
                 className="transition-all duration-200"
               />
-              <span className={`text-[10px] font-bold uppercase tracking-wide ${isActive ? 'opacity-100' : 'opacity-0 scale-90 hidden'}`}>
-                {item.label}
-              </span>
-              {!isActive && <span className="text-[10px] font-medium opacity-0">{item.label}</span>} 
             </button>
           );
         })}
