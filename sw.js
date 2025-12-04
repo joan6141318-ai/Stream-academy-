@@ -2,8 +2,8 @@
 // IMPORTANTE: Importar scripts de OneSignal al inicio para fusionar capacidades
 importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDKWorker.js');
 
-// Nombre del caché - Actualizado a v32 (Forzar Actualización)
-const CACHE_NAME = 'stream-agency-v32-force-update';
+// Nombre del caché - Actualizado a v34 (Forzar Actualización)
+const CACHE_NAME = 'stream-agency-v34-app-redesign';
 
 // Archivos vitales para que la app arranque offline
 const ASSETS_TO_CACHE = [
