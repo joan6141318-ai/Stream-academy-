@@ -341,10 +341,10 @@ const AppTour: React.FC = () => {
                         {giftsData.map((gift, idx) => (
                             <div 
                                 key={idx} 
-                                className="bg-[#151515] p-3 rounded-2xl border border-white/10 flex flex-col items-center text-center group active:scale-[0.98] transition-all relative overflow-hidden"
+                                className="bg-[#151515] p-2 rounded-2xl border-2 border-white/20 flex flex-col items-center justify-center text-center group active:scale-[0.98] transition-all relative overflow-hidden aspect-square shadow-lg"
                             >
                                 {/* Value Tag */}
-                                <div className="absolute top-2 right-2 bg-brand-purple/20 border border-brand-purple/30 px-1.5 py-0.5 rounded backdrop-blur-sm z-10">
+                                <div className="absolute top-1.5 right-1.5 bg-black/60 border border-white/10 px-1.5 py-0.5 rounded backdrop-blur-sm z-10">
                                     <div className="flex items-center space-x-0.5">
                                         <span className="text-[8px] font-black text-white">{gift.value}</span>
                                         <Star size={6} className="text-yellow-400 fill-yellow-400" />
@@ -352,18 +352,15 @@ const AppTour: React.FC = () => {
                                 </div>
 
                                 {/* Image */}
-                                <div className="w-14 h-14 mb-2 relative flex items-center justify-center mt-3">
+                                <div className="w-full h-full flex items-center justify-center p-2">
                                     {gift.imageUrl ? (
                                         <img src={gift.imageUrl} alt={gift.name} className="w-full h-full object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-300" />
                                     ) : (
-                                        <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center">
-                                            <Gift size={20} className="text-white/20" />
+                                        <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center">
+                                            <Gift size={18} className="text-white/20" />
                                         </div>
                                     )}
                                 </div>
-
-                                {/* Info */}
-                                <h4 className="text-[10px] font-black text-white uppercase leading-tight mb-0.5 truncate w-full">{gift.name}</h4>
                             </div>
                         ))}
                     </div>
