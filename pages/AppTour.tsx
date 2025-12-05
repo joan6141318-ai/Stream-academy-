@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Smartphone, Gift, Radio, PenTool, ChevronLeft, ChevronRight, Star, ArrowUpRight } from 'lucide-react';
+import { Smartphone, Gift, Radio, PenTool, ChevronLeft, ChevronRight, Star, ArrowUpRight, CheckCircle2 } from 'lucide-react';
 
 // --- COMPONENTS ---
 
@@ -184,12 +184,20 @@ const AppTour: React.FC = () => {
     image: `https://picsum.photos/400/800?random=broad${i}`
   }));
 
-  const giftsData = Array.from({ length: 10 }, (_, i) => ({
-    id: i,
-    name: `Regalo Nivel ${i + 1}`,
-    value: `${(i + 1) * 500}`,
-    desc: "Efecto especial en pantalla completa"
-  }));
+  // --- LISTA DE REGALOS (Con URLs Reales de Firebase) ---
+  const giftsData = [
+    { name: "Dragón Dorado", value: "10000", desc: "Efecto de pantalla completa", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080356.jpg?alt=media&token=43fbcf9b-e527-42ec-ad9b-50fac86309fa" },
+    { name: "Castillo Mágico", value: "5000", desc: "Animación 3D exclusiva", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080518.jpg?alt=media&token=8c00c88c-31ca-464b-845d-aacc50dfca96" },
+    { name: "Yate de Lujo", value: "3000", desc: "Aparece navegando en pantalla", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080556.jpg?alt=media&token=d5d96aea-c4f6-46db-aa53-e46afeaad424" },
+    { name: "Coche Deportivo", value: "2000", desc: "Sonido de motor real", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080619.jpg?alt=media&token=edc6467b-d54c-4e51-afff-4423fd3fa8d3" },
+    { name: "Ramo de Rosas", value: "999", desc: "Efecto romántico", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080711.jpg?alt=media&token=22fa1f90-0e75-4dd4-9e0d-22bb4105e09c" },
+    { name: "Anillo de Diamante", value: "500", desc: "Brillo intenso", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080839.jpg?alt=media&token=08e399f4-c8f6-4fb0-b14e-e5548c34609c" },
+    { name: "Cohete Espacial", value: "100", desc: "Despegue vertical", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_081105.jpg?alt=media&token=52c9ec8d-ac6c-4b6b-875f-6303560af2a3" },
+    { name: "Corazón", value: "10", desc: "Pequeña animación", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_081339.jpg?alt=media&token=d8d7a6cf-90bf-4581-a96c-40d3f7532008" },
+    { name: "Dona", value: "1", desc: "Regalo básico", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082317.jpg?alt=media&token=bdd1c65d-1106-42ba-87db-ed9123fffc08" },
+    { name: "Estrella", value: "1", desc: "Ideal para combos", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082345.jpg?alt=media&token=7cf7e2a8-4c55-4485-8c06-9c9add518f0a" },
+    { name: "Beso", value: "1", desc: "Gesto de cariño", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082408.jpg?alt=media&token=3b6b5e18-58ec-4706-9c24-5b4ebebc1661" },
+  ];
 
   const toolsData = Array.from({ length: 8 }, (_, i) => ({
     id: i,
@@ -262,23 +270,41 @@ const AppTour: React.FC = () => {
           text: 'text-white',
           cardStyle: 'bg-black text-white border-white',
           content: (
-            <div className="px-4 pb-12">
-                <div className="grid grid-cols-1 gap-3 max-h-[70vh] overflow-y-auto scrollbar-hide pb-20">
-                    {giftsData.map((gift) => (
-                        <div key={gift.id} className="bg-white dark:bg-[#151515] p-4 rounded-2xl border border-gray-100 dark:border-white/10 flex items-center gap-4 group active:scale-[0.99] transition-transform shadow-sm">
-                            <div className="w-12 h-12 bg-black text-white dark:bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Gift size={20} />
-                            </div>
-                            <div className="flex-1 min-w-0 text-left">
-                                <div className="flex justify-between items-center mb-1">
-                                    <h4 className="text-sm font-black text-brand-black dark:text-white uppercase truncate">{gift.name}</h4>
-                                    <div className="flex items-center space-x-1 bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded text-[10px] font-bold text-brand-black dark:text-white">
-                                        <Star size={8} fill="currentColor" />
-                                        <span>{gift.value}</span>
-                                    </div>
+            <div className="w-full pb-12">
+                <div className="px-6 mb-4 flex justify-between items-end">
+                    <h2 className="text-2xl font-black text-white uppercase tracking-tight">Top Regalos</h2>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Valor en Semillas</span>
+                </div>
+                
+                {/* Horizontal Scroll Container */}
+                <div className="flex overflow-x-auto scrollbar-hide gap-4 px-6 pb-8 snap-x snap-mandatory">
+                    {giftsData.map((gift, idx) => (
+                        <div 
+                            key={idx} 
+                            className="flex-shrink-0 w-40 bg-[#151515] p-4 rounded-[2rem] border border-white/10 flex flex-col items-center text-center group active:scale-[0.98] transition-all relative overflow-hidden snap-center"
+                        >
+                            {/* Value Tag */}
+                            <div className="absolute top-3 right-3 bg-brand-purple/20 border border-brand-purple/30 px-2 py-1 rounded-lg backdrop-blur-sm z-10">
+                                <div className="flex items-center space-x-1">
+                                    <span className="text-[9px] font-black text-white">{gift.value}</span>
+                                    <Star size={8} className="text-yellow-400 fill-yellow-400" />
                                 </div>
-                                <p className="text-[10px] text-gray-400 truncate">{gift.desc}</p>
                             </div>
+
+                            {/* Image Container */}
+                            <div className="w-24 h-24 mb-4 relative flex items-center justify-center mt-4">
+                                {gift.imageUrl ? (
+                                    <img src={gift.imageUrl} alt={gift.name} className="w-full h-full object-contain drop-shadow-xl group-hover:scale-110 transition-transform duration-300" />
+                                ) : (
+                                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                                        <Gift size={32} className="text-white/20" />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Info */}
+                            <h4 className="text-xs font-black text-white uppercase leading-tight mb-1">{gift.name}</h4>
+                            <p className="text-[8px] text-gray-500 font-medium leading-tight line-clamp-2">{gift.desc}</p>
                         </div>
                     ))}
                 </div>
