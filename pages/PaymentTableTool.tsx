@@ -105,7 +105,9 @@ const PaymentTableTool: React.FC = () => {
                         </div>
                         <div>
                             <h4 className="text-xs font-black uppercase tracking-wide mb-0.5 text-white">Pagos</h4>
-                            <p className="text-[10px] text-gray-400 font-medium leading-relaxed">Los pagos se procesan durante la primera semana de cada mes calendario.</p>
+                            <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
+                                Los pagos se gestionan con cuidado durante la primera semana de cada mes. ¡Asegúrate de cumplir tus metas para recibir tu recompensa a tiempo!
+                            </p>
                         </div>
                     </div>
 
@@ -116,7 +118,9 @@ const PaymentTableTool: React.FC = () => {
                         </div>
                         <div>
                             <h4 className="text-xs font-black uppercase tracking-wide mb-0.5 text-white">Horas Válidas</h4>
-                            <p className="text-[10px] text-gray-400 font-medium leading-relaxed">Máximo 2 horas diarias cuentan para la meta mensual. Transmitir más no suma al bono.</p>
+                            <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
+                                Recuerda que el sistema contabiliza hasta un máximo de 2 horas diarias para tu meta. Puedes transmitir más para crecer, pero solo esas 2 horas sumarán a tu bono oficial.
+                            </p>
                         </div>
                     </div>
 
@@ -127,7 +131,9 @@ const PaymentTableTool: React.FC = () => {
                         </div>
                         <div>
                             <h4 className="text-xs font-black uppercase tracking-wide mb-0.5 text-white">Penalización</h4>
-                            <p className="text-[10px] text-gray-400 font-medium leading-relaxed">Menos de 20 horas mensuales = 0% Bono. Entre 20 y 43 horas = 50% del salario base.</p>
+                            <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
+                                Tu constancia es clave. Si transmites menos de 20 horas no aplicará el bono, y si haces entre 20 y 43 horas recibirás el 50% de tu salario base.
+                            </p>
                         </div>
                     </div>
 
@@ -139,7 +145,7 @@ const PaymentTableTool: React.FC = () => {
                         <div>
                             <h4 className="text-xs font-black uppercase tracking-wide mb-0.5 text-white">Soporte Cruzado</h4>
                             <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
-                                Recibir más del 50% de apoyo proveniente de otro emisor o agencia generará penalización y anulación de bono.
+                                Para mantener un ambiente justo, evita que más del 50% de tus regalos provengan de otros emisores o agencias, ya que esto podría anular tu bono mensual.
                             </p>
                         </div>
                     </div>
