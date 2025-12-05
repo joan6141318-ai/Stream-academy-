@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Bell, Lock, HelpCircle, ChevronRight, Camera, User, Mail, Moon, Save, Type, Shield, Grid, X, Smile, Check, FileText, AlertCircle } from 'lucide-react';
+import { LogOut, Bell, Lock, HelpCircle, ChevronRight, Camera, User, Mail, Moon, Save, Type, Shield, Grid, X, Smile, Check, FileText, AlertCircle, Sun, ToggleLeft, ToggleRight, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { useOneSignal } from '../hooks/useOneSignal'; // Importamos el hook real
@@ -20,45 +20,6 @@ const AVATARS = [
     { url: "https://avatar.iran.liara.run/public/job/operator/female", label: "Tech" },
     { url: "https://avatar.iran.liara.run/public/boy?username=Sam", label: "Sam" }
 ];
-
-const SettingItem: React.FC<{ 
-  icon: React.ReactNode; 
-  label: string; 
-  value?: string;
-  isToggle?: boolean;
-  isToggled?: boolean;
-  onClick?: () => void;
-  danger?: boolean;
-  highlight?: boolean;
-}> = ({ icon, label, value, isToggle, isToggled, onClick, danger, highlight }) => (
-  <button 
-    onClick={onClick}
-    className="w-full flex items-center justify-between p-4 bg-white dark:bg-brand-dark-card border-b border-gray-50 dark:border-white/5 last:border-0 active:bg-gray-50 dark:active:bg-white/5 transition-colors"
-  >
-    <div className="flex items-center space-x-4">
-      <div className={`p-2 rounded-sm ${
-        danger ? 'bg-red-50 text-red-500 dark:bg-red-900/20' : 
-        highlight ? 'bg-brand-purple text-white' :
-        'bg-gray-50 text-brand-black dark:bg-white/10 dark:text-white'
-      }`}>
-        {icon}
-      </div>
-      <span className={`text-sm font-bold ${danger ? 'text-red-500' : highlight ? 'text-brand-purple' : 'text-brand-black dark:text-white'}`}>
-        {label}
-      </span>
-    </div>
-    <div className="flex items-center">
-      {value && <span className="text-xs font-medium text-gray-400 mr-2">{value}</span>}
-      {isToggle ? (
-        <div className={`w-10 h-6 rounded-full relative p-1 transition-colors duration-200 ${isToggled ? 'bg-brand-purple' : 'bg-gray-200 dark:bg-white/20'}`}>
-          <div className={`w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-transform duration-200 ${isToggled ? 'translate-x-4' : 'translate-x-0'}`}></div>
-        </div>
-      ) : (
-         !danger && <ChevronRight size={16} className="text-gray-300 dark:text-gray-600" />
-      )}
-    </div>
-  </button>
-);
 
 const UserSettings: React.FC = () => {
   const navigate = useNavigate();
@@ -81,19 +42,21 @@ const UserSettings: React.FC = () => {
   // Form Fields
   const [formData, setFormData] = useState({
     name: '',
-    bio: 'Streamer oficial de Bigo Live. Me encantan los videojuegos y charlar.',
-    birthdate: '1998-05-15'
+    bio: 'Streamer oficial de Bigo Live.',
   });
 
   useEffect(() => {
     if (user) {
         setFormData(prev => ({ ...prev, name: user.name }));
     }
+    // Check dark mode initial state
+    setDarkMode(document.documentElement.classList.contains('dark'));
   }, [user]);
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    if (!darkMode) {
+    const isDark = !darkMode;
+    setDarkMode(isDark);
+    if (isDark) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
@@ -189,231 +152,246 @@ const UserSettings: React.FC = () => {
     }
   };
 
-  // Solo navegación admin si ya es admin. Eliminado el prompt de código.
   const handleAdminNavigation = () => {
       if (user?.isAdmin) {
           navigate('/admin');
       }
   };
 
-  // Helper para mostrar estado legible
   const getPermissionLabel = () => {
-      if (permissionStatus === 'granted') return 'Permitido (Activo)';
-      if (permissionStatus === 'denied') return 'BLOQUEADO POR NAVEGADOR';
-      return 'Sin configurar (Toca para activar)';
-  };
-
-  const getPermissionColor = () => {
-      if (permissionStatus === 'granted') return 'text-green-500';
-      if (permissionStatus === 'denied') return 'text-red-500 font-black';
-      return 'text-gray-400';
+      if (permissionStatus === 'granted') return 'ACTIVO';
+      if (permissionStatus === 'denied') return 'BLOQUEADO';
+      return 'INACTIVO';
   };
 
   if (!user) return null;
 
   return (
     <div className="flex flex-col h-full w-full bg-brand-gray dark:bg-black transition-colors duration-300">
-      <Header title="Mi Perfil" />
+      <Header title="Configuración" />
       
-      <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] pb-24">
+      <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] px-6 pb-24">
         
-        {/* Profile Header Card */}
-        <div className="bg-white dark:bg-brand-dark-card p-6 mb-3 flex flex-col items-center justify-center text-center pb-8 shadow-sm relative">
-            
-            {/* Avatar Section */}
-            <div className="relative mb-4">
-                <div 
-                    className={`w-28 h-28 bg-gray-100 dark:bg-white/5 rounded-full p-1 border-4 border-brand-purple overflow-hidden relative shadow-xl ${isUploading ? 'opacity-50' : ''}`}
-                >
-                    <img 
-                        src={user.avatarUrl} 
-                        alt="Profile" 
-                        className="w-full h-full rounded-full object-cover"
-                        key={user.avatarUrl} 
-                    />
+        {/* === HEADER INFO SECTION (Hero Style) === */}
+        <div className="mt-6 mb-8 px-1">
+            <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tighter mb-2">
+                Mi Perfil<br/>& Ajustes
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
+                Gestiona tu cuenta y preferencias de la app.
+            </p>
+        </div>
+
+        {/* === 1. TARJETA DE PERFIL (Black Card) === */}
+        <div className="relative w-full bg-black rounded-[2.5rem] border-[5px] border-[#1A1A1A] p-6 shadow-xl overflow-hidden group mb-6">
+            <div className="relative z-10 flex flex-col items-center text-center">
+                
+                {/* Avatar with Edit Badge */}
+                <div className="relative mb-4 group/avatar">
+                    <div className={`w-28 h-28 rounded-full border-4 border-white/10 p-1 bg-black overflow-hidden ${isUploading ? 'opacity-50' : ''}`}>
+                        <img 
+                            src={user.avatarUrl} 
+                            alt="Profile" 
+                            className="w-full h-full rounded-full object-cover" 
+                        />
+                    </div>
+                    {!isUploading && !isEditing && (
+                        <button 
+                            onClick={triggerFileInput} 
+                            className="absolute bottom-0 right-0 bg-white text-black p-2 rounded-full shadow-lg active:scale-95 transition-transform"
+                        >
+                            <Camera size={14} strokeWidth={2.5} />
+                        </button>
+                    )}
                     {isUploading && (
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-8 h-8 border-2 border-brand-purple border-t-transparent rounded-full animate-spin"></div>
+                            <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                         </div>
                     )}
+                    <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" className="hidden" />
                 </div>
 
-                {!isUploading && (
-                    <>
-                        <button 
-                            onClick={triggerFileInput}
-                            className="absolute bottom-1 right-1 bg-brand-black dark:bg-white text-white dark:text-black p-2 rounded-full shadow-lg active:scale-95 transition-transform border-2 border-white dark:border-black z-10"
-                            title="Subir foto"
-                        >
-                            <Camera size={14} />
-                        </button>
-                    </>
-                )}
-                <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" className="hidden" />
-            </div>
-
-            {/* Name Display/Edit */}
-            {isEditing ? (
-                <div className="w-full max-w-xs animate-fade-in space-y-4">
-                     <div className="space-y-1 text-left">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Nombre Visible</label>
-                        <input 
-                            type="text" 
-                            value={formData.name} 
-                            onChange={(e) => setFormData({...formData, name: e.target.value})}
-                            className="w-full bg-gray-50 dark:bg-white/5 border-b-2 border-brand-purple p-2 text-center font-bold text-lg text-brand-black dark:text-white focus:outline-none"
-                            autoFocus
-                        />
-                     </div>
-
-                     <button 
-                        type="button"
-                        onClick={() => setShowAvatarModal(true)}
-                        className="w-full py-3 bg-brand-purple/10 text-brand-purple border border-brand-purple/20 rounded-sm font-black text-xs uppercase tracking-widest flex items-center justify-center active:scale-95 transition-transform hover:bg-brand-purple/20"
-                     >
-                        <Grid size={14} className="mr-2" />
-                        Elegir Avatar 3D
-                     </button>
-
-                     <button 
-                        onClick={handleSaveProfile} 
-                        disabled={isSaving}
-                        className="w-full py-2 bg-brand-purple text-white rounded-sm shadow-lg font-bold text-xs uppercase tracking-widest flex items-center justify-center active:scale-95 transition-transform mt-2"
-                    >
-                        {isSaving ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> : <> <Save size={14} className="mr-2" /> Guardar Cambios</>}
-                    </button>
-                </div>
-            ) : (
-                <>
-                    <div className="flex items-center space-x-2 mb-1">
-                        <h2 className="text-2xl font-black text-brand-black dark:text-white uppercase tracking-tight">{user.name}</h2>
-                        {user.isAdmin && <Shield size={16} className="text-brand-purple" />}
+                {/* Info / Edit Mode */}
+                {isEditing ? (
+                    <div className="w-full space-y-4 animate-fade-in">
+                        <div className="bg-white/10 rounded-2xl p-2 border border-white/10">
+                            <input 
+                                type="text" 
+                                value={formData.name} 
+                                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                className="w-full bg-transparent text-center font-black text-white text-lg uppercase outline-none placeholder-white/30"
+                                placeholder="NOMBRE"
+                                autoFocus
+                            />
+                        </div>
+                        
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={() => setShowAvatarModal(true)}
+                                className="flex-1 py-3 bg-white/10 text-white rounded-xl font-black text-[10px] uppercase tracking-widest border border-white/10 active:scale-95 transition-all flex items-center justify-center gap-2"
+                            >
+                                <Grid size={14} /> Avatares
+                            </button>
+                            <button 
+                                onClick={handleSaveProfile}
+                                disabled={isSaving}
+                                className="flex-1 py-3 bg-brand-purple text-white rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/30"
+                            >
+                                {isSaving ? '...' : <><Save size={14} /> Guardar</>}
+                            </button>
+                        </div>
                     </div>
-                    <p className="text-xs font-bold text-brand-purple bg-purple-50 dark:bg-purple-900/20 px-2 py-0.5 rounded uppercase tracking-wider mb-4">{user.role || 'Streamer'}</p>
-                    
-                    <button onClick={() => setIsEditing(true)} className="text-[10px] font-black uppercase tracking-widest text-gray-400 border border-gray-200 dark:border-white/10 px-4 py-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                        Editar Perfil
-                    </button>
-                </>
-            )}
-        </div>
-
-        {/* --- ADMIN ACCESS (Solo si ya es admin) --- */}
-        {user.isAdmin && (
-            <div className="bg-white dark:bg-brand-dark-card mb-3 shadow-sm">
-                <div className="flex flex-col">
-                    <SettingItem 
-                        icon={<Shield size={18} />} 
-                        label="Panel de Agencia"
-                        highlight={true}
-                        onClick={handleAdminNavigation}
-                    />
-                </div>
-            </div>
-        )}
-
-        {/* --- DETALLES DE PERFIL --- */}
-        <div className="bg-white dark:bg-brand-dark-card mb-3 shadow-sm">
-            <div className="px-6 py-4 border-b border-gray-50 dark:border-white/5 flex justify-between items-center">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Información Pública</h3>
-            </div>
-            
-            <div className="px-6 py-4 space-y-6">
-                <div className="flex items-start space-x-4">
-                    <div className="mt-1 bg-gray-50 dark:bg-white/5 p-2 rounded-sm"><Type size={16} className="text-brand-purple" /></div>
-                    <div className="flex-1">
-                        <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Biografía</label>
-                        {isEditing ? (
-                             <textarea 
-                                value={formData.bio}
-                                onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                                className="w-full bg-gray-50 dark:bg-white/5 border-none text-sm p-2 rounded-sm h-20 resize-none focus:ring-1 focus:ring-brand-purple outline-none"
-                             />
-                        ) : (
-                            <p className="text-sm font-medium text-brand-black dark:text-white leading-relaxed">{formData.bio}</p>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {/* --- CONFIGURACIÓN APP --- */}
-        <div className="bg-white dark:bg-brand-dark-card mb-3 shadow-sm">
-            <div className="px-6 py-4 border-b border-gray-50 dark:border-white/5">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Aplicación</h3>
-            </div>
-            <div className="flex flex-col">
-                <SettingItem 
-                    icon={<Bell size={18} />} 
-                    label="Notificaciones Push" 
-                    isToggle 
-                    isToggled={isSubscribed && permissionStatus === 'granted'} 
-                    onClick={togglePush}
-                />
-                
-                {/* DIAGNÓSTICO ONESIGNAL */}
-                <div className="px-4 pb-4 bg-gray-50 dark:bg-black/20 border-b border-gray-100 dark:border-white/5">
-                    <div className="flex justify-between items-center mb-1">
-                        <span className="text-[9px] font-bold text-gray-400 uppercase">Estado Permiso:</span>
-                        <span className={`text-[9px] font-black uppercase ${getPermissionColor()}`}>
-                            {getPermissionLabel()}
+                ) : (
+                    <div className="flex flex-col items-center animate-fade-in">
+                        <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-1 flex items-center gap-2">
+                            {user.name}
+                            {user.isAdmin && <Shield size={16} className="text-brand-purple" />}
+                        </h2>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full mb-4 border border-white/5">
+                            {user.role || 'Streamer'}
                         </span>
+                        
+                        <button 
+                            onClick={() => setIsEditing(true)}
+                            className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-1.5 border-b border-white/30 hover:border-white pb-0.5 transition-all opacity-80 hover:opacity-100"
+                        >
+                            <Type size={12} /> Editar Información
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {/* Decor */}
+            <User className="absolute -bottom-6 -right-6 text-white/5 rotate-[-15deg] pointer-events-none" size={140} strokeWidth={1.5} />
+        </div>
+
+        {/* === 2. SETTINGS GRID === */}
+        <div className="grid grid-cols-1 gap-4">
+            
+            {/* ADMIN ACCESS (Special Card) */}
+            {user.isAdmin && (
+                <button 
+                    onClick={handleAdminNavigation}
+                    className="relative w-full bg-brand-black dark:bg-white p-6 rounded-[2.5rem] border-[5px] border-brand-black dark:border-white text-left overflow-hidden shadow-xl active:scale-[0.98] transition-all group"
+                >
+                    <div className="relative z-10 flex justify-between items-start">
+                        <div>
+                            <div className="bg-brand-purple p-2.5 rounded-2xl w-fit mb-3 shadow-lg shadow-purple-500/30">
+                                <ShieldCheck size={20} className="text-white" strokeWidth={2.5} />
+                            </div>
+                            <h3 className="text-lg font-black text-white dark:text-black uppercase tracking-tight leading-none mb-1">
+                                Panel de Agencia
+                            </h3>
+                            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+                                Gestión y Control
+                            </p>
+                        </div>
+                        <ArrowUpRight size={20} className="text-white dark:text-black opacity-50" />
+                    </div>
+                    <ShieldCheck className="absolute -right-6 -bottom-6 text-white/10 dark:text-black/5 rotate-[-15deg] group-hover:rotate-0 transition-all duration-500" size={100} />
+                </button>
+            )}
+
+            {/* NOTIFICACIONES (Orange Card) */}
+            <button 
+                onClick={togglePush}
+                className="relative w-full bg-orange-500 p-6 rounded-[2.5rem] border-[5px] border-orange-400 text-left overflow-hidden shadow-xl active:scale-[0.98] transition-all group"
+            >
+                <div className="relative z-10">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="bg-white/20 p-2.5 rounded-2xl backdrop-blur-md border border-white/10">
+                            <Bell size={20} className="text-white" strokeWidth={2.5} />
+                        </div>
+                        {/* Toggle Visual */}
+                        <div className={`px-3 py-1 rounded-full border text-[9px] font-black uppercase tracking-widest transition-colors ${isSubscribed && permissionStatus === 'granted' ? 'bg-white text-orange-600 border-white' : 'bg-black/20 text-white border-white/10'}`}>
+                            {getPermissionLabel()}
+                        </div>
                     </div>
                     
-                    {permissionStatus === 'denied' && (
-                        <div className="mb-2 mt-1 bg-red-50 dark:bg-red-900/20 p-2 rounded border border-red-100 dark:border-red-900/30 flex items-start gap-2">
-                            <AlertCircle size={14} className="text-red-500 mt-0.5 flex-shrink-0" />
-                            <div className="flex-1">
-                                <p className="text-[10px] text-red-600 dark:text-red-400 font-bold leading-tight">
-                                    Debes desbloquear los permisos manualmente en la configuración del navegador.
-                                </p>
-                                <button 
-                                    onClick={togglePush} 
-                                    className="text-[10px] text-brand-black dark:text-white font-black underline mt-1"
-                                >
-                                    Ver cómo activar
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    <p className="text-[9px] font-mono text-center text-gray-400 dark:text-gray-600 break-all select-all">
-                        ID: {subscriptionId ? subscriptionId : 'Desconectado'}
+                    <h3 className="text-lg font-black text-white uppercase tracking-tight leading-none mb-1">
+                        Notificaciones
+                    </h3>
+                    <p className="text-[10px] font-bold text-orange-100 uppercase tracking-wide opacity-90 leading-tight pr-8">
+                        {permissionStatus === 'denied' ? 'Permiso denegado en navegador' : 'Alertas de PK y Novedades'}
                     </p>
                 </div>
+                <Bell className="absolute -right-6 -bottom-6 text-white/10 rotate-[-15deg] group-hover:rotate-0 transition-all duration-500" size={100} />
+            </button>
 
-                <SettingItem 
-                    icon={<Moon size={18} />} 
-                    label="Modo Oscuro" 
-                    isToggle 
-                    isToggled={darkMode}
-                    onClick={toggleDarkMode}
-                />
-                <SettingItem icon={<Lock size={18} />} label="Seguridad y Contraseña" />
-                <SettingItem icon={<HelpCircle size={18} />} label="Soporte y Ayuda" />
+            {/* MODO OSCURO (Purple Card) */}
+            <button 
+                onClick={toggleDarkMode}
+                className="relative w-full bg-brand-purple p-6 rounded-[2.5rem] border-[5px] border-violet-500 text-left overflow-hidden shadow-xl active:scale-[0.98] transition-all group"
+            >
+                <div className="relative z-10">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="bg-white/20 p-2.5 rounded-2xl backdrop-blur-md border border-white/10">
+                            {darkMode ? <Moon size={20} className="text-white" strokeWidth={2.5} /> : <Sun size={20} className="text-white" strokeWidth={2.5} />}
+                        </div>
+                        {/* Toggle Icon */}
+                        <div className="text-white opacity-80">
+                            {darkMode ? <ToggleRight size={28} fill="currentColor" /> : <ToggleLeft size={28} />}
+                        </div>
+                    </div>
+                    
+                    <h3 className="text-lg font-black text-white uppercase tracking-tight leading-none mb-1">
+                        Modo Oscuro
+                    </h3>
+                    <p className="text-[10px] font-bold text-purple-200 uppercase tracking-wide opacity-90 leading-tight">
+                        {darkMode ? 'Activado' : 'Desactivado'}
+                    </p>
+                </div>
+                <Moon className="absolute -right-6 -bottom-6 text-white/10 rotate-[-15deg] group-hover:rotate-0 transition-all duration-500" size={100} />
+            </button>
+
+            {/* SOPORTE Y SEGURIDAD (Gray Card) */}
+            <div className="grid grid-cols-2 gap-4">
+                <button 
+                    onClick={() => setShowPrivacy(true)}
+                    className="bg-gray-200 dark:bg-[#1A1A1A] p-5 rounded-[2.5rem] border-[5px] border-white dark:border-white/5 relative overflow-hidden shadow-lg active:scale-[0.96] transition-all group text-left h-36 flex flex-col justify-between"
+                >
+                    <div className="bg-white dark:bg-black/40 w-10 h-10 rounded-2xl flex items-center justify-center relative z-10">
+                        <FileText size={18} className="text-brand-black dark:text-white" strokeWidth={2.5} />
+                    </div>
+                    <div className="relative z-10">
+                        <h4 className="text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">Legal</h4>
+                        <p className="text-[8px] font-bold text-gray-500 uppercase">Términos</p>
+                    </div>
+                    <FileText className="absolute -right-4 -bottom-4 text-brand-black/5 dark:text-white/5 rotate-[-15deg]" size={70} />
+                </button>
+
+                <button 
+                    onClick={() => alert("Contactar Soporte")}
+                    className="bg-gray-200 dark:bg-[#1A1A1A] p-5 rounded-[2.5rem] border-[5px] border-white dark:border-white/5 relative overflow-hidden shadow-lg active:scale-[0.96] transition-all group text-left h-36 flex flex-col justify-between"
+                >
+                    <div className="bg-white dark:bg-black/40 w-10 h-10 rounded-2xl flex items-center justify-center relative z-10">
+                        <HelpCircle size={18} className="text-brand-black dark:text-white" strokeWidth={2.5} />
+                    </div>
+                    <div className="relative z-10">
+                        <h4 className="text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">Ayuda</h4>
+                        <p className="text-[8px] font-bold text-gray-500 uppercase">Soporte</p>
+                    </div>
+                    <HelpCircle className="absolute -right-4 -bottom-4 text-brand-black/5 dark:text-white/5 rotate-[-15deg]" size={70} />
+                </button>
             </div>
+
         </div>
 
-        {/* Logout */}
-        <div className="mt-8 px-6 mb-6">
+        {/* LOGOUT BUTTON */}
+        <div className="mt-8 mb-6">
             <button 
                 onClick={handleLogout}
-                className="w-full h-14 bg-red-50 dark:bg-red-900/10 text-red-500 font-black uppercase tracking-widest text-xs flex items-center justify-center rounded-sm hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors border border-red-100 dark:border-red-900/30"
+                className="w-full bg-red-500 text-white h-16 rounded-[2rem] border-[5px] border-red-400 font-black uppercase tracking-widest text-xs shadow-xl shadow-red-500/20 active:scale-[0.98] transition-all flex items-center justify-center space-x-2 group relative overflow-hidden"
             >
-                <LogOut size={16} className="mr-2" />
-                Cerrar Sesión
+                <span className="relative z-10 flex items-center">
+                    <LogOut size={18} className="mr-2" strokeWidth={2.5} />
+                    Cerrar Sesión
+                </span>
+                <LogOut className="absolute -right-6 -bottom-8 text-white/10 rotate-[-15deg] group-hover:scale-110 transition-transform duration-500" size={80} />
             </button>
             
-            <button 
-                onClick={() => setShowPrivacy(true)}
-                className="w-full mt-4 text-center text-[9px] font-bold text-gray-400 hover:text-brand-purple uppercase tracking-widest transition-colors flex items-center justify-center space-x-1"
-            >
-                <FileText size={10} />
-                <span>Privacidad y Condiciones</span>
-            </button>
-
-            <p className="text-center text-[9px] font-bold text-gray-300 dark:text-gray-600 mt-2 uppercase">
-                StreamAgency v2.5 • Secure Build
+            <p className="text-center text-[9px] font-bold text-gray-300 dark:text-gray-700 mt-6 uppercase tracking-widest">
+                StreamAgency v2.6 • Secure Build
             </p>
         </div>
 
@@ -421,8 +399,8 @@ const UserSettings: React.FC = () => {
 
       {/* Avatars & Privacy Modals */}
       {showAvatarModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in bg-black/60 backdrop-blur-sm" onClick={() => setShowAvatarModal(false)}>
-            <div className="relative w-full max-w-sm bg-white dark:bg-[#121212] rounded-3xl p-6 animate-slide-up border border-gray-100 dark:border-white/10 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in bg-black/80 backdrop-blur-sm" onClick={() => setShowAvatarModal(false)}>
+            <div className="relative w-full max-w-sm bg-white dark:bg-[#121212] rounded-[2.5rem] p-6 animate-slide-up border-[5px] border-white dark:border-white/10 shadow-2xl" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6">
                     <div className="flex items-center space-x-2">
                         <div className="bg-brand-purple/10 p-1.5 rounded-lg"><Smile size={18} className="text-brand-purple" /></div>
@@ -432,7 +410,7 @@ const UserSettings: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                     {AVATARS.map((item, idx) => (
-                        <div key={idx} className="aspect-square bg-gray-50 dark:bg-white/5 rounded-2xl cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 active:scale-95 transition-all duration-200 relative overflow-hidden group border border-transparent hover:border-gray-200 dark:hover:border-white/20" onClick={() => handleAvatarSelect(item.url)}>
+                        <div key={idx} className="aspect-square bg-gray-50 dark:bg-white/5 rounded-2xl cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 active:scale-95 transition-all duration-200 relative overflow-hidden group border-2 border-transparent hover:border-brand-purple/50" onClick={() => handleAvatarSelect(item.url)}>
                             <div className="absolute inset-0 flex items-end justify-center"><img src={item.url} alt={item.label} className="w-[85%] h-auto object-cover transform translate-y-1 group-hover:-translate-y-1 transition-transform duration-300 drop-shadow-sm" /></div>
                             {user.avatarUrl === item.url && <div className="absolute top-1 right-1 bg-brand-purple rounded-full p-0.5"><Check size={10} className="text-white" /></div>}
                         </div>
