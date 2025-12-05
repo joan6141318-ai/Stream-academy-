@@ -139,7 +139,9 @@ const AppTour: React.FC = () => {
     id: i,
     title: `Función ${i + 1}`,
     desc: "Domina esta característica para destacar en tus transmisiones. La configuración correcta puede aumentar tu tráfico un 20%.",
-    image: `https://picsum.photos/400/800?random=func${i}`
+    image: i === 0 
+      ? 'https://i.postimg.cc/PfwdzYmw/IMG-20251204-200504.jpg' 
+      : `https://picsum.photos/400/800?random=func${i}`
   }));
 
   const broadcastData = Array.from({ length: 5 }, (_, i) => ({
