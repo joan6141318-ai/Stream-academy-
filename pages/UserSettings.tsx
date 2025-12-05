@@ -1,12 +1,11 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Bell, Lock, HelpCircle, ChevronRight, Camera, User, Mail, Moon, Save, Type, Shield, Grid, X, Smile, Check, FileText, AlertCircle, Sun, ToggleLeft, ToggleRight, ArrowUpRight, ShieldCheck } from 'lucide-react';
+import { LogOut, Bell, Moon, Sun, Shield, Camera, User, FileText, HelpCircle, ChevronRight, Save, Edit3, Check, X, ShieldCheck, Zap } from 'lucide-react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
-import { useOneSignal } from '../hooks/useOneSignal'; // Importamos el hook real
+import { useOneSignal } from '../hooks/useOneSignal';
 import { PrivacyPolicyModal } from './PrivacyPolicyModal';
-import { useContent } from '../context/ContentContext';
 
 // Avatares para selección rápida
 const AVATARS = [
@@ -24,32 +23,22 @@ const AVATARS = [
 const UserSettings: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout, updateProfile, uploadPhoto } = useAuth();
-  
-  // CONEXIÓN A ONESIGNAL
-  const { isSubscribed, togglePush, subscriptionId, permissionStatus } = useOneSignal();
+  const { isSubscribed, togglePush, permissionStatus } = useOneSignal();
   
   const [darkMode, setDarkMode] = useState(false);
-  
-  // Edit States
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [newName, setNewName] = useState('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Form Fields
-  const [formData, setFormData] = useState({
-    name: '',
-    bio: 'Streamer oficial de Bigo Live.',
-  });
-
   useEffect(() => {
     if (user) {
-        setFormData(prev => ({ ...prev, name: user.name }));
+        setNewName(user.name);
     }
-    // Check dark mode initial state
     setDarkMode(document.documentElement.classList.contains('dark'));
   }, [user]);
 
@@ -68,6 +57,7 @@ const UserSettings: React.FC = () => {
     navigate('/');
   };
 
+  // ... (Image compression and upload logic same as before) ...
   const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -80,12 +70,10 @@ const UserSettings: React.FC = () => {
           const MAX_WIDTH = 500; 
           let width = img.width;
           let height = img.height;
-
           if (width > MAX_WIDTH) {
             height *= MAX_WIDTH / width;
             width = MAX_WIDTH;
           }
-
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
@@ -114,7 +102,7 @@ const UserSettings: React.FC = () => {
           await updateProfile({ avatarUrl: photoUrl });
       } catch (error) {
           console.error("Error uploading photo", error);
-          alert("Error de red. Intenta con una imagen más pequeña.");
+          alert("Error de red.");
       } finally {
           setIsUploading(false);
       }
@@ -126,25 +114,15 @@ const UserSettings: React.FC = () => {
       setIsUploading(true);
       try {
           await updateProfile({ avatarUrl: avatarUrl });
-      } catch (e) {
-          console.error(e);
-      } finally {
-          setIsUploading(false);
-      }
-  };
-
-  const triggerFileInput = () => {
-    if (isUploading) return;
-    fileInputRef.current?.click();
+      } catch (e) { console.error(e); } finally { setIsUploading(false); }
   };
 
   const handleSaveProfile = async () => {
-    if (!formData.name.trim()) return;
+    if (!newName.trim()) return;
     setIsSaving(true);
-    setIsEditing(false); 
-
     try {
-        await updateProfile({ name: formData.name });
+        await updateProfile({ name: newName });
+        setIsEditing(false);
     } catch (error) {
         console.error("Error saving profile", error);
     } finally {
@@ -152,273 +130,191 @@ const UserSettings: React.FC = () => {
     }
   };
 
-  const handleAdminNavigation = () => {
-      if (user?.isAdmin) {
-          navigate('/admin');
-      }
-  };
-
-  const getPermissionLabel = () => {
-      if (permissionStatus === 'granted') return 'ACTIVO';
-      if (permissionStatus === 'denied') return 'BLOQUEADO';
-      return 'INACTIVO';
-  };
-
   if (!user) return null;
 
   return (
     <div className="flex flex-col h-full w-full bg-brand-gray dark:bg-black transition-colors duration-300">
-      <Header title="Configuración" />
+      <Header title="Mi Cuenta" showBack onBack={() => navigate('/home')} />
       
       <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] px-6 pb-24">
         
-        {/* === HEADER INFO SECTION (Hero Style) === */}
-        <div className="mt-6 mb-8 px-1">
-            <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tighter mb-2">
-                Mi Perfil<br/>& Ajustes
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
-                Gestiona tu cuenta y preferencias de la app.
-            </p>
-        </div>
-
-        {/* === 1. TARJETA DE PERFIL (Black Card) === */}
-        <div className="relative w-full bg-black rounded-[2.5rem] border-[5px] border-[#1A1A1A] p-6 shadow-xl overflow-hidden group mb-6">
-            <div className="relative z-10 flex flex-col items-center text-center">
+        {/* --- IDENTITY CARD (HERO) --- */}
+        <div className="mt-6 mb-6">
+            <div className="relative w-full bg-black rounded-[2.5rem] border-[5px] border-[#1A1A1A] p-8 shadow-2xl overflow-hidden group">
                 
-                {/* Avatar with Edit Badge */}
-                <div className="relative mb-4 group/avatar">
-                    <div className={`w-28 h-28 rounded-full border-4 border-white/10 p-1 bg-black overflow-hidden ${isUploading ? 'opacity-50' : ''}`}>
-                        <img 
-                            src={user.avatarUrl} 
-                            alt="Profile" 
-                            className="w-full h-full rounded-full object-cover" 
-                        />
-                    </div>
-                    {!isUploading && !isEditing && (
-                        <button 
-                            onClick={triggerFileInput} 
-                            className="absolute bottom-0 right-0 bg-white text-black p-2 rounded-full shadow-lg active:scale-95 transition-transform"
-                        >
-                            <Camera size={14} strokeWidth={2.5} />
-                        </button>
-                    )}
-                    {isUploading && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                {/* Background Decor */}
+                <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                
+                <div className="relative z-10 flex flex-col items-center">
+                    {/* Avatar Container */}
+                    <div className="relative mb-6">
+                        <div className="w-32 h-32 rounded-full p-1 bg-gradient-to-tr from-brand-purple to-pink-500 shadow-xl">
+                            <div className="w-full h-full rounded-full border-4 border-black bg-black overflow-hidden relative">
+                                <img src={user.avatarUrl} alt="Profile" className={`w-full h-full object-cover transition-opacity ${isUploading ? 'opacity-50' : 'opacity-100'}`} />
+                                {isUploading && <div className="absolute inset-0 flex items-center justify-center"><div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div></div>}
+                            </div>
                         </div>
-                    )}
-                    <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" className="hidden" />
-                </div>
+                        {/* Edit Photo Button */}
+                        <button 
+                            onClick={() => setIsEditing(true)} 
+                            className="absolute bottom-0 right-0 bg-white text-black p-2 rounded-full shadow-lg active:scale-95 transition-transform border-4 border-black"
+                        >
+                            <Camera size={16} strokeWidth={2.5} />
+                        </button>
+                    </div>
 
-                {/* Info / Edit Mode */}
-                {isEditing ? (
-                    <div className="w-full space-y-4 animate-fade-in">
-                        <div className="bg-white/10 rounded-2xl p-2 border border-white/10">
+                    {/* Editable Name */}
+                    {isEditing ? (
+                        <div className="w-full animate-fade-in space-y-4">
                             <input 
                                 type="text" 
-                                value={formData.name} 
-                                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                className="w-full bg-transparent text-center font-black text-white text-lg uppercase outline-none placeholder-white/30"
-                                placeholder="NOMBRE"
+                                value={newName} 
+                                onChange={(e) => setNewName(e.target.value)}
+                                className="w-full bg-white/10 border border-white/20 rounded-xl py-3 px-4 text-center font-black text-white text-xl uppercase outline-none focus:border-brand-purple transition-colors placeholder-white/30"
+                                placeholder="TU NOMBRE"
                                 autoFocus
                             />
+                            <div className="flex gap-2 justify-center">
+                                <button onClick={() => setShowAvatarModal(true)} className="bg-white/10 text-white px-4 py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider hover:bg-white/20">Elegir Avatar</button>
+                                <button onClick={() => fileInputRef.current?.click()} className="bg-white/10 text-white px-4 py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider hover:bg-white/20">Subir Foto</button>
+                            </div>
+                            <div className="flex gap-3 mt-2">
+                                <button onClick={() => setIsEditing(false)} className="flex-1 bg-white/10 text-white py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white/20">Cancelar</button>
+                                <button onClick={handleSaveProfile} disabled={isSaving} className="flex-1 bg-brand-purple text-white py-3 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-purple-500/30">
+                                    {isSaving ? 'Guardando...' : 'Guardar'}
+                                </button>
+                            </div>
                         </div>
-                        
-                        <div className="flex gap-2">
-                            <button 
-                                onClick={() => setShowAvatarModal(true)}
-                                className="flex-1 py-3 bg-white/10 text-white rounded-xl font-black text-[10px] uppercase tracking-widest border border-white/10 active:scale-95 transition-all flex items-center justify-center gap-2"
-                            >
-                                <Grid size={14} /> Avatares
-                            </button>
-                            <button 
-                                onClick={handleSaveProfile}
-                                disabled={isSaving}
-                                className="flex-1 py-3 bg-brand-purple text-white rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/30"
-                            >
-                                {isSaving ? '...' : <><Save size={14} /> Guardar</>}
+                    ) : (
+                        <div className="text-center animate-fade-in">
+                            <h2 className="text-2xl font-black text-white uppercase tracking-tight leading-none mb-2 flex items-center justify-center gap-2">
+                                {user.name}
+                                {user.isAdmin && <ShieldCheck size={18} className="text-brand-purple" />}
+                            </h2>
+                            <div className="inline-flex items-center bg-white/10 px-3 py-1 rounded-full border border-white/5 space-x-2">
+                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{user.role || 'Streamer'}</span>
+                                <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
+                                <span className="text-[9px] font-bold text-brand-purple uppercase tracking-widest">ID: {user.id.substring(0,6)}</span>
+                            </div>
+                            <button onClick={() => setIsEditing(true)} className="mt-4 text-[10px] font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest flex items-center justify-center gap-1 mx-auto">
+                                <Edit3 size={12} /> Editar Perfil
                             </button>
                         </div>
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-center animate-fade-in">
-                        <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-1 flex items-center gap-2">
-                            {user.name}
-                            {user.isAdmin && <Shield size={16} className="text-brand-purple" />}
-                        </h2>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full mb-4 border border-white/5">
-                            {user.role || 'Streamer'}
-                        </span>
-                        
-                        <button 
-                            onClick={() => setIsEditing(true)}
-                            className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-1.5 border-b border-white/30 hover:border-white pb-0.5 transition-all opacity-80 hover:opacity-100"
-                        >
-                            <Type size={12} /> Editar Información
-                        </button>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
-
-            {/* Decor */}
-            <User className="absolute -bottom-6 -right-6 text-white/5 rotate-[-15deg] pointer-events-none" size={140} strokeWidth={1.5} />
         </div>
 
-        {/* === 2. SETTINGS GRID === */}
+        {/* --- SETTINGS GRID --- */}
         <div className="grid grid-cols-1 gap-4">
             
-            {/* ADMIN ACCESS (Special Card) */}
-            {user.isAdmin && (
-                <button 
-                    onClick={handleAdminNavigation}
-                    className="relative w-full bg-brand-black dark:bg-white p-6 rounded-[2.5rem] border-[5px] border-brand-black dark:border-white text-left overflow-hidden shadow-xl active:scale-[0.98] transition-all group"
-                >
-                    <div className="relative z-10 flex justify-between items-start">
-                        <div>
-                            <div className="bg-brand-purple p-2.5 rounded-2xl w-fit mb-3 shadow-lg shadow-purple-500/30">
-                                <ShieldCheck size={20} className="text-white" strokeWidth={2.5} />
+            {/* 1. NOTIFICACIONES (Orange) */}
+            <button onClick={togglePush} className="group relative w-full bg-orange-500 p-6 rounded-[2.5rem] border-[5px] border-orange-400 overflow-hidden shadow-xl active:scale-[0.98] transition-all text-left">
+                <div className="relative z-10 flex justify-between items-center">
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <div className="bg-white/20 p-1.5 rounded-lg"><Bell size={16} className="text-white" /></div>
+                            <span className="text-[10px] font-black text-orange-100 uppercase tracking-widest">Alertas</span>
+                        </div>
+                        <h3 className="text-xl font-black text-white uppercase leading-none">Notificaciones</h3>
+                        <p className="text-[10px] font-bold text-white/80 mt-1 uppercase tracking-wide">
+                            {permissionStatus === 'granted' && isSubscribed ? 'Activadas' : 'Desactivadas'}
+                        </p>
+                    </div>
+                    <div className={`w-12 h-7 rounded-full p-1 transition-colors ${isSubscribed && permissionStatus === 'granted' ? 'bg-white' : 'bg-black/20'}`}>
+                        <div className={`w-5 h-5 rounded-full bg-orange-500 shadow-sm transition-transform ${isSubscribed && permissionStatus === 'granted' ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                    </div>
+                </div>
+                <Bell className="absolute -bottom-6 -right-6 text-white/10 rotate-[-15deg] group-hover:rotate-0 transition-transform duration-500" size={100} strokeWidth={1.5} />
+            </button>
+
+            {/* 2. MODO OSCURO (Purple) */}
+            <button onClick={toggleDarkMode} className="group relative w-full bg-brand-purple p-6 rounded-[2.5rem] border-[5px] border-violet-500 overflow-hidden shadow-xl active:scale-[0.98] transition-all text-left">
+                <div className="relative z-10 flex justify-between items-center">
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <div className="bg-white/20 p-1.5 rounded-lg">
+                                {darkMode ? <Moon size={16} className="text-white" /> : <Sun size={16} className="text-white" />}
                             </div>
-                            <h3 className="text-lg font-black text-white dark:text-black uppercase tracking-tight leading-none mb-1">
-                                Panel de Agencia
-                            </h3>
-                            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
-                                Gestión y Control
-                            </p>
+                            <span className="text-[10px] font-black text-purple-200 uppercase tracking-widest">Apariencia</span>
                         </div>
-                        <ArrowUpRight size={20} className="text-white dark:text-black opacity-50" />
+                        <h3 className="text-xl font-black text-white uppercase leading-none">Modo Oscuro</h3>
+                        <p className="text-[10px] font-bold text-white/80 mt-1 uppercase tracking-wide">
+                            {darkMode ? 'Activado' : 'Desactivado'}
+                        </p>
                     </div>
-                    <ShieldCheck className="absolute -right-6 -bottom-6 text-white/10 dark:text-black/5 rotate-[-15deg] group-hover:rotate-0 transition-all duration-500" size={100} />
-                </button>
-            )}
-
-            {/* NOTIFICACIONES (Orange Card) */}
-            <button 
-                onClick={togglePush}
-                className="relative w-full bg-orange-500 p-6 rounded-[2.5rem] border-[5px] border-orange-400 text-left overflow-hidden shadow-xl active:scale-[0.98] transition-all group"
-            >
-                <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="bg-white/20 p-2.5 rounded-2xl backdrop-blur-md border border-white/10">
-                            <Bell size={20} className="text-white" strokeWidth={2.5} />
-                        </div>
-                        {/* Toggle Visual */}
-                        <div className={`px-3 py-1 rounded-full border text-[9px] font-black uppercase tracking-widest transition-colors ${isSubscribed && permissionStatus === 'granted' ? 'bg-white text-orange-600 border-white' : 'bg-black/20 text-white border-white/10'}`}>
-                            {getPermissionLabel()}
-                        </div>
+                    <div className={`w-12 h-7 rounded-full p-1 transition-colors ${darkMode ? 'bg-white' : 'bg-black/20'}`}>
+                        <div className={`w-5 h-5 rounded-full bg-brand-purple shadow-sm transition-transform ${darkMode ? 'translate-x-5' : 'translate-x-0'}`}></div>
                     </div>
-                    
-                    <h3 className="text-lg font-black text-white uppercase tracking-tight leading-none mb-1">
-                        Notificaciones
-                    </h3>
-                    <p className="text-[10px] font-bold text-orange-100 uppercase tracking-wide opacity-90 leading-tight pr-8">
-                        {permissionStatus === 'denied' ? 'Permiso denegado en navegador' : 'Alertas de PK y Novedades'}
-                    </p>
                 </div>
-                <Bell className="absolute -right-6 -bottom-6 text-white/10 rotate-[-15deg] group-hover:rotate-0 transition-all duration-500" size={100} />
+                <Moon className="absolute -bottom-6 -right-6 text-white/10 rotate-[-15deg] group-hover:rotate-0 transition-transform duration-500" size={100} strokeWidth={1.5} />
             </button>
 
-            {/* MODO OSCURO (Purple Card) */}
-            <button 
-                onClick={toggleDarkMode}
-                className="relative w-full bg-brand-purple p-6 rounded-[2.5rem] border-[5px] border-violet-500 text-left overflow-hidden shadow-xl active:scale-[0.98] transition-all group"
-            >
-                <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="bg-white/20 p-2.5 rounded-2xl backdrop-blur-md border border-white/10">
-                            {darkMode ? <Moon size={20} className="text-white" strokeWidth={2.5} /> : <Sun size={20} className="text-white" strokeWidth={2.5} />}
-                        </div>
-                        {/* Toggle Icon */}
-                        <div className="text-white opacity-80">
-                            {darkMode ? <ToggleRight size={28} fill="currentColor" /> : <ToggleLeft size={28} />}
-                        </div>
-                    </div>
-                    
-                    <h3 className="text-lg font-black text-white uppercase tracking-tight leading-none mb-1">
-                        Modo Oscuro
-                    </h3>
-                    <p className="text-[10px] font-bold text-purple-200 uppercase tracking-wide opacity-90 leading-tight">
-                        {darkMode ? 'Activado' : 'Desactivado'}
-                    </p>
-                </div>
-                <Moon className="absolute -right-6 -bottom-6 text-white/10 rotate-[-15deg] group-hover:rotate-0 transition-all duration-500" size={100} />
-            </button>
-
-            {/* SOPORTE Y SEGURIDAD (Gray Card) */}
+            {/* 3. ADMIN & UTILS ROW */}
             <div className="grid grid-cols-2 gap-4">
-                <button 
-                    onClick={() => setShowPrivacy(true)}
-                    className="bg-gray-200 dark:bg-[#1A1A1A] p-5 rounded-[2.5rem] border-[5px] border-white dark:border-white/5 relative overflow-hidden shadow-lg active:scale-[0.96] transition-all group text-left h-36 flex flex-col justify-between"
-                >
-                    <div className="bg-white dark:bg-black/40 w-10 h-10 rounded-2xl flex items-center justify-center relative z-10">
-                        <FileText size={18} className="text-brand-black dark:text-white" strokeWidth={2.5} />
-                    </div>
+                {user.isAdmin && (
+                    <button onClick={() => navigate('/admin')} className="col-span-2 bg-brand-black dark:bg-white p-5 rounded-[2.5rem] border-[5px] border-brand-black dark:border-white shadow-xl active:scale-[0.98] transition-all text-left relative overflow-hidden group">
+                        <div className="relative z-10 flex items-center justify-between">
+                            <div>
+                                <h4 className="text-sm font-black text-white dark:text-black uppercase leading-tight">Panel Admin</h4>
+                                <p className="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase mt-0.5">Gestión Agencia</p>
+                            </div>
+                            <div className="bg-brand-purple p-2 rounded-xl text-white"><Shield size={18} /></div>
+                        </div>
+                        <Shield className="absolute -right-4 -bottom-4 text-white/10 dark:text-black/5 rotate-[-15deg]" size={80} />
+                    </button>
+                )}
+
+                <button onClick={() => setShowPrivacy(true)} className="bg-gray-200 dark:bg-[#1A1A1A] p-5 rounded-[2.5rem] border-[5px] border-white dark:border-white/5 shadow-lg active:scale-[0.96] transition-all text-left relative overflow-hidden group h-32 flex flex-col justify-between">
                     <div className="relative z-10">
-                        <h4 className="text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">Legal</h4>
-                        <p className="text-[8px] font-bold text-gray-500 uppercase">Términos</p>
+                        <div className="bg-white dark:bg-black/40 w-fit p-2 rounded-xl mb-2"><FileText size={16} className="text-brand-black dark:text-white" /></div>
+                        <h4 className="text-sm font-black text-brand-black dark:text-white uppercase leading-none">Legal</h4>
                     </div>
-                    <FileText className="absolute -right-4 -bottom-4 text-brand-black/5 dark:text-white/5 rotate-[-15deg]" size={70} />
+                    <p className="text-[9px] font-bold text-gray-500 uppercase relative z-10">Privacidad</p>
+                    <FileText className="absolute -right-4 -bottom-4 text-black/5 dark:text-white/5 rotate-[-15deg]" size={60} />
                 </button>
 
-                <button 
-                    onClick={() => alert("Contactar Soporte")}
-                    className="bg-gray-200 dark:bg-[#1A1A1A] p-5 rounded-[2.5rem] border-[5px] border-white dark:border-white/5 relative overflow-hidden shadow-lg active:scale-[0.96] transition-all group text-left h-36 flex flex-col justify-between"
-                >
-                    <div className="bg-white dark:bg-black/40 w-10 h-10 rounded-2xl flex items-center justify-center relative z-10">
-                        <HelpCircle size={18} className="text-brand-black dark:text-white" strokeWidth={2.5} />
-                    </div>
+                <button onClick={() => window.location.reload()} className="bg-gray-200 dark:bg-[#1A1A1A] p-5 rounded-[2.5rem] border-[5px] border-white dark:border-white/5 shadow-lg active:scale-[0.96] transition-all text-left relative overflow-hidden group h-32 flex flex-col justify-between">
                     <div className="relative z-10">
-                        <h4 className="text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1">Ayuda</h4>
-                        <p className="text-[8px] font-bold text-gray-500 uppercase">Soporte</p>
+                        <div className="bg-white dark:bg-black/40 w-fit p-2 rounded-xl mb-2"><Zap size={16} className="text-brand-black dark:text-white" /></div>
+                        <h4 className="text-sm font-black text-brand-black dark:text-white uppercase leading-none">Update</h4>
                     </div>
-                    <HelpCircle className="absolute -right-4 -bottom-4 text-brand-black/5 dark:text-white/5 rotate-[-15deg]" size={70} />
+                    <p className="text-[9px] font-bold text-gray-500 uppercase relative z-10">Recargar App</p>
+                    <Zap className="absolute -right-4 -bottom-4 text-black/5 dark:text-white/5 rotate-[-15deg]" size={60} />
                 </button>
             </div>
 
-        </div>
-
-        {/* LOGOUT BUTTON */}
-        <div className="mt-8 mb-6">
-            <button 
-                onClick={handleLogout}
-                className="w-full bg-red-500 text-white h-16 rounded-[2rem] border-[5px] border-red-400 font-black uppercase tracking-widest text-xs shadow-xl shadow-red-500/20 active:scale-[0.98] transition-all flex items-center justify-center space-x-2 group relative overflow-hidden"
-            >
-                <span className="relative z-10 flex items-center">
-                    <LogOut size={18} className="mr-2" strokeWidth={2.5} />
-                    Cerrar Sesión
-                </span>
-                <LogOut className="absolute -right-6 -bottom-8 text-white/10 rotate-[-15deg] group-hover:scale-110 transition-transform duration-500" size={80} />
+            {/* 4. LOGOUT (Red) */}
+            <button onClick={handleLogout} className="w-full bg-red-50 dark:bg-red-900/10 p-4 rounded-[2rem] border-[3px] border-red-100 dark:border-red-900/30 flex items-center justify-center gap-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 active:scale-[0.98] transition-all mt-4 mb-8">
+                <LogOut size={18} strokeWidth={2.5} />
+                <span className="text-xs font-black uppercase tracking-widest">Cerrar Sesión</span>
             </button>
-            
-            <p className="text-center text-[9px] font-bold text-gray-300 dark:text-gray-700 mt-6 uppercase tracking-widest">
-                StreamAgency v2.6 • Secure Build
-            </p>
-        </div>
 
+        </div>
       </div>
 
-      {/* Avatars & Privacy Modals */}
+      <input type="file" ref={fileInputRef} onChange={handlePhotoUpload} accept="image/*" className="hidden" />
+      
+      {/* Avatar Modal */}
       {showAvatarModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in bg-black/80 backdrop-blur-sm" onClick={() => setShowAvatarModal(false)}>
-            <div className="relative w-full max-w-sm bg-white dark:bg-[#121212] rounded-[2.5rem] p-6 animate-slide-up border-[5px] border-white dark:border-white/10 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={() => setShowAvatarModal(false)}>
+            <div className="bg-white dark:bg-[#121212] rounded-[2.5rem] p-6 w-full max-w-sm border-[5px] border-white dark:border-white/10 shadow-2xl relative" onClick={e => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center space-x-2">
-                        <div className="bg-brand-purple/10 p-1.5 rounded-lg"><Smile size={18} className="text-brand-purple" /></div>
-                        <h3 className="text-sm font-black text-brand-black dark:text-white uppercase tracking-tight">Elige tu Avatar</h3>
-                    </div>
-                    <button onClick={() => setShowAvatarModal(false)} className="p-2 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full text-gray-400 transition-colors"><X size={20} /></button>
+                    <h3 className="text-lg font-black text-brand-black dark:text-white uppercase tracking-tight">Elige Avatar</h3>
+                    <button onClick={() => setShowAvatarModal(false)} className="bg-gray-100 dark:bg-white/10 p-2 rounded-full"><X size={18} className="text-brand-black dark:text-white" /></button>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
-                    {AVATARS.map((item, idx) => (
-                        <div key={idx} className="aspect-square bg-gray-50 dark:bg-white/5 rounded-2xl cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 active:scale-95 transition-all duration-200 relative overflow-hidden group border-2 border-transparent hover:border-brand-purple/50" onClick={() => handleAvatarSelect(item.url)}>
-                            <div className="absolute inset-0 flex items-end justify-center"><img src={item.url} alt={item.label} className="w-[85%] h-auto object-cover transform translate-y-1 group-hover:-translate-y-1 transition-transform duration-300 drop-shadow-sm" /></div>
-                            {user.avatarUrl === item.url && <div className="absolute top-1 right-1 bg-brand-purple rounded-full p-0.5"><Check size={10} className="text-white" /></div>}
-                        </div>
+                    {AVATARS.map((av, i) => (
+                        <button key={i} onClick={() => handleAvatarSelect(av.url)} className="aspect-square bg-gray-50 dark:bg-white/5 rounded-2xl overflow-hidden border-2 border-transparent hover:border-brand-purple transition-all relative group">
+                            <img src={av.url} alt={av.label} className="w-full h-full object-cover" />
+                            {user.avatarUrl === av.url && <div className="absolute inset-0 bg-brand-purple/50 flex items-center justify-center"><Check className="text-white" size={20} strokeWidth={3} /></div>}
+                        </button>
                     ))}
                 </div>
             </div>
         </div>
       )}
+
       {showPrivacy && <PrivacyPolicyModal onClose={() => setShowPrivacy(false)} />}
     </div>
   );
