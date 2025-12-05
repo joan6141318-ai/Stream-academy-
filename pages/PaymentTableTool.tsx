@@ -137,8 +137,10 @@ const PaymentTableTool: React.FC = () => {
                             <ShieldCheck size={16} className="text-blue-500" />
                         </div>
                         <div>
-                            <h4 className="text-xs font-black uppercase tracking-wide mb-0.5 text-white">Anti-Fraude</h4>
-                            <p className="text-[10px] text-gray-400 font-medium leading-relaxed">Máximo permitido del 50% de soporte cruzado (intercambio de regalos) para evitar deducciones.</p>
+                            <h4 className="text-xs font-black uppercase tracking-wide mb-0.5 text-white">Soporte Cruzado</h4>
+                            <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
+                                Recibir más del 50% de apoyo proveniente de otro emisor o agencia generará penalización y anulación de bono.
+                            </p>
                         </div>
                     </div>
                 </div>
