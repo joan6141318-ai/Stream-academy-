@@ -13,9 +13,9 @@ interface MockupProps {
 }
 
 const IphoneMockup: React.FC<MockupProps> = ({ title, desc, img, color = "border-gray-800", index }) => (
-  <div className="flex-shrink-0 flex flex-col items-center gap-6 p-4 snap-center w-[300px]">
+  <div className="flex-shrink-0 flex flex-col items-center gap-6 py-4 snap-center w-[85vw] max-w-[400px]">
       {/* PHONE FRAME */}
-      <div className={`relative w-[260px] h-[540px] bg-black rounded-[3rem] border-[8px] ${color} shadow-2xl overflow-hidden flex-shrink-0 ring-1 ring-white/20 transition-transform duration-300 hover:scale-[1.02]`}>
+      <div className={`relative w-full aspect-[9/19.5] max-h-[600px] bg-black rounded-[3rem] border-[8px] ${color} shadow-2xl overflow-hidden flex-shrink-0 ring-1 ring-white/20 transition-transform duration-300`}>
           {/* Dynamic Island */}
           <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-7 bg-black rounded-b-2xl z-20 flex justify-center items-center">
               <div className="w-14 h-4 bg-[#1a1a1a] rounded-full"></div>
@@ -33,26 +33,26 @@ const IphoneMockup: React.FC<MockupProps> = ({ title, desc, img, color = "border
       </div>
 
       {/* INFO CARD (Al lado/Abajo) */}
-      <div className="w-full bg-white dark:bg-[#121212] p-5 rounded-2xl border border-gray-100 dark:border-white/10 shadow-lg flex flex-col relative overflow-hidden group">
+      <div className="w-full bg-white dark:bg-[#121212] p-6 rounded-3xl border border-gray-100 dark:border-white/10 shadow-lg flex flex-col relative overflow-hidden group">
           <div className="relative z-10">
-              <div className="w-8 h-8 bg-brand-purple/10 rounded-lg flex items-center justify-center mb-2 text-brand-purple">
-                  <Info size={16} strokeWidth={2.5} />
+              <div className="w-10 h-10 bg-brand-purple/10 rounded-xl flex items-center justify-center mb-3 text-brand-purple">
+                  <Info size={20} strokeWidth={2.5} />
               </div>
-              <h3 className="text-sm font-black text-brand-black dark:text-white uppercase leading-none mb-1.5">{title}</h3>
-              <p className="text-[10px] text-gray-500 font-medium leading-relaxed">{desc}</p>
+              <h3 className="text-lg font-black text-brand-black dark:text-white uppercase leading-none mb-2">{title}</h3>
+              <p className="text-xs text-gray-500 font-medium leading-relaxed text-justify">{desc}</p>
           </div>
           {/* Decor */}
-          <div className="absolute top-0 right-0 w-16 h-16 bg-brand-purple/5 rounded-bl-[3rem] -mr-2 -mt-2 transition-all group-hover:bg-brand-purple/10"></div>
+          <div className="absolute top-0 right-0 w-20 h-20 bg-brand-purple/5 rounded-bl-[4rem] -mr-4 -mt-4 transition-all group-hover:bg-brand-purple/10"></div>
       </div>
   </div>
 );
 
 const SectionTitle = ({ title, icon: Icon }: { title: string, icon: any }) => (
-    <div className="flex items-center space-x-3 mb-4 px-6 pt-8">
-        <div className="bg-brand-black dark:bg-white text-white dark:text-black p-2 rounded-lg shadow-md">
-            <Icon size={18} strokeWidth={2.5} />
+    <div className="flex items-center space-x-3 mb-6 px-6 pt-10 border-t border-gray-100 dark:border-white/5">
+        <div className="bg-brand-black dark:bg-white text-white dark:text-black p-2.5 rounded-xl shadow-md">
+            <Icon size={20} strokeWidth={2.5} />
         </div>
-        <h2 className="text-xl font-black text-brand-black dark:text-white uppercase tracking-tighter leading-none">
+        <h2 className="text-2xl font-black text-brand-black dark:text-white uppercase tracking-tighter leading-none">
             {title}
         </h2>
     </div>
@@ -66,14 +66,14 @@ const AppTour: React.FC = () => {
     id: i,
     title: `Función Clave ${i + 1}`,
     desc: "Descubre cómo esta funcionalidad mejora tu interacción y alcance en la plataforma.",
-    image: `https://picsum.photos/260/540?random=func${i}`
+    image: `https://picsum.photos/400/800?random=func${i}`
   }));
 
   const broadcastData = Array.from({ length: 5 }, (_, i) => ({
     id: i,
     title: `Modo de Live ${String.fromCharCode(65 + i)}`,
     desc: "Este formato de transmisión es ideal para conectar con audiencias específicas.",
-    image: `https://picsum.photos/260/540?random=broad${i}`
+    image: `https://picsum.photos/400/800?random=broad${i}`
   }));
 
   const giftsData = Array.from({ length: 10 }, (_, i) => ({
@@ -87,7 +87,7 @@ const AppTour: React.FC = () => {
     id: i,
     title: `Herramienta Pro ${i + 1}`,
     desc: "Utilidad avanzada para moderación y gestión de chat en tiempo real.",
-    image: `https://picsum.photos/260/540?random=tool${i}`
+    image: `https://picsum.photos/400/800?random=tool${i}`
   }));
 
   return (
@@ -97,18 +97,18 @@ const AppTour: React.FC = () => {
       <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] pb-24">
         
         {/* Intro */}
-        <div className="px-6 mt-6 mb-2">
+        <div className="px-6 mt-6 mb-4">
             <h1 className="text-4xl font-black text-brand-black dark:text-white uppercase tracking-tighter leading-[0.9] mb-3">
                 GUÍA<br/>VISUAL
             </h1>
-            <p className="text-xs text-gray-500 font-medium max-w-[280px] leading-relaxed">
-                Hemos preparado una serie de guías visuales para que conozcas la aplicación antes de tu primera transmisión.
+            <p className="text-xs text-gray-500 font-medium max-w-[280px] leading-relaxed text-justify">
+                Hemos preparado una serie de guías visuales para que conozcas la aplicación antes de tu primera transmisión. Desliza lateralmente para explorar.
             </p>
         </div>
 
         {/* SECTION 1: FUNCIONES (8 Mockups) */}
         <SectionTitle title="Funciones Principales" icon={Smartphone} />
-        <div className="w-full overflow-x-auto scrollbar-hide pb-8 px-4 flex space-x-2 snap-x snap-mandatory">
+        <div className="w-full overflow-x-auto scrollbar-hide pb-8 px-6 flex gap-6 snap-x snap-mandatory">
             {functionsData.map((item, idx) => (
                 <IphoneMockup 
                     key={item.id} 
@@ -119,14 +119,12 @@ const AppTour: React.FC = () => {
                     index={idx}
                 />
             ))}
-            <div className="w-4 flex-shrink-0"></div> {/* Spacer */}
+            <div className="w-1 flex-shrink-0"></div> {/* Spacer for right padding */}
         </div>
-
-        <div className="h-px w-full bg-gray-200 dark:bg-white/5 my-2"></div>
 
         {/* SECTION 2: TIPOS DE TRANSMISIONES (5 Mockups) */}
         <SectionTitle title="Tipos de Transmisiones" icon={Radio} />
-        <div className="w-full overflow-x-auto scrollbar-hide pb-8 px-4 flex space-x-2 snap-x snap-mandatory">
+        <div className="w-full overflow-x-auto scrollbar-hide pb-8 px-6 flex gap-6 snap-x snap-mandatory">
             {broadcastData.map((item, idx) => (
                 <IphoneMockup 
                     key={item.id} 
@@ -137,16 +135,14 @@ const AppTour: React.FC = () => {
                     index={idx}
                 />
             ))}
-            <div className="w-4 flex-shrink-0"></div>
+            <div className="w-1 flex-shrink-0"></div>
         </div>
-
-        <div className="h-px w-full bg-gray-200 dark:bg-white/5 my-2"></div>
 
         {/* SECTION 3: TIPOS DE REGALOS (Listado 10 Tarjetas con Ficha) */}
         <SectionTitle title="Catálogo de Regalos" icon={Gift} />
-        <div className="px-6 space-y-3 mb-10">
+        <div className="px-6 space-y-3 mb-10 pt-4">
             {giftsData.map((gift) => (
-                <div key={gift.id} className="bg-white dark:bg-[#121212] p-1 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 flex group active:scale-[0.99] transition-transform overflow-hidden">
+                <div key={gift.id} className="bg-white dark:bg-[#121212] p-1.5 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 flex group active:scale-[0.99] transition-transform overflow-hidden">
                     {/* Visual Regalo */}
                     <div className="w-20 bg-pink-50 dark:bg-pink-900/10 rounded-xl flex items-center justify-center flex-shrink-0 relative overflow-hidden">
                         <Gift size={24} className="text-pink-500 relative z-10" />
@@ -173,11 +169,9 @@ const AppTour: React.FC = () => {
             ))}
         </div>
 
-        <div className="h-px w-full bg-gray-200 dark:bg-white/5 my-2"></div>
-
         {/* SECTION 4: HERRAMIENTAS DEL EMISOR (8 Mockups) */}
         <SectionTitle title="Herramientas de Emisor" icon={PenTool} />
-        <div className="w-full overflow-x-auto scrollbar-hide pb-8 px-4 flex space-x-2 snap-x snap-mandatory">
+        <div className="w-full overflow-x-auto scrollbar-hide pb-8 px-6 flex gap-6 snap-x snap-mandatory">
             {toolsData.map((item, idx) => (
                 <IphoneMockup 
                     key={item.id} 
@@ -188,11 +182,11 @@ const AppTour: React.FC = () => {
                     index={idx}
                 />
             ))}
-            <div className="w-4 flex-shrink-0"></div>
+            <div className="w-1 flex-shrink-0"></div>
         </div>
 
         {/* Footer */}
-        <div className="text-center pb-8 pt-4">
+        <div className="text-center pb-8 pt-4 border-t border-gray-100 dark:border-white/5 mx-6">
              <p className="text-[9px] font-bold text-gray-300 dark:text-gray-600 uppercase tracking-widest">
                  StreamAgency Academy • Guía Interactiva
              </p>
