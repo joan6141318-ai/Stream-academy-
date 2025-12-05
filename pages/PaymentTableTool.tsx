@@ -4,6 +4,80 @@ import { Calendar, Clock, AlertTriangle, ShieldCheck, Table, DollarSign, Info } 
 import { Header } from '../components/Header';
 import { useNavigate } from 'react-router-dom';
 
+const ROW_VARIANTS = [
+    {
+      // GRIS
+      bg: 'bg-gray-200',
+      text: 'text-brand-black',
+      sub: 'text-gray-600',
+      highlight: 'text-brand-black'
+    },
+    {
+      // MORADO
+      bg: 'bg-brand-purple',
+      text: 'text-white',
+      sub: 'text-purple-200',
+      highlight: 'text-white'
+    },
+    {
+      // NARANJA
+      bg: 'bg-orange-500',
+      text: 'text-white',
+      sub: 'text-orange-100',
+      highlight: 'text-white'
+    },
+    {
+      // NEGRO
+      bg: 'bg-black',
+      text: 'text-white',
+      sub: 'text-gray-400',
+      highlight: 'text-white'
+    }
+];
+
+const CARD_VARIANTS = [
+    {
+      // MORADO
+      bg: 'bg-brand-purple',
+      border: 'border-violet-500',
+      text: 'text-white',
+      desc: 'text-purple-100',
+      iconBg: 'bg-white/20',
+      iconColor: 'text-white',
+      decorColor: 'text-white'
+    },
+    {
+      // NARANJA
+      bg: 'bg-orange-500',
+      border: 'border-orange-400',
+      text: 'text-white',
+      desc: 'text-orange-100',
+      iconBg: 'bg-white/20',
+      iconColor: 'text-white',
+      decorColor: 'text-white'
+    },
+    {
+      // NEGRO
+      bg: 'bg-black',
+      border: 'border-[#1A1A1A]',
+      text: 'text-white',
+      desc: 'text-gray-400',
+      iconBg: 'bg-white/10',
+      iconColor: 'text-white',
+      decorColor: 'text-white'
+    },
+    {
+      // GRIS
+      bg: 'bg-gray-200',
+      border: 'border-white',
+      text: 'text-brand-black',
+      desc: 'text-gray-600',
+      iconBg: 'bg-white',
+      iconColor: 'text-brand-black',
+      decorColor: 'text-brand-black'
+    }
+];
+
 const PaymentTableTool: React.FC = () => {
   const navigate = useNavigate();
   
@@ -36,7 +110,7 @@ const PaymentTableTool: React.FC = () => {
       <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] px-6 pb-24">
         
         {/* Descripción Superior */}
-        <div className="mt-6 mb-8 px-1">
+        <div className="mt-6 mb-6 px-1">
             <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none mb-2 tracking-tighter">
                 Estructura de<br/>Ingresos
             </h1>
@@ -45,134 +119,117 @@ const PaymentTableTool: React.FC = () => {
             </p>
         </div>
         
-        {/* Tabla Container - Style: Black Card */}
-        <div className="relative w-full bg-black rounded-[2.5rem] border-[5px] border-[#1A1A1A] overflow-hidden shadow-2xl mb-10 group">
-            {/* Header Decor */}
-            <div className="bg-[#111] p-5 flex justify-between items-center border-b border-white/10">
+        {/* Tabla Container - REDISEÑADO: Compacto, Coloreado, Marco Blanco */}
+        <div className="relative w-full bg-white dark:bg-[#111] rounded-[2.5rem] border-[5px] border-white shadow-2xl mb-8 overflow-hidden">
+            
+            {/* Header de la Tabla */}
+            <div className="bg-brand-black p-4 flex justify-between items-center border-b border-white/10">
                 <div className="flex items-center space-x-2">
-                    <div className="bg-brand-purple p-1.5 rounded-lg">
-                        <Table size={16} className="text-white" />
+                    <div className="bg-white p-1 rounded-lg">
+                        <Table size={14} className="text-black" />
                     </div>
-                    <span className="text-xs font-black uppercase text-white tracking-widest">Tabla Oficial 2025</span>
+                    <span className="text-[10px] font-black uppercase text-white tracking-widest">Tabla 2025</span>
                 </div>
-                <div className="bg-white/10 px-2 py-1 rounded text-[9px] font-bold text-white uppercase tracking-wider border border-white/5">
-                    USD Currency
+                <div className="bg-white/10 px-2 py-0.5 rounded text-[8px] font-bold text-white uppercase tracking-wider">
+                    USD
                 </div>
             </div>
 
             <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-black text-white border-b border-white/10">
-                      <th className="p-4 text-[9px] font-black uppercase tracking-widest whitespace-nowrap text-gray-400">Nivel</th>
-                      <th className="p-4 text-[9px] font-black uppercase tracking-widest text-center whitespace-nowrap text-gray-400">Meta<br/>Semillas</th>
-                      <th className="p-4 text-[9px] font-black uppercase tracking-widest text-center whitespace-nowrap text-gray-400">Horas<br/>Diarias</th>
-                      <th className="p-4 text-[9px] font-black uppercase tracking-widest text-center whitespace-nowrap text-gray-400">Meta<br/>Horas</th>
-                      <th className="p-4 text-[9px] font-black uppercase tracking-widest text-center whitespace-nowrap text-gray-400">Salario<br/>Base</th>
-                      <th className="p-4 text-[9px] font-black uppercase tracking-widest text-center whitespace-nowrap text-gray-400">Cambio<br/>Semillas</th>
-                      <th className="p-4 text-[9px] font-black uppercase tracking-widest text-right whitespace-nowrap text-brand-purple">Total<br/>Estimado</th>
+                    <tr className="bg-white dark:bg-black border-b border-gray-100 dark:border-white/10">
+                      <th className="p-3 text-[8px] font-black uppercase tracking-widest whitespace-nowrap text-gray-400">Nivel</th>
+                      <th className="p-3 text-[8px] font-black uppercase tracking-widest text-center whitespace-nowrap text-gray-400">Meta<br/>Semillas</th>
+                      <th className="p-3 text-[8px] font-black uppercase tracking-widest text-center whitespace-nowrap text-gray-400">Horas<br/>Diarias</th>
+                      <th className="p-3 text-[8px] font-black uppercase tracking-widest text-center whitespace-nowrap text-gray-400">Meta<br/>Horas</th>
+                      <th className="p-3 text-[8px] font-black uppercase tracking-widest text-center whitespace-nowrap text-gray-400">Salario<br/>Base</th>
+                      <th className="p-3 text-[8px] font-black uppercase tracking-widest text-center whitespace-nowrap text-gray-400">Cambio<br/>Semillas</th>
+                      <th className="p-3 text-[8px] font-black uppercase tracking-widest text-right whitespace-nowrap text-brand-black dark:text-white">Total<br/>Estimado</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5 bg-[#0a0a0a]">
-                    {TABLE_DATA.map((row, index) => (
-                      <tr key={index} className="hover:bg-white/5 transition-colors">
-                        <td className="p-4 text-[10px] font-black text-white">{row.level}</td>
-                        <td className="p-4 text-[10px] font-bold text-gray-400 text-center">{row.seeds}</td>
-                        <td className="p-4 text-[10px] font-medium text-center text-gray-500">{row.daily}</td>
-                        <td className="p-4 text-[10px] font-medium text-center text-gray-500">{row.monthly}</td>
-                        <td className="p-4 text-[10px] font-medium text-center text-gray-400">{row.base}</td>
-                        <td className="p-4 text-[10px] font-medium text-center text-gray-400">{row.exchange}</td>
-                        <td className="p-4 text-[10px] font-black text-right text-brand-purple">{row.total}</td>
-                      </tr>
-                    ))}
+                  <tbody>
+                    {TABLE_DATA.map((row, index) => {
+                        // Secuencia: Gris -> Morado -> Naranja -> Negro
+                        const variant = ROW_VARIANTS[index % ROW_VARIANTS.length];
+                        return (
+                          <tr key={index} className={`${variant.bg} border-b border-white/5 last:border-0 transition-colors`}>
+                            <td className={`p-2.5 text-[9px] font-black ${variant.text}`}>{row.level}</td>
+                            <td className={`p-2.5 text-[9px] font-bold text-center ${variant.sub}`}>{row.seeds}</td>
+                            <td className={`p-2.5 text-[9px] font-medium text-center ${variant.sub}`}>{row.daily}</td>
+                            <td className={`p-2.5 text-[9px] font-medium text-center ${variant.sub}`}>{row.monthly}</td>
+                            <td className={`p-2.5 text-[9px] font-medium text-center ${variant.sub}`}>{row.base}</td>
+                            <td className={`p-2.5 text-[9px] font-medium text-center ${variant.sub}`}>{row.exchange}</td>
+                            <td className={`p-2.5 text-[10px] font-black text-right ${variant.highlight}`}>{row.total}</td>
+                          </tr>
+                        );
+                    })}
                   </tbody>
                 </table>
             </div>
         </div>
 
-        {/* Sección de Información Importante (Tarjetas Bento) */}
-        <div className="space-y-6">
-            <h3 className="text-xs font-black uppercase tracking-widest text-brand-black dark:text-white px-1">
-                Notas Importantes
+        {/* Sección de Información (Tarjetas) */}
+        <div className="space-y-4">
+            <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 px-1 mb-2">
+                Notas del Sistema
             </h3>
             
-            {/* 1. Calendario de Pagos (MORADO) */}
-            <div className="relative bg-brand-purple p-6 rounded-[2.5rem] border-[5px] border-violet-500 shadow-xl overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="bg-white/20 p-2.5 rounded-2xl backdrop-blur-md border border-white/10">
-                            <Calendar size={20} className="text-white" strokeWidth={2.5} />
-                        </div>
+            {/* 1. Calendario (Morado) */}
+            {(() => { const v = CARD_VARIANTS[0]; const Icon = Calendar; return (
+            <div className={`relative p-5 rounded-[2rem] border-[5px] overflow-hidden ${v.bg} ${v.border} shadow-lg`}>
+                <div className="relative z-10 flex justify-between items-start">
+                    <div>
+                        <h4 className={`text-lg font-black uppercase leading-none mb-1 ${v.text}`}>Calendario</h4>
+                        <p className={`text-[10px] font-medium leading-tight max-w-[80%] ${v.desc}`}>Pagos procesados la primera semana del mes.</p>
                     </div>
-                    <h4 className="text-xl font-black text-white uppercase leading-none mb-2">Calendario de<br/>Pagos</h4>
-                    <p className="text-xs text-purple-100 font-medium leading-relaxed text-left">
-                        Los pagos se procesan durante la <span className="font-bold text-white underline">primera semana de cada mes</span>. Es indispensable cumplir ambas metas.
-                    </p>
+                    <div className={`p-2 rounded-xl ${v.iconBg}`}><Icon size={18} className={v.iconColor} /></div>
                 </div>
-                <Calendar className="absolute -bottom-6 -right-6 text-white/10 rotate-[-15deg]" size={120} strokeWidth={1.5} />
+                <Icon className={`absolute -bottom-4 -right-4 rotate-[-15deg] opacity-10 pointer-events-none ${v.decorColor}`} size={80} strokeWidth={1.5} />
             </div>
+            )})()}
 
-            {/* 2. Reglas de Transmisión (NARANJA) */}
-            <div className="relative bg-orange-500 p-6 rounded-[2.5rem] border-[5px] border-orange-400 shadow-xl overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="bg-white/20 p-2.5 rounded-2xl backdrop-blur-md border border-white/10">
-                            <Clock size={20} className="text-white" strokeWidth={2.5} />
-                        </div>
+            {/* 2. Reglas (Naranja) */}
+            {(() => { const v = CARD_VARIANTS[1]; const Icon = Clock; return (
+            <div className={`relative p-5 rounded-[2rem] border-[5px] overflow-hidden ${v.bg} ${v.border} shadow-lg`}>
+                <div className="relative z-10 flex justify-between items-start">
+                    <div>
+                        <h4 className={`text-lg font-black uppercase leading-none mb-1 ${v.text}`}>Reglas</h4>
+                        <p className={`text-[10px] font-medium leading-tight max-w-[80%] ${v.desc}`}>Máximo 2 horas válidas por día. Mínimo 30 min/sesión.</p>
                     </div>
-                    <h4 className="text-xl font-black text-white uppercase leading-none mb-2">Reglas de<br/>Transmisión</h4>
-                    <div className="space-y-2">
-                        <div className="flex items-start gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-white mt-1.5 flex-shrink-0"></div>
-                            <p className="text-xs text-orange-50 font-medium leading-snug text-left">Máximo 2 horas válidas por día.</p>
-                        </div>
-                        <div className="flex items-start gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-white mt-1.5 flex-shrink-0"></div>
-                            <p className="text-xs text-orange-50 font-medium leading-snug text-left">Mínimo 30 minutos continuos por sesión.</p>
-                        </div>
-                    </div>
+                    <div className={`p-2 rounded-xl ${v.iconBg}`}><Icon size={18} className={v.iconColor} /></div>
                 </div>
-                <Clock className="absolute -bottom-6 -right-6 text-white/10 rotate-[-15deg]" size={120} strokeWidth={1.5} />
+                <Icon className={`absolute -bottom-4 -right-4 rotate-[-15deg] opacity-10 pointer-events-none ${v.decorColor}`} size={80} strokeWidth={1.5} />
             </div>
+            )})()}
 
-            {/* 3. Condiciones de Meta (NEGRO) */}
-            <div className="relative bg-black p-6 rounded-[2.5rem] border-[5px] border-[#1A1A1A] shadow-xl overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="bg-white/10 p-2.5 rounded-2xl backdrop-blur-md border border-white/10">
-                            <AlertTriangle size={20} className="text-red-500" strokeWidth={2.5} />
-                        </div>
+            {/* 3. Condiciones (Negro) */}
+            {(() => { const v = CARD_VARIANTS[2]; const Icon = AlertTriangle; return (
+            <div className={`relative p-5 rounded-[2rem] border-[5px] overflow-hidden ${v.bg} ${v.border} shadow-lg`}>
+                <div className="relative z-10 flex justify-between items-start">
+                    <div>
+                        <h4 className={`text-lg font-black uppercase leading-none mb-1 ${v.text}`}>Condiciones</h4>
+                        <p className={`text-[10px] font-medium leading-tight max-w-[80%] ${v.desc}`}>&lt; 20 horas = 0% Bono.<br/>20-43 horas = 50% Bono.</p>
                     </div>
-                    <h4 className="text-xl font-black text-white uppercase leading-none mb-2">Condiciones<br/>de Meta</h4>
-                    <div className="space-y-3">
-                        <div>
-                            <span className="text-[10px] font-black text-red-500 uppercase tracking-widest block mb-0.5">Menos de 20 horas</span>
-                            <p className="text-xs text-gray-400 font-medium leading-snug text-left">No recibes bono de meta (0%), solo cambio de semillas.</p>
-                        </div>
-                        <div>
-                            <span className="text-[10px] font-black text-yellow-500 uppercase tracking-widest block mb-0.5">Entre 20 y 43 horas</span>
-                            <p className="text-xs text-gray-400 font-medium leading-snug text-left">Pago parcial del bono al <span className="text-white font-bold">50%</span>.</p>
-                        </div>
-                    </div>
+                    <div className={`p-2 rounded-xl ${v.iconBg}`}><Icon size={18} className={v.iconColor} /></div>
                 </div>
-                <AlertTriangle className="absolute -bottom-6 -right-6 text-white/5 rotate-[-15deg]" size={120} strokeWidth={1.5} />
+                <Icon className={`absolute -bottom-4 -right-4 rotate-[-15deg] opacity-10 pointer-events-none ${v.decorColor}`} size={80} strokeWidth={1.5} />
             </div>
+            )})()}
 
-            {/* 4. Política de Soporte (GRIS) */}
-            <div className="relative bg-gray-200 p-6 rounded-[2.5rem] border-[5px] border-white shadow-xl overflow-hidden active:scale-[0.98] transition-transform">
-                <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="bg-white p-2.5 rounded-2xl shadow-sm border border-white/50">
-                            <ShieldCheck size={20} className="text-brand-black" strokeWidth={2.5} />
-                        </div>
+            {/* 4. Política (Gris) */}
+            {(() => { const v = CARD_VARIANTS[3]; const Icon = ShieldCheck; return (
+            <div className={`relative p-5 rounded-[2rem] border-[5px] overflow-hidden ${v.bg} ${v.border} shadow-lg`}>
+                <div className="relative z-10 flex justify-between items-start">
+                    <div>
+                        <h4 className={`text-lg font-black uppercase leading-none mb-1 ${v.text}`}>Política</h4>
+                        <p className={`text-[10px] font-medium leading-tight max-w-[90%] ${v.desc}`}>Prohibido recibir +50% de la meta mediante soporte cruzado.</p>
                     </div>
-                    <h4 className="text-xl font-black text-brand-black uppercase leading-none mb-2">Soporte<br/>Cruzado</h4>
-                    <p className="text-xs text-gray-600 font-medium leading-relaxed text-left">
-                        El emisor <span className="font-black text-brand-black">no podrá recibir más del 50%</span> de su meta por parte de otro emisor o agencia. Esto afecta el pago del bono.
-                    </p>
+                    <div className={`p-2 rounded-xl ${v.iconBg}`}><Icon size={18} className={v.iconColor} /></div>
                 </div>
-                <ShieldCheck className="absolute -bottom-6 -right-6 text-brand-black/5 rotate-[-15deg]" size={120} strokeWidth={1.5} />
+                <Icon className={`absolute -bottom-4 -right-4 rotate-[-15deg] opacity-10 pointer-events-none ${v.decorColor}`} size={80} strokeWidth={1.5} />
             </div>
+            )})()}
         </div>
 
       </div>
