@@ -1,7 +1,55 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, AlertCircle, ShieldCheck, Crown, Info } from 'lucide-react';
+import { Lock, AlertCircle, ShieldCheck, Crown, Info, Ticket } from 'lucide-react';
 import { Header } from '../components/Header';
+
+const CARD_VARIANTS = [
+    {
+      // NARANJA
+      bg: 'bg-orange-500',
+      border: 'border-orange-400',
+      text: 'text-white',
+      sub: 'text-orange-100',
+      desc: 'text-orange-50',
+      iconBg: 'bg-white/20',
+      iconColor: 'text-white',
+      decorColor: 'text-white'
+    },
+    {
+      // NEGRO
+      bg: 'bg-black',
+      border: 'border-[#1A1A1A]',
+      text: 'text-white',
+      sub: 'text-gray-400',
+      desc: 'text-gray-400',
+      iconBg: 'bg-white/10',
+      iconColor: 'text-white',
+      decorColor: 'text-white'
+    },
+    {
+      // GRIS LIGERO
+      bg: 'bg-gray-200',
+      border: 'border-white',
+      text: 'text-brand-black',
+      sub: 'text-gray-600',
+      desc: 'text-gray-600',
+      iconBg: 'bg-white',
+      iconColor: 'text-brand-black',
+      decorColor: 'text-brand-black'
+    },
+    {
+      // MORADO
+      bg: 'bg-brand-purple',
+      border: 'border-violet-500',
+      text: 'text-white',
+      sub: 'text-purple-200',
+      desc: 'text-purple-100',
+      iconBg: 'bg-white/20',
+      iconColor: 'text-white',
+      decorColor: 'text-white'
+    }
+];
 
 const BloqueoVip: React.FC = () => {
   const navigate = useNavigate();
@@ -26,90 +74,86 @@ const BloqueoVip: React.FC = () => {
     <div className="flex flex-col h-full w-full bg-brand-gray dark:bg-black transition-colors duration-300">
       <Header title="Desbloqueo VIP" showBack onBack={() => navigate('/training/bloqueos')} />
       
-      <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] px-4 pb-24">
+      <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] px-6 pb-24">
         
         {/* Intro Section */}
-        <div className="mt-6 mb-6 px-2">
-            <div className="flex items-center space-x-2 mb-2">
-                <Crown className="text-amber-500" size={24} strokeWidth={2.5} />
-                <h1 className="text-2xl font-black text-brand-black dark:text-white uppercase leading-none">
-                    Sistema VIP
-                </h1>
-            </div>
+        <div className="mt-6 mb-8 px-1">
+            <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tight mb-2">
+                Sistema VIP
+            </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
                 Alternativa de desbloqueo mediante intercambio de puntos.
             </p>
         </div>
 
-        {/* Ficha Informativa Negra (Black Card) */}
-        <div className="bg-brand-black text-white p-6 rounded-lg shadow-xl shadow-black/20 border border-gray-800 mb-8 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
-                <ShieldCheck size={120} />
-            </div>
-            
-            <div className="relative z-10 space-y-5">
-                <div className="flex items-start">
-                    <Info className="text-amber-400 mt-1 mr-3 flex-shrink-0" size={20} />
-                    <p className="text-xs font-medium leading-relaxed text-gray-300 text-justify">
-                        <span className="text-white font-bold block mb-1 uppercase tracking-wide text-[10px]">Apelación y Canje</span>
-                        En caso de no poder apelar y el emisor requiera un desbloqueo urgente, tiene la opción de intercambiar <span className="text-amber-400 font-bold">Puntos VIP</span> por ser desbloqueado. Según el tipo de bloqueo será la cantidad de puntos requeridos.
-                    </p>
-                </div>
-
-                <div className="h-px w-full bg-white/10"></div>
-
-                <div className="flex items-start">
-                    <AlertCircle className="text-amber-400 mt-1 mr-3 flex-shrink-0" size={20} />
-                    <div className="space-y-3">
-                        <p className="text-xs font-medium leading-relaxed text-gray-300 text-justify">
-                            <span className="text-white font-bold block mb-1 uppercase tracking-wide text-[10px]">Responsabilidad del Emisor</span>
-                            Es responsabilidad total del emisor contactar a los usuarios que posean puntos VIP para solicitar su apoyo.
-                        </p>
-                        <p className="text-xs font-medium leading-relaxed text-gray-300 text-justify">
-                            <span className="text-white font-bold block mb-1 uppercase tracking-wide text-[10px]">Limitaciones de Agencia</span>
-                            Bigo Live ni la agencia pueden aplicar desbloqueos vía sistema manual.
-                        </p>
-                        <p className="text-xs font-medium leading-relaxed text-gray-300 text-justify">
-                            <span className="text-white font-bold block mb-1 uppercase tracking-wide text-[10px]">Origen de los Puntos</span>
-                            Los puntos VIP son beneficios otorgados a usuarios con un historial de recaudación mensual superior a <span className="text-amber-400 font-bold">20,000 semillas</span>. La cantidad de puntos dependerá del rango VIP del usuario. El Emisor deberá cubrir los costos o llegar a un acuerdo con el dueño de los puntos.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {/* Grid de Tarjetas de Precios */}
-        <div className="mb-4 px-1">
-            <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Catálogo de Canje</h3>
-            <div className="grid grid-cols-2 gap-3">
-                {unlockOptions.map((opt, idx) => (
-                    <div 
-                        key={idx} 
-                        className="bg-[#0f1115] border border-gray-800 rounded-lg p-4 flex flex-col items-center justify-center text-center shadow-lg relative group overflow-hidden min-h-[160px]"
-                    >
-                        {/* Circle Background */}
-                        <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform duration-300 border border-white/5">
-                            <Lock className="text-amber-200/80" size={32} strokeWidth={1.5} />
-                            {/* Badge Letter Overlay */}
-                            <div className="absolute bg-amber-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-sm bottom-4 right-4 shadow-sm border border-black/20">
-                                {opt.type}
+        {/* Ficha Informativa (Uses first variant - Orange) */}
+        {(() => {
+            const variant = CARD_VARIANTS[0]; // Orange
+            return (
+                <div className={`relative p-6 rounded-[2.5rem] border-[5px] overflow-hidden ${variant.bg} ${variant.border} shadow-xl mb-8`}>
+                    <div className="relative z-10">
+                        <div className="flex justify-between items-start mb-4">
+                            <h3 className={`text-xl font-black uppercase tracking-tight leading-none ${variant.text}`}>
+                                Información Importante
+                            </h3>
+                            <div className={`p-2.5 rounded-2xl backdrop-blur-md border border-white/10 ${variant.iconBg}`}>
+                                <Info size={24} className={variant.iconColor} strokeWidth={2.5} />
                             </div>
                         </div>
-
-                        <h4 className="text-xs font-bold text-gray-200 leading-tight mb-2 px-1">
-                            {opt.title}
-                        </h4>
                         
-                        <div className="mt-auto">
-                            <span className="text-amber-500 font-black text-sm block">
-                                {opt.points}
-                            </span>
-                            <span className="text-[9px] text-gray-500 uppercase tracking-wide">
-                                puntos por vez
-                            </span>
+                        <div className="space-y-4">
+                            <p className={`text-xs font-medium leading-relaxed text-justify ${variant.desc}`}>
+                                <span className={`font-black block mb-1 uppercase tracking-wide opacity-80 ${variant.text}`}>Apelación y Canje</span>
+                                En caso de no poder apelar y el emisor requiera un desbloqueo urgente, tiene la opción de intercambiar <span className="font-black underline">Puntos VIP</span>. Según el tipo de bloqueo será la cantidad requerida.
+                            </p>
+                            <div className={`h-px w-full ${variant.sub} opacity-30`}></div>
+                            <p className={`text-xs font-medium leading-relaxed text-justify ${variant.desc}`}>
+                                <span className={`font-black block mb-1 uppercase tracking-wide opacity-80 ${variant.text}`}>Origen de Puntos</span>
+                                Los puntos VIP son beneficios otorgados a usuarios con un historial de recaudación mensual superior a <span className="font-black">20,000 semillas</span>.
+                            </p>
                         </div>
                     </div>
-                ))}
+                    <ShieldCheck className={`absolute -bottom-6 -right-6 rotate-[-15deg] opacity-10 pointer-events-none ${variant.decorColor}`} size={160} strokeWidth={1} />
+                </div>
+            );
+        })()}
+
+        {/* Catalog Grid */}
+        <div className="mb-4 px-1">
+            <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-6">Catálogo de Canje</h3>
+            <div className="space-y-4">
+                {unlockOptions.map((opt, idx) => {
+                    // Start cycling from index 1 (Black) since Orange was used for Info
+                    const variant = CARD_VARIANTS[(idx + 1) % CARD_VARIANTS.length];
+                    
+                    return (
+                        <div 
+                            key={idx} 
+                            className={`relative p-5 rounded-[2.5rem] border-[5px] overflow-hidden ${variant.bg} ${variant.border} shadow-lg flex items-center justify-between group`}
+                        >
+                            <div className="relative z-10 flex flex-col items-start pr-4 max-w-[70%]">
+                                <span className={`text-[9px] font-black uppercase tracking-widest mb-1 opacity-70 ${variant.sub}`}>
+                                    Tipo {opt.type}
+                                </span>
+                                <h4 className={`text-sm font-black uppercase leading-tight ${variant.text}`}>
+                                    {opt.title}
+                                </h4>
+                            </div>
+
+                            <div className="relative z-10 flex flex-col items-end">
+                                <div className={`px-4 py-2 rounded-2xl backdrop-blur-sm border border-white/10 ${variant.iconBg} mb-1`}>
+                                    <span className={`text-lg font-black ${variant.text}`}>
+                                        {opt.points}
+                                    </span>
+                                </div>
+                                <span className={`text-[8px] font-bold uppercase tracking-wide ${variant.sub}`}>Puntos</span>
+                            </div>
+
+                            {/* Decor Icon */}
+                            <Ticket className={`absolute -bottom-4 -left-4 rotate-[15deg] opacity-10 pointer-events-none ${variant.decorColor}`} size={80} strokeWidth={1} />
+                        </div>
+                    );
+                })}
             </div>
         </div>
 
