@@ -249,32 +249,54 @@ const TrainingDetail: React.FC = () => {
                               <h3 className="text-xs font-black uppercase tracking-widest text-white">Normativa</h3>
                               <ShieldAlert size={14} className="text-brand-purple" />
                           </div>
-                          <div className="space-y-3">
+                          <div className="space-y-4">
                               {[
-                                  { title: 'Motivos', sub: 'Lo Prohibido', icon: ShieldAlert, color: 'text-rose-500', bg: 'bg-rose-950/30 border-rose-500/20', path: '/training/bloqueos/motivos' },
-                                  { title: 'Duración', sub: 'Tiempos', icon: Clock, color: 'text-orange-500', bg: 'bg-orange-950/30 border-orange-500/20', path: '/training/bloqueos/types' },
-                                  { title: 'Apelaciones', sub: 'Recuperación', icon: Gavel, color: 'text-blue-500', bg: 'bg-blue-950/30 border-blue-500/20', path: '/training/bloqueos/appeal' },
-                                  { title: 'Puntos VIP', sub: 'Desbloqueo', icon: Crown, color: 'text-brand-purple', bg: 'bg-purple-950/30 border-brand-purple/20', path: '/training/bloqueos/vip' },
-                              ].map((btn, idx) => (
-                                  <button 
-                                      key={idx} 
-                                      onClick={() => navigate(btn.path)}
-                                      className={`w-full flex items-center justify-between p-4 rounded-2xl border ${btn.bg} active:scale-98 transition-all group`}
-                                  >
-                                      <div className="flex items-center space-x-4">
-                                          <div className="bg-black/40 p-2.5 rounded-xl border border-white/5">
-                                              <btn.icon size={20} className={btn.color} strokeWidth={2} />
+                                  { title: 'Motivos', sub: 'Lo Prohibido', icon: ShieldAlert, path: '/training/bloqueos/motivos' },
+                                  { title: 'Duración', sub: 'Tiempos', icon: Clock, path: '/training/bloqueos/types' },
+                                  { title: 'Apelaciones', sub: 'Recuperación', icon: Gavel, path: '/training/bloqueos/appeal' },
+                                  { title: 'Puntos VIP', sub: 'Desbloqueo', icon: Crown, path: '/training/bloqueos/vip' },
+                              ].map((btn, idx) => {
+                                  // Define variants style sequence: Orange, Black, Gray, Purple
+                                  const variants = [
+                                      { bg: 'bg-orange-500', border: 'border-orange-400', text: 'text-white', sub: 'text-orange-100', iconBg: 'bg-white/20', iconColor: 'text-white', decorColor: 'text-white' },
+                                      { bg: 'bg-black', border: 'border-[#1A1A1A]', text: 'text-white', sub: 'text-gray-400', iconBg: 'bg-white/10', iconColor: 'text-white', decorColor: 'text-white' },
+                                      { bg: 'bg-gray-200', border: 'border-white', text: 'text-brand-black', sub: 'text-gray-500', iconBg: 'bg-white', iconColor: 'text-brand-black', decorColor: 'text-brand-black' },
+                                      { bg: 'bg-brand-purple', border: 'border-violet-500', text: 'text-white', sub: 'text-purple-200', iconBg: 'bg-white/20', iconColor: 'text-white', decorColor: 'text-white' }
+                                  ];
+                                  const variant = variants[idx % variants.length];
+                                  const Icon = btn.icon;
+
+                                  return (
+                                      <button 
+                                          key={idx} 
+                                          onClick={() => navigate(btn.path)}
+                                          className={`w-full relative p-6 rounded-[2.5rem] border-[5px] overflow-hidden ${variant.bg} ${variant.border} shadow-xl active:scale-[0.98] transition-all group text-left h-32 flex flex-col justify-between`}
+                                      >
+                                          {/* Header */}
+                                          <div className="relative z-10 flex justify-between items-start w-full">
+                                              <div className={`p-2.5 rounded-2xl backdrop-blur-md border border-white/10 ${variant.iconBg}`}>
+                                                  <Icon size={20} className={variant.iconColor} strokeWidth={2.5} />
+                                              </div>
+                                              <div className={`px-3 py-1 rounded-full border border-white/10 ${variant.iconBg}`}>
+                                                  <ArrowUpRight size={14} className={variant.iconColor} />
+                                              </div>
                                           </div>
-                                          <div className="text-left">
-                                              <span className="block text-sm font-black text-white uppercase leading-none mb-1">{btn.title}</span>
-                                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">{btn.sub}</span>
+
+                                          {/* Text */}
+                                          <div className="relative z-10">
+                                              <span className={`block text-xl font-black uppercase leading-none mb-1 tracking-tight ${variant.text}`}>{btn.title}</span>
+                                              <span className={`text-[10px] font-bold uppercase tracking-widest ${variant.sub}`}>{btn.sub}</span>
                                           </div>
-                                      </div>
-                                      <div className="bg-white/5 p-2 rounded-full text-gray-500 group-hover:text-white transition-colors">
-                                          <ArrowUpRight size={16} />
-                                      </div>
-                                  </button>
-                              ))}
+
+                                          {/* Decor Icon */}
+                                          <Icon 
+                                              className={`absolute -bottom-6 -right-6 rotate-[-15deg] opacity-10 group-hover:scale-110 group-hover:rotate-0 transition-all duration-500 pointer-events-none ${variant.decorColor}`} 
+                                              size={100} 
+                                              strokeWidth={1.5} 
+                                          />
+                                      </button>
+                                  );
+                              })}
                           </div>
                       </div>
                   )}
