@@ -1,7 +1,51 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserMinus, EyeOff, FlaskConical, TriangleAlert, Banknote, Clock } from 'lucide-react';
 import { Header } from '../components/Header';
+
+const CARD_VARIANTS = [
+    {
+      // NARANJA
+      bg: 'bg-orange-500',
+      border: 'border-orange-400',
+      text: 'text-white',
+      desc: 'text-orange-100',
+      iconBg: 'bg-white/20',
+      iconColor: 'text-white',
+      decorColor: 'text-white'
+    },
+    {
+      // NEGRO
+      bg: 'bg-black',
+      border: 'border-[#1A1A1A]',
+      text: 'text-white',
+      desc: 'text-gray-400',
+      iconBg: 'bg-white/10',
+      iconColor: 'text-white',
+      decorColor: 'text-white'
+    },
+    {
+      // GRIS LIGERO
+      bg: 'bg-gray-200',
+      border: 'border-white',
+      text: 'text-brand-black',
+      desc: 'text-gray-600',
+      iconBg: 'bg-white',
+      iconColor: 'text-brand-black',
+      decorColor: 'text-brand-black'
+    },
+    {
+      // MORADO
+      bg: 'bg-brand-purple',
+      border: 'border-violet-500',
+      text: 'text-white',
+      desc: 'text-purple-200',
+      iconBg: 'bg-white/20',
+      iconColor: 'text-white',
+      decorColor: 'text-white'
+    }
+];
 
 const BloqueoMotivos: React.FC = () => {
   const navigate = useNavigate();
@@ -10,44 +54,32 @@ const BloqueoMotivos: React.FC = () => {
     {
       title: "Menores de edad",
       desc: "Prohibido mostrar Menores de edad físicamente y visualmente. Está prohibido imágenes, videos o decoraciones alusivas a menores de edad.",
-      icon: UserMinus,
-      color: "text-rose-500",
-      bg: "bg-rose-50 dark:bg-rose-900/20"
+      icon: UserMinus
     },
     {
       title: "Pornografía",
       desc: "Prohibido contenido sexual, desnudos totales o parciales, mostrar zona genital, tocamientos, lenguaje o cualquier otro acto que incite al erotismo.",
-      icon: EyeOff,
-      color: "text-pink-500",
-      bg: "bg-pink-50 dark:bg-pink-900/20"
+      icon: EyeOff
     },
     {
       title: "Drogas",
       desc: "Prohibido mostrar cualquier tipo de sustancia. De ser detectado se aplicará suspensión inmediata de la transmisión.",
-      icon: FlaskConical,
-      color: "text-slate-600 dark:text-slate-400",
-      bg: "bg-slate-100 dark:bg-slate-800"
+      icon: FlaskConical
     },
     {
       title: "Armas",
       desc: "Prohibido mostrar armas de fuego, cuchillos y cualquier otro objeto que promueva la violencia explícita.",
-      icon: TriangleAlert,
-      color: "text-orange-500",
-      bg: "bg-orange-50 dark:bg-orange-900/20"
+      icon: TriangleAlert
     },
     {
       title: "Juegos de azar",
       desc: "Prohibido mostrar y promover juegos de casino, apuestas ilegales o transacciones monetarias no autorizadas.",
-      icon: Banknote,
-      color: "text-emerald-500",
-      bg: "bg-emerald-50 dark:bg-emerald-900/20"
+      icon: Banknote
     },
     {
       title: "Inactividad",
       desc: "Dejar la transmisión sola (sin el anfitrión en cámara) por más de 1 minuto está penalizado por el sistema.",
-      icon: Clock,
-      color: "text-blue-500",
-      bg: "bg-blue-50 dark:bg-blue-900/20"
+      icon: Clock
     }
   ];
 
@@ -58,7 +90,7 @@ const BloqueoMotivos: React.FC = () => {
       <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] px-6 pb-24">
         
         {/* Intro */}
-        <div className="mt-6 mb-8">
+        <div className="mt-6 mb-8 px-1">
             <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-tight mb-2">
                 Motivos de<br/>Bloqueo
             </h1>
@@ -68,22 +100,39 @@ const BloqueoMotivos: React.FC = () => {
         </div>
 
         {/* List */}
-        <div className="space-y-4">
+        <div className="space-y-5">
             {reasons.map((item, index) => {
                 const Icon = item.icon;
+                const variant = CARD_VARIANTS[index % CARD_VARIANTS.length];
+
                 return (
-                    <div key={index} className="bg-white dark:bg-brand-dark-card p-5 rounded-lg shadow-sm border border-gray-100 dark:border-white/5 flex items-start space-x-4 hover:scale-[1.01] transition-transform duration-200">
-                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${item.bg}`}>
-                            <Icon size={24} className={item.color} strokeWidth={2} />
+                    <div 
+                        key={index} 
+                        className={`relative p-6 rounded-[2.5rem] border-[5px] overflow-hidden ${variant.bg} ${variant.border} shadow-xl transform transition-transform duration-300 hover:scale-[1.01]`}
+                    >
+                        {/* Icon Header */}
+                        <div className="relative z-10 flex justify-between items-start mb-4">
+                            <div className={`p-3 rounded-2xl backdrop-blur-md border border-white/10 ${variant.iconBg}`}>
+                                <Icon size={24} className={variant.iconColor} strokeWidth={2.5} />
+                            </div>
                         </div>
-                        <div className="flex-1 pt-0.5">
-                            <h3 className="text-sm font-black text-brand-black dark:text-white uppercase mb-2">
+
+                        {/* Content */}
+                        <div className="relative z-10">
+                            <h3 className={`text-xl font-black uppercase leading-none mb-3 tracking-tight ${variant.text}`}>
                                 {item.title}
                             </h3>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed text-justify">
+                            <p className={`text-xs font-bold leading-relaxed text-justify ${variant.desc} pr-4`}>
                                 {item.desc}
                             </p>
                         </div>
+
+                        {/* Decor Icon (Big) */}
+                        <Icon 
+                            className={`absolute -bottom-6 -right-6 rotate-[-15deg] opacity-10 pointer-events-none ${variant.decorColor}`} 
+                            size={140} 
+                            strokeWidth={1.5} 
+                        />
                     </div>
                 );
             })}
