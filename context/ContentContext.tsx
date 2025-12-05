@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { collection, onSnapshot, doc, updateDoc, setDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-import { Banner, TrainingModule, HomeConfig, PKSchedule, ModuleStyle } from '../types';
+import { Banner, TrainingModule, HomeConfig, PKSchedule, ModuleStyle, GiftItem } from '../types';
 import { TRAINING_MODULES as INITIAL_MODULES } from '../constants';
 
 // --- CRYPTO UTILITY ---
@@ -96,14 +96,30 @@ const INITIAL_HOME_CONFIG: HomeConfig = {
     maintenanceMode: 'off'
 };
 
+const INITIAL_GIFTS: GiftItem[] = [
+    { id: '1', value: "100", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080356.jpg?alt=media&token=43fbcf9b-e527-42ec-ad9b-50fac86309fa" },
+    { id: '2', value: "39999", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080518.jpg?alt=media&token=8c00c88c-31ca-464b-845d-aacc50dfca96" },
+    { id: '3', value: "500", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080556.jpg?alt=media&token=d5d96aea-c4f6-46db-aa53-e46afeaad424" },
+    { id: '4', value: "20000", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080619.jpg?alt=media&token=edc6467b-d54c-4e51-afff-4423fd3fa8d3" },
+    { id: '5', value: "10", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080711.jpg?alt=media&token=22fa1f90-0e75-4dd4-9e0d-22bb4105e09c" },
+    { id: '6', value: "1", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080839.jpg?alt=media&token=08e399f4-c8f6-4fb0-b14e-e5548c34609c" },
+    { id: '7', value: "1", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_081105.jpg?alt=media&token=52c9ec8d-ac6c-4b6b-875f-6303560af2a3" },
+    { id: '8', value: "20", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_081339.jpg?alt=media&token=d8d7a6cf-90bf-4581-a96c-40d3f7532008" },
+    { id: '9', value: "9999", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082317.jpg?alt=media&token=bdd1c65d-1106-42ba-87db-ed9123fffc08" },
+    { id: '10', value: "500", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082345.jpg?alt=media&token=7cf7e2a8-4c55-4485-8c06-9c9add518f0a" },
+    { id: '11', value: "9999", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082408.jpg?alt=media&token=3b6b5e18-58ec-4706-9c24-5b4ebebc1661" },
+];
+
 interface ContentContextType {
   banners: Banner[];
   modules: TrainingModule[];
+  gifts: GiftItem[];
   homeConfig: HomeConfig;
   loading: boolean;
   updateBanner: (id: string, data: Partial<Banner>) => Promise<void>;
   updateModule: (id: string, data: Partial<TrainingModule>) => Promise<void>;
   updateHomeConfig: (data: Partial<HomeConfig>) => Promise<void>;
+  updateGifts: (newGifts: GiftItem[]) => Promise<void>;
   updatePKSchedule: (data: PKSchedule) => Promise<void>;
   addPKRequest: (date: string, bigoId: string, userId: string) => Promise<void>;
   updatePKRequestStatus: (id: string, status: 'approved' | 'rejected') => Promise<void>;
@@ -115,15 +131,16 @@ const ContentContext = createContext<ContentContextType | undefined>(undefined);
 export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [banners, setBanners] = useState<Banner[]>(INITIAL_BANNERS);
   const [modules, setModules] = useState<TrainingModule[]>(INITIAL_MODULES.map(m => ({...m, style: getInitialStyle(m.id)})));
+  const [gifts, setGifts] = useState<GiftItem[]>(INITIAL_GIFTS);
   const [homeConfig, setHomeConfig] = useState<HomeConfig>(INITIAL_HOME_CONFIG);
   
   // SOLUCIÓN 1: Estado de carga global gestionado
   const [loading, setLoading] = useState(true);
-  const loadingFlags = useRef({ banners: false, modules: false, config: false });
+  const loadingFlags = useRef({ banners: false, modules: false, config: false, gifts: false });
   const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const checkLoading = () => {
-      if (loadingFlags.current.banners && loadingFlags.current.modules && loadingFlags.current.config) {
+      if (loadingFlags.current.banners && loadingFlags.current.modules && loadingFlags.current.config && loadingFlags.current.gifts) {
           if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
           setLoading(false);
       }
@@ -140,9 +157,6 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setLoading(false);
         return;
     }
-
-    // --- AUTO-RECOVERY REMOVED to prevent permission errors ---
-    // User has manually fixed the block state, so we don't need to force write to DB on load.
 
     // 1. Listen Banners
     const unsubBanners = onSnapshot(collection(db, "banners"), (snapshot) => {
@@ -185,15 +199,32 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         checkLoading();
     });
 
+    // 4. Listen Gifts Config
+    const unsubGifts = onSnapshot(doc(db, "config", "app_tour"), (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.gifts && Array.isArray(data.gifts)) {
+                setGifts(data.gifts);
+            }
+        }
+        loadingFlags.current.gifts = true;
+        checkLoading();
+    }, (error) => {
+        console.warn("Gifts load failed (using default):", error.code);
+        loadingFlags.current.gifts = true;
+        checkLoading();
+    });
+
     return () => {
         if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
         unsubBanners();
         unsubModules();
         unsubConfig();
+        unsubGifts();
     };
   }, []);
 
-  // --- CRUD Operations (Mantenidas igual pero protegidas) ---
+  // --- CRUD Operations ---
 
   const updateBanner = async (id: string, data: Partial<Banner>) => {
     setBanners(prev => prev.map(b => b.id === id ? { ...b, ...data } : b));
@@ -212,6 +243,12 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (!db) return;
       try { await setDoc(doc(db, "config", "home"), data, { merge: true }); } catch (e) { console.error("Update failed", e); }
   };
+
+  const updateGifts = async (newGifts: GiftItem[]) => {
+      setGifts(newGifts);
+      if (!db) return;
+      try { await setDoc(doc(db, "config", "app_tour"), { gifts: newGifts }, { merge: true }); } catch (e) { console.error("Update failed", e); }
+  }
 
   const updatePKSchedule = async (data: PKSchedule) => {
       if (!db) return;
@@ -241,8 +278,8 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   return (
     <ContentContext.Provider value={{ 
-        banners, modules, homeConfig, loading, 
-        updateBanner, updateModule, updateHomeConfig, updatePKSchedule, 
+        banners, modules, homeConfig, gifts, loading, 
+        updateBanner, updateModule, updateHomeConfig, updateGifts, updatePKSchedule, 
         addPKRequest, updatePKRequestStatus, deletePKRequest 
     }}>
       {children}

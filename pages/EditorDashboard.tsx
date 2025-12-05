@@ -1,17 +1,18 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Layers, Image, Type, Save, Layout, ChevronRight, Edit3, Palette, Type as TypeIcon, Link as LinkIcon, ExternalLink, ArrowUp, ArrowDown, Minus, Eye, X, Smartphone, BellRing, Trophy, TrendingUp, Video, Gamepad2, Star, ShieldCheck, HelpCircle, ChevronLeft, Droplet, CreditCard, Home, Images, Grid, PaintBucket } from 'lucide-react';
+import { Layers, Image, Type, Save, Layout, ChevronRight, Edit3, Palette, Type as TypeIcon, Link as LinkIcon, ExternalLink, ArrowUp, ArrowDown, Minus, Eye, X, Smartphone, BellRing, Trophy, TrendingUp, Video, Gamepad2, Star, ShieldCheck, HelpCircle, ChevronLeft, Droplet, CreditCard, Home, Images, Grid, PaintBucket, Gift } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import * as LucideIcons from 'lucide-react';
-import { TrainingResource } from '../types';
+import { TrainingResource, GiftItem } from '../types';
 
 const EditorDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { banners, modules, homeConfig, updateBanner, updateModule, updateHomeConfig } = useContent();
+  const { banners, modules, homeConfig, gifts, updateBanner, updateModule, updateHomeConfig, updateGifts } = useContent();
   
   // --- STATE MANAGEMENT ---
-  const [activeCategory, setActiveCategory] = useState<'home' | 'modules' | null>(null);
+  const [activeCategory, setActiveCategory] = useState<'home' | 'modules' | 'gifts' | null>(null);
   const [subCategory, setSubCategory] = useState<'banners' | 'module_styles' | null>(null); 
   const [editingItem, setEditingItem] = useState<any | null>(null);
   const [editingResourceIndex, setEditingResourceIndex] = useState<number | null>(null);
@@ -23,7 +24,7 @@ const EditorDashboard: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (editingItem && editingResourceIndex === null) {
+    if (editingItem && editingResourceIndex === null && editingItem.type !== 'gift') {
         const currentImage = editingItem.type === 'banner' ? editingItem.image : editingItem.imageUrl;
         setUrlInput(currentImage || '');
     }
@@ -84,7 +85,7 @@ const EditorDashboard: React.FC = () => {
                 setUrlInput(result);
                 if (editingItem.type === 'banner') {
                     setEditingItem({ ...editingItem, image: result });
-                } else {
+                } else if (editingItem.type === 'module') {
                     setEditingItem({ ...editingItem, imageUrl: result });
                 }
             }
@@ -98,7 +99,7 @@ const EditorDashboard: React.FC = () => {
       setUrlInput(newUrl);
       if (editingItem.type === 'banner') {
           setEditingItem({ ...editingItem, image: newUrl });
-      } else if (editingResourceIndex === null) {
+      } else if (editingResourceIndex === null && editingItem.type === 'module') {
           setEditingItem({ ...editingItem, imageUrl: newUrl });
       }
   };
@@ -213,6 +214,10 @@ const EditorDashboard: React.FC = () => {
                     };
                     await updateModule(editingItem.id, dataToSave);
                }
+          } else if (editingItem.type === 'gift') {
+              // Encontrar el regalo en la lista y actualizarlo
+              const updatedGifts = gifts.map(g => g.id === editingItem.id ? { ...g, value: editingItem.value } : g);
+              await updateGifts(updatedGifts);
           }
           alert("¡Actualizado! Los cambios ya son visibles en la App.");
           setEditingItem(null);
@@ -267,6 +272,26 @@ const EditorDashboard: React.FC = () => {
                     </h3>
                     <p className="text-xs text-gray-400 font-medium">
                         Editar contenido completo de los módulos
+                    </p>
+                </div>
+            </div>
+            <ChevronRight className="text-gray-300" size={20} />
+        </button>
+
+        <button 
+            onClick={() => setActiveCategory('gifts')}
+            className="bg-white dark:bg-brand-dark-card p-5 rounded-xl shadow-sm border border-gray-100 dark:border-white/5 flex items-center justify-between group active:scale-[0.98] transition-all"
+        >
+            <div className="flex items-center space-x-4">
+                <div className="bg-pink-600 dark:bg-pink-900/20 p-3 rounded-lg text-white">
+                    <Gift size={24} strokeWidth={1.5} />
+                </div>
+                <div className="text-left">
+                    <h3 className="text-sm font-black text-brand-black dark:text-white uppercase tracking-tight">
+                        Catálogo de Regalos
+                    </h3>
+                    <p className="text-xs text-gray-400 font-medium">
+                        Modificar valor de semillas (App Tour)
                     </p>
                 </div>
             </div>
@@ -351,6 +376,9 @@ const EditorDashboard: React.FC = () => {
     } else if (activeCategory === 'modules') {
         items = modules.map(m => ({...m, type: 'module'}));
         title = 'Módulos de Capacitación';
+    } else if (activeCategory === 'gifts') {
+        items = gifts.map(g => ({...g, title: `Regalo ${g.value}`, subtitle: `${g.value} Semillas`, type: 'gift'}));
+        title = 'Catálogo de Regalos';
     }
     
     return (
@@ -379,7 +407,7 @@ const EditorDashboard: React.FC = () => {
                             <img 
                                 src={item.imageUrl || item.image} 
                                 alt="" 
-                                className={`w-full h-full object-cover ${item.type === 'banner' ? item.imagePosition : item.style?.imagePosition}`} 
+                                className={`w-full h-full object-cover ${item.type === 'banner' ? item.imagePosition : (item.type === 'module' ? item.style?.imagePosition : 'object-contain p-2')}`} 
                             />
                         )}
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
@@ -407,7 +435,33 @@ const EditorDashboard: React.FC = () => {
     const currentResource = isEditingResource ? editingItem.resources[editingResourceIndex] : null;
     const currentStyle = isEditingResource ? (currentResource.style || {}) : editingItem.style;
 
+    // --- GIFT EDITOR MODE ---
+    if (editingItem.type === 'gift') {
+        return (
+            <div className="animate-slide-up space-y-6">
+                <div className="bg-white dark:bg-brand-dark-card p-6 rounded-xl shadow-lg border border-gray-100 dark:border-white/5 space-y-5 flex flex-col items-center">
+                    <div className="w-32 h-32 bg-gray-100 dark:bg-white/5 rounded-2xl flex items-center justify-center p-4 border border-gray-200 dark:border-white/10 mb-2">
+                        <img src={editingItem.imageUrl} alt="Gift" className="w-full h-full object-contain" />
+                    </div>
+                    <div className="w-full">
+                        <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Valor en Semillas</label>
+                        <input 
+                            type="number" 
+                            value={editingItem.value} 
+                            onChange={(e) => setEditingItem({...editingItem, value: e.target.value})} 
+                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-2xl font-black text-center dark:text-white focus:border-brand-purple outline-none" 
+                        />
+                    </div>
+                    <button onClick={handleSave} className="w-full bg-brand-black dark:bg-white text-white dark:text-black py-4 rounded-lg font-black uppercase tracking-widest text-xs flex items-center justify-center shadow-xl active:scale-95 transition-all mt-4">
+                        <Save size={16} className="mr-2" /> Guardar Valor
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
     if (isStyleOnlyMode) {
+        // ... (existing style editor code) ...
         const Icon = getIconComponent(currentStyle.iconName || 'Folder');
         return (
             <div className="animate-slide-up space-y-6">

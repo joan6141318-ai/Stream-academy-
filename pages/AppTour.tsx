@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Smartphone, Gift, Radio, PenTool, ChevronLeft, ChevronRight, Star, ArrowUpRight, CheckCircle2, Info, Clover, Flame, HelpCircle } from 'lucide-react';
+import { useContent } from '../context/ContentContext';
 
 // --- COMPONENTS ---
 
@@ -157,6 +158,7 @@ const SingleSlideCarousel: React.FC<CarouselProps> = ({ items, renderItem, contr
 
 const AppTour: React.FC = () => {
   const navigate = useNavigate();
+  const { gifts } = useContent(); // Import Gifts from Context
   const [activeModule, setActiveModule] = useState<string | null>(null);
 
   const handleBack = () => {
@@ -184,23 +186,8 @@ const AppTour: React.FC = () => {
     image: `https://picsum.photos/400/800?random=broad${i}`
   }));
 
-  // --- LISTA DE REGALOS (Valores exactos ligados al orden de las imagenes) ---
-  const rawGiftsData = [
-    { value: "100", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080356.jpg?alt=media&token=43fbcf9b-e527-42ec-ad9b-50fac86309fa" },
-    { value: "39999", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080518.jpg?alt=media&token=8c00c88c-31ca-464b-845d-aacc50dfca96" },
-    { value: "500", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080556.jpg?alt=media&token=d5d96aea-c4f6-46db-aa53-e46afeaad424" },
-    { value: "20000", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080619.jpg?alt=media&token=edc6467b-d54c-4e51-afff-4423fd3fa8d3" },
-    { value: "10", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080711.jpg?alt=media&token=22fa1f90-0e75-4dd4-9e0d-22bb4105e09c" },
-    { value: "1", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080839.jpg?alt=media&token=08e399f4-c8f6-4fb0-b14e-e5548c34609c" },
-    { value: "1", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_081105.jpg?alt=media&token=52c9ec8d-ac6c-4b6b-875f-6303560af2a3" },
-    { value: "20", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_081339.jpg?alt=media&token=d8d7a6cf-90bf-4581-a96c-40d3f7532008" },
-    { value: "9999", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082317.jpg?alt=media&token=bdd1c65d-1106-42ba-87db-ed9123fffc08" },
-    { value: "500", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082345.jpg?alt=media&token=7cf7e2a8-4c55-4485-8c06-9c9add518f0a" },
-    { value: "9999", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082408.jpg?alt=media&token=3b6b5e18-58ec-4706-9c24-5b4ebebc1661" },
-  ];
-
-  // Sort gifts by value (Low to High)
-  const giftsData = [...rawGiftsData].sort((a, b) => parseInt(a.value) - parseInt(b.value));
+  // --- GIFTS LOGIC (Sorted from Context) ---
+  const sortedGifts = [...gifts].sort((a, b) => parseInt(a.value) - parseInt(b.value));
 
   const toolsData = Array.from({ length: 8 }, (_, i) => ({
     id: i,
@@ -338,9 +325,9 @@ const AppTour: React.FC = () => {
                     </div>
                     
                     <div className="grid grid-cols-3 gap-3">
-                        {giftsData.map((gift, idx) => (
+                        {sortedGifts.map((gift) => (
                             <div 
-                                key={idx} 
+                                key={gift.id} 
                                 className="bg-[#151515] p-2 rounded-2xl border-2 border-white/20 flex flex-col items-center justify-center text-center group active:scale-[0.98] transition-all relative overflow-hidden aspect-square shadow-lg"
                             >
                                 {/* Value Tag */}

@@ -1,3 +1,4 @@
+
 export interface TrainingResource {
   title: string;
   type: 'table' | 'calc' | 'wallet' | 'card' | 'doc';
@@ -43,6 +44,13 @@ export interface HomeConfig {
   modulesSubtitle: string;
   agencyCodeHash?: string; 
   maintenanceMode?: 'off' | 'lockdown' | 'maintenance'; // CHANGED: String union for specific modes
+}
+
+export interface GiftItem {
+  id: string;
+  value: string;
+  imageUrl: string;
+  name?: string;
 }
 
 export interface UserProfile {
