@@ -9,6 +9,7 @@ interface HeaderProps {
   actions?: React.ReactNode;
   darkIcon?: boolean;
   onBack?: () => void;
+  customBack?: () => void; // Deprecated alias for onBack compatibility
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -17,7 +18,8 @@ export const Header: React.FC<HeaderProps> = ({
   transparent = false, 
   actions,
   darkIcon = false,
-  onBack
+  onBack,
+  customBack
 }) => {
   const navigate = useNavigate();
   
@@ -32,6 +34,8 @@ export const Header: React.FC<HeaderProps> = ({
   const handleBack = () => {
     if (onBack) {
       onBack();
+    } else if (customBack) {
+      customBack();
     } else {
       navigate(-1);
     }
