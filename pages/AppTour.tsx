@@ -52,9 +52,9 @@ const IphoneMockup: React.FC<MockupProps> = ({ title, desc, img, color = "border
   </div>
 );
 
-const SectionTitle = ({ title, icon: Icon }: { title: string, icon: any }) => (
+const SectionTitle = ({ title, icon: Icon, bgColor = "bg-brand-black" }: { title: string, icon: any, bgColor?: string }) => (
     <div className="flex items-center justify-center space-x-3 mb-4 px-6 pt-12 border-t border-gray-100 dark:border-white/5 first:border-0 first:pt-0">
-        <div className="bg-brand-black dark:bg-white text-white dark:text-black p-2.5 rounded-xl shadow-md">
+        <div className={`${bgColor} text-white p-2.5 rounded-xl shadow-md`}>
             <Icon size={20} strokeWidth={2.5} />
         </div>
         <h2 className="text-xl font-black text-brand-black dark:text-white uppercase tracking-tighter leading-none">
@@ -221,9 +221,9 @@ const AppTour: React.FC = () => {
             ))}
         </div>
 
-        {/* SECTION 1: FUNCIONES */}
+        {/* SECTION 1: FUNCIONES (GRIS) */}
         <div ref={functionsRef} className="scroll-mt-24">
-            <SectionTitle title="Funciones Clave" icon={Smartphone} />
+            <SectionTitle title="Funciones Clave" icon={Smartphone} bgColor="bg-gray-400" />
             <SingleSlideCarousel 
                 items={functionsData} 
                 renderItem={(item, idx) => (
@@ -231,7 +231,7 @@ const AppTour: React.FC = () => {
                         title={item.title} 
                         desc={item.desc} 
                         img={item.image} 
-                        color="border-[#202020]"
+                        color="border-gray-300"
                         index={idx}
                         total={functionsData.length}
                     />
@@ -239,9 +239,9 @@ const AppTour: React.FC = () => {
             />
         </div>
 
-        {/* SECTION 2: TIPOS DE TRANSMISIONES */}
+        {/* SECTION 2: TIPOS DE TRANSMISIONES (NARANJA) */}
         <div ref={broadcastRef} className="scroll-mt-24">
-            <SectionTitle title="Modos de Transmisión" icon={Radio} />
+            <SectionTitle title="Modos de Transmisión" icon={Radio} bgColor="bg-orange-500" />
             <SingleSlideCarousel 
                 items={broadcastData} 
                 renderItem={(item, idx) => (
@@ -249,7 +249,7 @@ const AppTour: React.FC = () => {
                         title={item.title} 
                         desc={item.desc} 
                         img={item.image} 
-                        color="border-brand-purple" 
+                        color="border-orange-500"
                         index={idx}
                         total={broadcastData.length}
                     />
@@ -257,19 +257,19 @@ const AppTour: React.FC = () => {
             />
         </div>
 
-        {/* SECTION 3: CATÁLOGO DE REGALOS (LISTADO) */}
+        {/* SECTION 3: CATÁLOGO DE REGALOS (NEGRO) */}
         <div ref={giftsRef} className="scroll-mt-24">
-            <SectionTitle title="Catálogo de Regalos" icon={Gift} />
+            <SectionTitle title="Catálogo de Regalos" icon={Gift} bgColor="bg-black" />
             <div className="px-6 space-y-3 mb-10 mt-6">
                 {giftsData.map((gift) => (
                     <div key={gift.id} className="bg-gray-50 dark:bg-[#151515] p-2 rounded-2xl border border-gray-100 dark:border-white/5 flex items-center gap-4 group active:scale-[0.99] transition-transform">
                         <div className="w-16 h-16 bg-white dark:bg-black rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                            <Gift size={24} className="text-pink-500" />
+                            <Gift size={24} className="text-black dark:text-white" />
                         </div>
                         <div className="flex-1 pr-2">
                             <div className="flex justify-between items-start">
                                 <h4 className="text-xs font-black text-brand-black dark:text-white uppercase">{gift.name}</h4>
-                                <div className="flex items-center space-x-1 bg-yellow-100 dark:bg-yellow-900/20 px-2 py-0.5 rounded text-[9px] font-bold text-yellow-700 dark:text-yellow-400">
+                                <div className="flex items-center space-x-1 bg-black/5 dark:bg-white/10 px-2 py-0.5 rounded text-[9px] font-bold text-brand-black dark:text-white">
                                     <Star size={8} fill="currentColor" />
                                     <span>{gift.value}</span>
                                 </div>
@@ -281,9 +281,9 @@ const AppTour: React.FC = () => {
             </div>
         </div>
 
-        {/* SECTION 4: HERRAMIENTAS DEL EMISOR */}
+        {/* SECTION 4: HERRAMIENTAS DEL EMISOR (MORADO) */}
         <div ref={toolsRef} className="scroll-mt-24">
-            <SectionTitle title="Herramientas Pro" icon={PenTool} />
+            <SectionTitle title="Herramientas Pro" icon={PenTool} bgColor="bg-brand-purple" />
             <SingleSlideCarousel 
                 items={toolsData} 
                 renderItem={(item, idx) => (
@@ -291,7 +291,7 @@ const AppTour: React.FC = () => {
                         title={item.title} 
                         desc={item.desc} 
                         img={item.image} 
-                        color="border-orange-500" 
+                        color="border-brand-purple"
                         index={idx}
                         total={toolsData.length}
                     />
