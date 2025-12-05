@@ -122,12 +122,13 @@ const BloqueoMotivos: React.FC = () => {
                             <h3 className={`text-xl font-black uppercase leading-none mb-3 tracking-tight ${variant.text}`}>
                                 {item.title}
                             </h3>
-                            <p className={`text-xs font-bold leading-relaxed text-justify ${variant.desc} pr-4`}>
+                            {/* Update: text-left instead of text-justify */}
+                            <p className={`text-xs font-bold leading-relaxed text-left ${variant.desc} pr-4`}>
                                 {item.desc}
                             </p>
                         </div>
 
-                        {/* Decor Icon (Big) */}
+                        {/* Decor Icon (Standardized) */}
                         <Icon 
                             className={`absolute -bottom-6 -right-6 rotate-[-15deg] opacity-10 pointer-events-none ${variant.decorColor}`} 
                             size={140} 

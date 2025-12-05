@@ -205,8 +205,9 @@ const TrainingDetail: React.FC = () => {
                           {module.title}
                       </h1>
                       
-                      <div className="flex items-center text-white/60 text-xs font-bold uppercase tracking-wide mb-6">
-                          <Info size={14} className="mr-2 text-brand-purple" />
+                      {/* Subtitle updated: removed uppercase for better reading */}
+                      <div className="flex items-start text-white/70 text-xs font-bold tracking-wide mb-6 leading-tight">
+                          <Info size={14} className="mr-2 text-brand-purple flex-shrink-0 mt-0.5" />
                           {module.description}
                       </div>
 
@@ -233,10 +234,10 @@ const TrainingDetail: React.FC = () => {
                       )}
                   </div>
 
-                  {/* Body Text */}
+                  {/* Body Text - UPDATED: text-left instead of text-justify */}
                   <div className="mb-12">
                       <div className="prose prose-sm prose-invert max-w-none">
-                          <p className="text-sm text-gray-300 leading-7 font-medium text-justify whitespace-pre-line">
+                          <p className="text-sm text-gray-300 leading-7 font-medium text-left whitespace-pre-line">
                               {module.textContent}
                           </p>
                       </div>
@@ -260,7 +261,7 @@ const TrainingDetail: React.FC = () => {
                                   const variants = [
                                       { bg: 'bg-orange-500', border: 'border-orange-400', text: 'text-white', sub: 'text-orange-100', iconBg: 'bg-white/20', iconColor: 'text-white', decorColor: 'text-white' },
                                       { bg: 'bg-black', border: 'border-[#1A1A1A]', text: 'text-white', sub: 'text-gray-400', iconBg: 'bg-white/10', iconColor: 'text-white', decorColor: 'text-white' },
-                                      { bg: 'bg-gray-200', border: 'border-white', text: 'text-brand-black', sub: 'text-gray-500', iconBg: 'bg-white', iconColor: 'text-brand-black', decorColor: 'text-brand-black' },
+                                      { bg: 'bg-gray-200', border: 'border-white', text: 'text-brand-black', sub: 'text-gray-600', iconBg: 'bg-white', iconColor: 'text-brand-black', decorColor: 'text-brand-black' },
                                       { bg: 'bg-brand-purple', border: 'border-violet-500', text: 'text-white', sub: 'text-purple-200', iconBg: 'bg-white/20', iconColor: 'text-white', decorColor: 'text-white' }
                                   ];
                                   const variant = variants[idx % variants.length];
@@ -270,7 +271,8 @@ const TrainingDetail: React.FC = () => {
                                       <button 
                                           key={idx} 
                                           onClick={() => navigate(btn.path)}
-                                          className={`w-full relative p-6 rounded-[2.5rem] border-[5px] overflow-hidden ${variant.bg} ${variant.border} shadow-xl active:scale-[0.98] transition-all group text-left h-32 flex flex-col justify-between`}
+                                          // Update: border-4 instead of border-[5px] for these inner cards
+                                          className={`w-full relative p-6 rounded-[2.5rem] border-4 overflow-hidden ${variant.bg} ${variant.border} shadow-xl active:scale-[0.98] transition-all group text-left h-32 flex flex-col justify-between`}
                                       >
                                           {/* Header */}
                                           <div className="relative z-10 flex justify-between items-start w-full">
@@ -288,7 +290,7 @@ const TrainingDetail: React.FC = () => {
                                               <span className={`text-[10px] font-bold uppercase tracking-widest ${variant.sub}`}>{btn.sub}</span>
                                           </div>
 
-                                          {/* Decor Icon */}
+                                          {/* Decor Icon - Standardized Rotation */}
                                           <Icon 
                                               className={`absolute -bottom-6 -right-6 rotate-[-15deg] opacity-10 group-hover:scale-110 group-hover:rotate-0 transition-all duration-500 pointer-events-none ${variant.decorColor}`} 
                                               size={100} 
@@ -337,7 +339,8 @@ const TrainingDetail: React.FC = () => {
                                       <button 
                                           key={index} 
                                           onClick={() => handleResourceClick(resource.type, resource.title)} 
-                                          className={`relative p-5 h-32 w-full text-left rounded-[2rem] active:scale-[0.96] transition-transform shadow-lg overflow-hidden group flex flex-col justify-between border-[5px] ${variant.bg} ${variant.border}`}
+                                          // Update: border-4 instead of border-[5px]
+                                          className={`relative p-5 h-32 w-full text-left rounded-[2rem] active:scale-[0.96] transition-transform shadow-lg overflow-hidden group flex flex-col justify-between border-4 ${variant.bg} ${variant.border}`}
                                       >
                                           <div className={`relative z-10 w-fit p-2 rounded-xl backdrop-blur-md ${variant.iconBg}`}>
                                               <Icon size={20} className={variant.iconColor} strokeWidth={2} />
@@ -349,7 +352,7 @@ const TrainingDetail: React.FC = () => {
                                               </span>
                                           </div>
 
-                                          {/* Decorative Icon */}
+                                          {/* Decorative Icon - Standardized */}
                                           <Icon 
                                               className={`absolute -bottom-4 -right-4 opacity-10 rotate-[-15deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500 pointer-events-none ${variant.text === 'text-white' ? 'text-white' : 'text-black'}`} 
                                               size={80} 

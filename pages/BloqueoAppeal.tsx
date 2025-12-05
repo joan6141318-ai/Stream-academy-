@@ -63,7 +63,8 @@ const BloqueoAppeal: React.FC = () => {
           icon: FileText,
           content: (
               <>
-                <p className="text-xs font-medium leading-relaxed text-justify mb-5 opacity-90">
+                {/* Update: text-left */}
+                <p className="text-xs font-medium leading-relaxed text-left mb-5 opacity-90">
                     El emisor bloqueado puede enviar una apelación. Si Soporte Técnico determina que el bloqueo no amerita sanción, <span className="font-black underline underline-offset-2">aprobará la solicitud</span> permitiendo reanudar actividades al instante.
                 </p>
                 <div className="flex items-center justify-between bg-black/10 rounded-xl p-3 border border-black/5 backdrop-blur-sm">
@@ -86,7 +87,8 @@ const BloqueoAppeal: React.FC = () => {
           label: 'Advertencia',
           icon: AlertTriangle,
           content: (
-              <p className="text-xs font-medium leading-relaxed text-justify opacity-90">
+              /* Update: text-left */
+              <p className="text-xs font-medium leading-relaxed text-left opacity-90">
                   Las horas transmitidas durante ese día <span className="font-black bg-black/20 px-1.5 py-0.5 rounded mx-0.5 border border-white/10">NO CONTARÁN</span> para las metas mensuales. Deberás reanudar el conteo de tus horas válidas desde cero una vez levantada la sanción.
               </p>
           )
@@ -194,7 +196,7 @@ const BloqueoAppeal: React.FC = () => {
                             </div>
                         </div>
                         
-                        {/* Decor Icon */}
+                        {/* Decor Icon - Standardized */}
                         <Icon className={`absolute -right-6 -bottom-6 rotate-[-15deg] opacity-10 pointer-events-none ${variant.decorColor}`} size={120} strokeWidth={1.5} />
                     </div>
                 );

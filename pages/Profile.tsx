@@ -14,10 +14,10 @@ const CARD_VARIANTS = [
       bg: 'bg-orange-500',
       border: 'border-orange-400',
       text: 'text-white',
-      subText: 'text-orange-100',
+      subText: 'text-white/90', // Increased contrast
       iconBg: 'bg-white/20',
       iconColor: 'text-white',
-      arrowColor: 'text-white/60',
+      arrowColor: 'text-white/80',
       decorColor: 'text-white/10'
     },
     {
@@ -36,18 +36,18 @@ const CARD_VARIANTS = [
       bg: 'bg-gray-200',
       border: 'border-white',
       text: 'text-brand-black',
-      subText: 'text-gray-500',
+      subText: 'text-gray-600', // Darker for better read on gray
       iconBg: 'bg-white',
       iconColor: 'text-brand-black',
       arrowColor: 'text-gray-400',
-      decorColor: 'text-white'
+      decorColor: 'text-brand-black/5' // Subtle dark decor
     },
     {
       // MORADO
       bg: 'bg-brand-purple',
       border: 'border-violet-500',
       text: 'text-white',
-      subText: 'text-purple-200',
+      subText: 'text-purple-100',
       iconBg: 'bg-white/20',
       iconColor: 'text-white',
       arrowColor: 'text-white/60',
@@ -207,7 +207,8 @@ const Profile: React.FC = () => {
                                       
                                       <div>
                                           <h2 className="text-2xl font-black text-white uppercase leading-[0.9] mb-2 drop-shadow-lg max-w-[90%] tracking-tight">{banner.title}</h2>
-                                          <p className="text-white/80 text-[10px] font-bold max-w-[80%] leading-tight line-clamp-2">{banner.subtitle}</p>
+                                          {/* Update: Removed uppercase for better legibility */}
+                                          <p className="text-white/90 text-[10px] font-bold max-w-[80%] leading-tight line-clamp-2">{banner.subtitle}</p>
                                       </div>
                                   </div>
                               </div>
@@ -269,12 +270,13 @@ const Profile: React.FC = () => {
                                 <span className={`font-black uppercase leading-[0.9] block ${variant.text} tracking-tighter mb-1 group-hover:translate-x-1 transition-transform duration-300 ${isLarge ? 'text-2xl' : 'text-sm'}`}>
                                     {module.title}
                                 </span>
-                                <span className={`text-[8px] ${variant.subText} font-bold uppercase tracking-widest line-clamp-1`}>
+                                {/* Update: Removed uppercase for cleaner look */}
+                                <span className={`text-[9px] ${variant.subText} font-bold tracking-wide line-clamp-1`}>
                                     Explorar Módulo
                                 </span>
                             </div>
 
-                            {/* Decorative Big Icon (Watermark) */}
+                            {/* Decorative Big Icon (Watermark) - Standardized Rotation */}
                             <Icon 
                                 className={`absolute -bottom-6 -right-6 ${variant.decorColor} rotate-[-15deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500 pointer-events-none`} 
                                 size={isLarge ? 140 : 100} 

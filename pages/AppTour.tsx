@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Smartphone, Gift, Radio, PenTool, ChevronLeft, ChevronRight, Star, ArrowUpRight } from 'lucide-react';
@@ -34,6 +35,7 @@ const IphoneMockup: React.FC<MockupProps> = ({ title, desc, img, color = "border
       {/* INFO CARD */}
       <div className="w-full max-w-xs text-center">
           <h3 className="text-xl font-black text-brand-black dark:text-white uppercase leading-none mb-2 tracking-tight">{title}</h3>
+          {/* Update: Normal case for description */}
           <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed px-4">{desc}</p>
           <div className="mt-4 inline-flex items-center justify-center bg-gray-100 dark:bg-white/10 px-3 py-1 rounded-full">
               <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
@@ -53,6 +55,35 @@ interface CarouselProps {
 
 const SingleSlideCarousel: React.FC<CarouselProps> = ({ items, renderItem, controlColor = 'black' }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+    // --- SWIPE LOGIC ---
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null); 
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+        
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe) {
+            next();
+        }
+        if (isRightSwipe) {
+            prev();
+        }
+    };
 
     const prev = () => {
         if (currentIndex > 0) setCurrentIndex(idx => idx - 1);
@@ -70,10 +101,15 @@ const SingleSlideCarousel: React.FC<CarouselProps> = ({ items, renderItem, contr
     const dotInactive = controlColor === 'white' ? 'bg-white/30' : 'bg-gray-300 dark:bg-white/20';
 
     return (
-        <div className="relative w-full overflow-hidden flex flex-col items-center">
+        <div 
+            className="relative w-full overflow-hidden flex flex-col items-center"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+        >
             
             {/* TRACK */}
-            <div className="w-full relative min-h-[600px] flex items-center justify-center">
+            <div className="w-full relative min-h-[600px] flex items-center justify-center transition-opacity duration-300">
                  {/* Only render current item to enforce single view */}
                  <div className="w-full">
                      {renderItem(items[currentIndex], currentIndex)}
@@ -87,6 +123,7 @@ const SingleSlideCarousel: React.FC<CarouselProps> = ({ items, renderItem, contr
                         onClick={prev}
                         disabled={currentIndex === 0}
                         className={`w-12 h-12 rounded-full border backdrop-blur-md flex items-center justify-center transition-all shadow-lg active:scale-90 ${currentIndex === 0 ? 'opacity-0 scale-50' : 'opacity-100 scale-100'} ${arrowClass}`}
+                        aria-label="Anterior"
                     >
                         <ChevronLeft size={24} strokeWidth={2.5} />
                     </button>
@@ -97,6 +134,7 @@ const SingleSlideCarousel: React.FC<CarouselProps> = ({ items, renderItem, contr
                         onClick={next}
                         disabled={currentIndex === items.length - 1}
                         className={`w-12 h-12 rounded-full border backdrop-blur-md flex items-center justify-center transition-all shadow-lg active:scale-90 ${currentIndex === items.length - 1 ? 'opacity-0 scale-50' : 'opacity-100 scale-100'} ${arrowClass}`}
+                        aria-label="Siguiente"
                     >
                         <ChevronRight size={24} strokeWidth={2.5} />
                     </button>
@@ -106,8 +144,9 @@ const SingleSlideCarousel: React.FC<CarouselProps> = ({ items, renderItem, contr
             {/* DOTS */}
             <div className="flex justify-center space-x-2 mt-2 pb-8">
                 {items.map((_, idx) => (
-                    <div 
+                    <button 
                         key={idx} 
+                        onClick={() => setCurrentIndex(idx)}
                         className={`h-2 rounded-full transition-all duration-300 ${idx === currentIndex ? `w-8 ${dotActive}` : `w-2 ${dotInactive}`}`}
                     />
                 ))}
@@ -320,10 +359,11 @@ const AppTour: React.FC = () => {
 
                                 <div className="relative z-10">
                                     <h3 className="text-2xl font-black uppercase leading-none mb-1 tracking-tight">{m.title}</h3>
-                                    <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">{m.subtitle}</p>
+                                    {/* Update: Normal case instead of uppercase for description */}
+                                    <p className="text-[10px] font-bold tracking-widest opacity-80">{m.subtitle}</p>
                                 </div>
                                 
-                                {/* Decor Icon */}
+                                {/* Decor Icon - Standardized */}
                                 <Icon className="absolute -bottom-4 -right-4 opacity-10 rotate-[-15deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500" size={140} strokeWidth={1.5} />
                             </button>
                         );
