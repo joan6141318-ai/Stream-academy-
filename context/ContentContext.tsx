@@ -202,41 +202,30 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         checkLoading();
     });
 
-    // 4. Listen Gifts Config (WITH AUTO-SYNC FIX)
-    const unsubGifts = onSnapshot(doc(db, "config", "app_tour"), async (docSnap) => {
+    // 4. Listen Gifts Config
+    const unsubGifts = onSnapshot(doc(db, "config", "app_tour"), (docSnap) => {
+        let currentGifts: GiftItem[] = [];
+        
         if (docSnap.exists()) {
             const data = docSnap.data();
-            let firestoreGifts: GiftItem[] = [];
-            
             if (data.gifts && Array.isArray(data.gifts)) {
-                firestoreGifts = data.gifts;
-                setGifts(firestoreGifts);
+                currentGifts = data.gifts;
             }
-
-            // AUTO-SYNC LOGIC: Check if we have missing initial gifts
-            const missingGifts = INITIAL_GIFTS.filter(initGift => !firestoreGifts.some(g => g.id === initGift.id));
-            
-            if (missingGifts.length > 0) {
-                console.log("Detectados nuevos regalos iniciales. Sincronizando con Firebase...");
-                const mergedGifts = [...firestoreGifts, ...missingGifts];
-                try {
-                    await setDoc(doc(db, "config", "app_tour"), { gifts: mergedGifts }, { merge: true });
-                } catch (e) {
-                    console.error("Error auto-syncing gifts:", e);
-                }
-            }
-
-        } else {
-            // First time init
-            setGifts(INITIAL_GIFTS);
-            try {
-                await setDoc(doc(db, "config", "app_tour"), { gifts: INITIAL_GIFTS });
-            } catch(e) { console.error("Error init gifts doc", e); }
         }
+
+        // Merge logic: Start with Firestore gifts, add any from INITIAL that aren't present (by ID)
+        // This ensures code updates (new IDs) appear immediately for everyone
+        const missingGifts = INITIAL_GIFTS.filter(initGift => !currentGifts.some(g => g.id === initGift.id));
+        const finalGifts = [...currentGifts, ...missingGifts];
+        
+        setGifts(finalGifts);
+        
         loadingFlags.current.gifts = true;
         checkLoading();
     }, (error) => {
         console.warn("Gifts load failed (using default):", error.code);
+        // Fallback to initial
+        setGifts(INITIAL_GIFTS);
         loadingFlags.current.gifts = true;
         checkLoading();
     });
