@@ -108,6 +108,9 @@ const INITIAL_GIFTS: GiftItem[] = [
     { id: '9', value: "9999", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082317.jpg?alt=media&token=bdd1c65d-1106-42ba-87db-ed9123fffc08" },
     { id: '10', value: "500", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082345.jpg?alt=media&token=7cf7e2a8-4c55-4485-8c06-9c9add518f0a" },
     { id: '11', value: "9999", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082408.jpg?alt=media&token=3b6b5e18-58ec-4706-9c24-5b4ebebc1661" },
+    { id: '12', value: "1", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080046.jpg?alt=media&token=b61ba601-1323-4a7a-a782-48c5c5e22e5c" },
+    { id: '13', value: "1", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080106.jpg?alt=media&token=9d142e12-f31d-418b-8331-4cea3294a747" },
+    { id: '14', value: "1", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080311.jpg?alt=media&token=c244e596-789f-4dd1-ba8c-9608512558df" }
 ];
 
 interface ContentContextType {
