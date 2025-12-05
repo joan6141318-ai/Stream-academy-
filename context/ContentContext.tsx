@@ -202,13 +202,36 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         checkLoading();
     });
 
-    // 4. Listen Gifts Config
-    const unsubGifts = onSnapshot(doc(db, "config", "app_tour"), (docSnap) => {
+    // 4. Listen Gifts Config (WITH AUTO-SYNC FIX)
+    const unsubGifts = onSnapshot(doc(db, "config", "app_tour"), async (docSnap) => {
         if (docSnap.exists()) {
             const data = docSnap.data();
+            let firestoreGifts: GiftItem[] = [];
+            
             if (data.gifts && Array.isArray(data.gifts)) {
-                setGifts(data.gifts);
+                firestoreGifts = data.gifts;
+                setGifts(firestoreGifts);
             }
+
+            // AUTO-SYNC LOGIC: Check if we have missing initial gifts
+            const missingGifts = INITIAL_GIFTS.filter(initGift => !firestoreGifts.some(g => g.id === initGift.id));
+            
+            if (missingGifts.length > 0) {
+                console.log("Detectados nuevos regalos iniciales. Sincronizando con Firebase...");
+                const mergedGifts = [...firestoreGifts, ...missingGifts];
+                try {
+                    await setDoc(doc(db, "config", "app_tour"), { gifts: mergedGifts }, { merge: true });
+                } catch (e) {
+                    console.error("Error auto-syncing gifts:", e);
+                }
+            }
+
+        } else {
+            // First time init
+            setGifts(INITIAL_GIFTS);
+            try {
+                await setDoc(doc(db, "config", "app_tour"), { gifts: INITIAL_GIFTS });
+            } catch(e) { console.error("Error init gifts doc", e); }
         }
         loadingFlags.current.gifts = true;
         checkLoading();
