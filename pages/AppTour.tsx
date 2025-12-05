@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Smartphone, Gift, Radio, PenTool, Info, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { Smartphone, Gift, Radio, PenTool, Info, ChevronLeft, ChevronRight, Star, ArrowDown } from 'lucide-react';
 
 // --- COMPONENTS ---
 
@@ -133,6 +133,17 @@ const SingleSlideCarousel: React.FC<CarouselProps> = ({ items, renderItem }) => 
 
 const AppTour: React.FC = () => {
   const navigate = useNavigate();
+  
+  const functionsRef = useRef<HTMLDivElement>(null);
+  const broadcastRef = useRef<HTMLDivElement>(null);
+  const giftsRef = useRef<HTMLDivElement>(null);
+  const toolsRef = useRef<HTMLDivElement>(null);
+
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
+      if(ref.current) {
+          ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+  };
 
   // --- MOCK DATA ---
   const functionsData = Array.from({ length: 8 }, (_, i) => ({
@@ -165,6 +176,13 @@ const AppTour: React.FC = () => {
     image: `https://picsum.photos/400/800?random=tool${i}`
   }));
 
+  const navCards = [
+      { title: "Funciones\nClave", icon: Smartphone, bg: "bg-gray-200", text: "text-brand-black", ref: functionsRef },
+      { title: "Modos de\nTransmisión", icon: Radio, bg: "bg-orange-500", text: "text-white", ref: broadcastRef },
+      { title: "Regalos", icon: Gift, bg: "bg-black", text: "text-white", ref: giftsRef },
+      { title: "Herramientas\ndel Emisor", icon: PenTool, bg: "bg-brand-purple", text: "text-white", ref: toolsRef },
+  ];
+
   return (
     <div className="flex flex-col h-full w-full bg-white dark:bg-black transition-colors duration-300">
       <Header title="Guía Visual" showBack onBack={() => navigate('/welcome')} />
@@ -172,84 +190,114 @@ const AppTour: React.FC = () => {
       <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] pb-24">
         
         {/* Intro */}
-        <div className="px-6 mt-8 mb-8 text-center">
+        <div className="px-6 mt-8 mb-8 text-left">
             <h1 className="text-4xl font-black text-brand-black dark:text-white uppercase tracking-tighter leading-[0.9] mb-3">
                 GUÍA<br/>INTERACTIVA
             </h1>
-            <p className="text-xs text-gray-500 font-medium max-w-xs mx-auto leading-relaxed">
+            <p className="text-xs text-gray-500 font-medium max-w-xs leading-relaxed">
                 Navega por los módulos para conocer cada detalle de la aplicación.
             </p>
         </div>
 
-        {/* SECTION 1: FUNCIONES */}
-        <SectionTitle title="Funciones Clave" icon={Smartphone} />
-        <SingleSlideCarousel 
-            items={functionsData} 
-            renderItem={(item, idx) => (
-                <IphoneMockup 
-                    title={item.title} 
-                    desc={item.desc} 
-                    img={item.image} 
-                    color="border-[#202020]"
-                    index={idx}
-                    total={functionsData.length}
-                />
-            )}
-        />
-
-        {/* SECTION 2: TIPOS DE TRANSMISIONES */}
-        <SectionTitle title="Modos de Transmisión" icon={Radio} />
-        <SingleSlideCarousel 
-            items={broadcastData} 
-            renderItem={(item, idx) => (
-                <IphoneMockup 
-                    title={item.title} 
-                    desc={item.desc} 
-                    img={item.image} 
-                    color="border-brand-purple" 
-                    index={idx}
-                    total={broadcastData.length}
-                />
-            )}
-        />
-
-        {/* SECTION 3: CATÁLOGO DE REGALOS (LISTADO) */}
-        <SectionTitle title="Catálogo de Regalos" icon={Gift} />
-        <div className="px-6 space-y-3 mb-10 mt-6">
-            {giftsData.map((gift) => (
-                <div key={gift.id} className="bg-gray-50 dark:bg-[#151515] p-2 rounded-2xl border border-gray-100 dark:border-white/5 flex items-center gap-4 group active:scale-[0.99] transition-transform">
-                    <div className="w-16 h-16 bg-white dark:bg-black rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <Gift size={24} className="text-pink-500" />
+        {/* Navigation Cards Grid */}
+        <div className="grid grid-cols-2 gap-4 px-6 mb-12">
+            {navCards.map((card, idx) => (
+                <button 
+                    key={idx}
+                    onClick={() => scrollToSection(card.ref)}
+                    className={`${card.bg} ${card.text} p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl active:scale-[0.96] transition-all group relative overflow-hidden border-[5px] border-white`}
+                >
+                    <div className="relative z-10 w-full flex justify-between items-start">
+                         <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+                            <card.icon size={20} strokeWidth={2.5} />
+                         </div>
                     </div>
-                    <div className="flex-1 pr-2">
-                        <div className="flex justify-between items-start">
-                            <h4 className="text-xs font-black text-brand-black dark:text-white uppercase">{gift.name}</h4>
-                            <div className="flex items-center space-x-1 bg-yellow-100 dark:bg-yellow-900/20 px-2 py-0.5 rounded text-[9px] font-bold text-yellow-700 dark:text-yellow-400">
-                                <Star size={8} fill="currentColor" />
-                                <span>{gift.value}</span>
-                            </div>
-                        </div>
-                        <p className="text-[9px] text-gray-400 mt-1 truncate">{gift.desc}</p>
+                    <div className="relative z-10 text-left mt-auto">
+                        <span className="text-xs font-black uppercase leading-tight whitespace-pre-line">{card.title}</span>
                     </div>
-                </div>
+                    {/* Decor Icon */}
+                    <card.icon className="absolute -right-4 -bottom-4 opacity-10 rotate-[-15deg] group-hover:scale-110 transition-transform duration-500" size={80} strokeWidth={1.5} />
+                </button>
             ))}
         </div>
 
+        {/* SECTION 1: FUNCIONES */}
+        <div ref={functionsRef} className="scroll-mt-24">
+            <SectionTitle title="Funciones Clave" icon={Smartphone} />
+            <SingleSlideCarousel 
+                items={functionsData} 
+                renderItem={(item, idx) => (
+                    <IphoneMockup 
+                        title={item.title} 
+                        desc={item.desc} 
+                        img={item.image} 
+                        color="border-[#202020]"
+                        index={idx}
+                        total={functionsData.length}
+                    />
+                )}
+            />
+        </div>
+
+        {/* SECTION 2: TIPOS DE TRANSMISIONES */}
+        <div ref={broadcastRef} className="scroll-mt-24">
+            <SectionTitle title="Modos de Transmisión" icon={Radio} />
+            <SingleSlideCarousel 
+                items={broadcastData} 
+                renderItem={(item, idx) => (
+                    <IphoneMockup 
+                        title={item.title} 
+                        desc={item.desc} 
+                        img={item.image} 
+                        color="border-brand-purple" 
+                        index={idx}
+                        total={broadcastData.length}
+                    />
+                )}
+            />
+        </div>
+
+        {/* SECTION 3: CATÁLOGO DE REGALOS (LISTADO) */}
+        <div ref={giftsRef} className="scroll-mt-24">
+            <SectionTitle title="Catálogo de Regalos" icon={Gift} />
+            <div className="px-6 space-y-3 mb-10 mt-6">
+                {giftsData.map((gift) => (
+                    <div key={gift.id} className="bg-gray-50 dark:bg-[#151515] p-2 rounded-2xl border border-gray-100 dark:border-white/5 flex items-center gap-4 group active:scale-[0.99] transition-transform">
+                        <div className="w-16 h-16 bg-white dark:bg-black rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                            <Gift size={24} className="text-pink-500" />
+                        </div>
+                        <div className="flex-1 pr-2">
+                            <div className="flex justify-between items-start">
+                                <h4 className="text-xs font-black text-brand-black dark:text-white uppercase">{gift.name}</h4>
+                                <div className="flex items-center space-x-1 bg-yellow-100 dark:bg-yellow-900/20 px-2 py-0.5 rounded text-[9px] font-bold text-yellow-700 dark:text-yellow-400">
+                                    <Star size={8} fill="currentColor" />
+                                    <span>{gift.value}</span>
+                                </div>
+                            </div>
+                            <p className="text-[9px] text-gray-400 mt-1 truncate">{gift.desc}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+
         {/* SECTION 4: HERRAMIENTAS DEL EMISOR */}
-        <SectionTitle title="Herramientas Pro" icon={PenTool} />
-        <SingleSlideCarousel 
-            items={toolsData} 
-            renderItem={(item, idx) => (
-                <IphoneMockup 
-                    title={item.title} 
-                    desc={item.desc} 
-                    img={item.image} 
-                    color="border-orange-500" 
-                    index={idx}
-                    total={toolsData.length}
-                />
-            )}
-        />
+        <div ref={toolsRef} className="scroll-mt-24">
+            <SectionTitle title="Herramientas Pro" icon={PenTool} />
+            <SingleSlideCarousel 
+                items={toolsData} 
+                renderItem={(item, idx) => (
+                    <IphoneMockup 
+                        title={item.title} 
+                        desc={item.desc} 
+                        img={item.image} 
+                        color="border-orange-500" 
+                        index={idx}
+                        total={toolsData.length}
+                    />
+                )}
+            />
+        </div>
 
         {/* Footer */}
         <div className="text-center pb-8 pt-6 border-t border-gray-100 dark:border-white/5 mx-6 mt-8">
