@@ -35,54 +35,45 @@ const PaymentTableTool: React.FC = () => {
       
       <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] px-6 pb-24">
         
-        {/* Descripción Superior */}
-        <div className="mt-6 mb-8 px-1">
-            <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none mb-2 tracking-tighter">
-                Estructura de<br/>Ingresos
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
-                Niveles oficiales de salario base y bonificaciones.
-            </p>
+        {/* Descripción Superior - Compacta */}
+        <div className="mt-4 mb-4 flex justify-between items-end px-1">
+            <div>
+                <h1 className="text-2xl font-black text-brand-black dark:text-white uppercase leading-none mb-1 tracking-tighter">
+                    Tabla Oficial
+                </h1>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest">
+                    Estructura 2025
+                </p>
+            </div>
+            <div className="bg-brand-purple/10 px-3 py-1 rounded-full border border-brand-purple/20">
+                <span className="text-[9px] font-black text-brand-purple uppercase tracking-widest">USD Currency</span>
+            </div>
         </div>
         
-        {/* Tabla Container - Style: Black Card */}
-        <div className="relative w-full bg-black rounded-[2.5rem] border-[5px] border-[#1A1A1A] overflow-hidden shadow-2xl mb-10 group">
-            {/* Header Decor */}
-            <div className="bg-[#111] p-5 flex justify-between items-center border-b border-white/10">
-                <div className="flex items-center space-x-2">
-                    <div className="bg-brand-purple p-1.5 rounded-lg">
-                        <Table size={16} className="text-white" />
-                    </div>
-                    <span className="text-xs font-black uppercase text-white tracking-widest">Tabla Oficial 2025</span>
-                </div>
-                <div className="bg-white/10 px-2 py-1 rounded text-[9px] font-bold text-white uppercase tracking-wider border border-white/5">
-                    USD Currency
-                </div>
-            </div>
-
+        {/* Tabla Container - Rediseño Compacto y Profesional */}
+        <div className="relative w-full bg-[#121212] rounded-[2rem] border-[4px] border-white overflow-hidden shadow-2xl mb-6">
+            
             <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-black text-white border-b border-white/10">
-                      <th className="p-4 text-[9px] font-black uppercase tracking-widest whitespace-nowrap text-gray-400">Nivel</th>
-                      <th className="p-4 text-[9px] font-black uppercase tracking-widest text-center whitespace-nowrap text-gray-400">Meta<br/>Semillas</th>
-                      <th className="p-4 text-[9px] font-black uppercase tracking-widest text-center whitespace-nowrap text-gray-400">Horas<br/>Diarias</th>
-                      <th className="p-4 text-[9px] font-black uppercase tracking-widest text-center whitespace-nowrap text-gray-400">Meta<br/>Horas</th>
-                      <th className="p-4 text-[9px] font-black uppercase tracking-widest text-center whitespace-nowrap text-gray-400">Salario<br/>Base</th>
-                      <th className="p-4 text-[9px] font-black uppercase tracking-widest text-center whitespace-nowrap text-gray-400">Cambio<br/>Semillas</th>
-                      <th className="p-4 text-[9px] font-black uppercase tracking-widest text-right whitespace-nowrap text-brand-purple">Total<br/>Estimado</th>
+                    <tr className="bg-brand-purple/10 border-b border-white/10">
+                      <th className="py-3 px-3 text-[8px] font-black uppercase tracking-widest text-brand-purple whitespace-nowrap">Nivel</th>
+                      <th className="py-3 px-3 text-[8px] font-black uppercase tracking-widest text-gray-400 text-center whitespace-nowrap">Semillas</th>
+                      <th className="py-3 px-3 text-[8px] font-black uppercase tracking-widest text-gray-400 text-center whitespace-nowrap">Meta<br/>Horas</th>
+                      <th className="py-3 px-3 text-[8px] font-black uppercase tracking-widest text-gray-400 text-center whitespace-nowrap">Salario<br/>Base</th>
+                      <th className="py-3 px-3 text-[8px] font-black uppercase tracking-widest text-gray-400 text-center whitespace-nowrap">Cambio</th>
+                      <th className="py-3 px-3 text-[8px] font-black uppercase tracking-widest text-brand-purple text-right whitespace-nowrap pr-4">Total</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5 bg-[#0a0a0a]">
+                  <tbody className="divide-y divide-white/5">
                     {TABLE_DATA.map((row, index) => (
-                      <tr key={index} className="hover:bg-white/5 transition-colors">
-                        <td className="p-4 text-[10px] font-black text-white">{row.level}</td>
-                        <td className="p-4 text-[10px] font-bold text-gray-400 text-center">{row.seeds}</td>
-                        <td className="p-4 text-[10px] font-medium text-center text-gray-500">{row.daily}</td>
-                        <td className="p-4 text-[10px] font-medium text-center text-gray-500">{row.monthly}</td>
-                        <td className="p-4 text-[10px] font-medium text-center text-gray-400">{row.base}</td>
-                        <td className="p-4 text-[10px] font-medium text-center text-gray-400">{row.exchange}</td>
-                        <td className="p-4 text-[10px] font-black text-right text-brand-purple">{row.total}</td>
+                      <tr key={index} className="hover:bg-brand-purple/5 transition-colors even:bg-white/[0.02]">
+                        <td className="py-2 px-3 text-[9px] font-black text-white">{row.level}</td>
+                        <td className="py-2 px-3 text-[9px] font-medium text-gray-400 text-center tabular-nums">{row.seeds}</td>
+                        <td className="py-2 px-3 text-[9px] font-medium text-gray-500 text-center">{row.monthly}</td>
+                        <td className="py-2 px-3 text-[9px] font-medium text-gray-400 text-center tabular-nums">{row.base}</td>
+                        <td className="py-2 px-3 text-[9px] font-medium text-gray-500 text-center tabular-nums">{row.exchange}</td>
+                        <td className="py-2 px-3 pr-4 text-[9px] font-black text-right text-brand-purple tracking-wide tabular-nums">{row.total}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -90,88 +81,51 @@ const PaymentTableTool: React.FC = () => {
             </div>
         </div>
 
-        {/* Sección de Información Importante (Tarjetas Bento) */}
-        <div className="space-y-6">
-            <h3 className="text-xs font-black uppercase tracking-widest text-brand-black dark:text-white px-1">
-                Notas Importantes
-            </h3>
+        {/* Sección de Información - Grid 2x2 para Ahorro de Espacio */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
             
-            {/* 1. Calendario de Pagos (MORADO) */}
-            <div className="relative bg-brand-purple p-6 rounded-[2.5rem] border-[5px] border-violet-500 shadow-xl overflow-hidden active:scale-[0.98] transition-transform">
+            {/* 1. Calendario */}
+            <div className="relative bg-[#151515] p-4 rounded-3xl border border-white/10 shadow-lg overflow-hidden group">
                 <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="bg-white/20 p-2.5 rounded-2xl backdrop-blur-md border border-white/10">
-                            <Calendar size={20} className="text-white" strokeWidth={2.5} />
-                        </div>
+                    <div className="bg-brand-purple/20 w-fit p-1.5 rounded-lg mb-2">
+                        <Calendar size={14} className="text-brand-purple" />
                     </div>
-                    <h4 className="text-xl font-black text-white uppercase leading-none mb-2">Calendario de<br/>Pagos</h4>
-                    <p className="text-xs text-purple-100 font-medium leading-relaxed text-left">
-                        Los pagos se procesan durante la <span className="font-bold text-white underline">primera semana de cada mes</span>. Es indispensable cumplir ambas metas.
-                    </p>
+                    <h4 className="text-xs font-black text-white uppercase leading-none mb-1">Pagos</h4>
+                    <p className="text-[9px] text-gray-500 leading-tight">Primera semana de cada mes.</p>
                 </div>
-                <Calendar className="absolute -bottom-6 -right-6 text-white/10 rotate-[-15deg]" size={120} strokeWidth={1.5} />
             </div>
 
-            {/* 2. Reglas de Transmisión (NARANJA) */}
-            <div className="relative bg-orange-500 p-6 rounded-[2.5rem] border-[5px] border-orange-400 shadow-xl overflow-hidden active:scale-[0.98] transition-transform">
+            {/* 2. Reglas */}
+            <div className="relative bg-[#151515] p-4 rounded-3xl border border-white/10 shadow-lg overflow-hidden group">
                 <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="bg-white/20 p-2.5 rounded-2xl backdrop-blur-md border border-white/10">
-                            <Clock size={20} className="text-white" strokeWidth={2.5} />
-                        </div>
+                    <div className="bg-orange-500/20 w-fit p-1.5 rounded-lg mb-2">
+                        <Clock size={14} className="text-orange-500" />
                     </div>
-                    <h4 className="text-xl font-black text-white uppercase leading-none mb-2">Reglas de<br/>Transmisión</h4>
-                    <div className="space-y-2">
-                        <div className="flex items-start gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-white mt-1.5 flex-shrink-0"></div>
-                            <p className="text-xs text-orange-50 font-medium leading-snug text-left">Máximo 2 horas válidas por día.</p>
-                        </div>
-                        <div className="flex items-start gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-white mt-1.5 flex-shrink-0"></div>
-                            <p className="text-xs text-orange-50 font-medium leading-snug text-left">Mínimo 30 minutos continuos por sesión.</p>
-                        </div>
-                    </div>
+                    <h4 className="text-xs font-black text-white uppercase leading-none mb-1">Horas</h4>
+                    <p className="text-[9px] text-gray-500 leading-tight">Max 2h diarias válidas.</p>
                 </div>
-                <Clock className="absolute -bottom-6 -right-6 text-white/10 rotate-[-15deg]" size={120} strokeWidth={1.5} />
             </div>
 
-            {/* 3. Condiciones de Meta (NEGRO) */}
-            <div className="relative bg-black p-6 rounded-[2.5rem] border-[5px] border-[#1A1A1A] shadow-xl overflow-hidden active:scale-[0.98] transition-transform">
+            {/* 3. Condiciones */}
+            <div className="relative bg-[#151515] p-4 rounded-3xl border border-white/10 shadow-lg overflow-hidden group">
                 <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="bg-white/10 p-2.5 rounded-2xl backdrop-blur-md border border-white/10">
-                            <AlertTriangle size={20} className="text-red-500" strokeWidth={2.5} />
-                        </div>
+                    <div className="bg-red-500/20 w-fit p-1.5 rounded-lg mb-2">
+                        <AlertTriangle size={14} className="text-red-500" />
                     </div>
-                    <h4 className="text-xl font-black text-white uppercase leading-none mb-2">Condiciones<br/>de Meta</h4>
-                    <div className="space-y-3">
-                        <div>
-                            <span className="text-[10px] font-black text-red-500 uppercase tracking-widest block mb-0.5">Menos de 20 horas</span>
-                            <p className="text-xs text-gray-400 font-medium leading-snug text-left">No recibes bono de meta (0%), solo cambio de semillas.</p>
-                        </div>
-                        <div>
-                            <span className="text-[10px] font-black text-yellow-500 uppercase tracking-widest block mb-0.5">Entre 20 y 43 horas</span>
-                            <p className="text-xs text-gray-400 font-medium leading-snug text-left">Pago parcial del bono al <span className="text-white font-bold">50%</span>.</p>
-                        </div>
-                    </div>
+                    <h4 className="text-xs font-black text-white uppercase leading-none mb-1">Meta</h4>
+                    <p className="text-[9px] text-gray-500 leading-tight">{'<'}20h = 0% Bono.<br/>20-43h = 50%.</p>
                 </div>
-                <AlertTriangle className="absolute -bottom-6 -right-6 text-white/5 rotate-[-15deg]" size={120} strokeWidth={1.5} />
             </div>
 
-            {/* 4. Política de Soporte (GRIS) */}
-            <div className="relative bg-gray-200 p-6 rounded-[2.5rem] border-[5px] border-white shadow-xl overflow-hidden active:scale-[0.98] transition-transform">
+            {/* 4. Soporte */}
+            <div className="relative bg-[#151515] p-4 rounded-3xl border border-white/10 shadow-lg overflow-hidden group">
                 <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="bg-white p-2.5 rounded-2xl shadow-sm border border-white/50">
-                            <ShieldCheck size={20} className="text-brand-black" strokeWidth={2.5} />
-                        </div>
+                    <div className="bg-blue-500/20 w-fit p-1.5 rounded-lg mb-2">
+                        <ShieldCheck size={14} className="text-blue-500" />
                     </div>
-                    <h4 className="text-xl font-black text-brand-black uppercase leading-none mb-2">Soporte<br/>Cruzado</h4>
-                    <p className="text-xs text-gray-600 font-medium leading-relaxed text-left">
-                        El emisor <span className="font-black text-brand-black">no podrá recibir más del 50%</span> de su meta por parte de otro emisor o agencia. Esto afecta el pago del bono.
-                    </p>
+                    <h4 className="text-xs font-black text-white uppercase leading-none mb-1">Fraude</h4>
+                    <p className="text-[9px] text-gray-500 leading-tight">Max 50% soporte cruzado.</p>
                 </div>
-                <ShieldCheck className="absolute -bottom-6 -right-6 text-brand-black/5 rotate-[-15deg]" size={120} strokeWidth={1.5} />
             </div>
         </div>
 
