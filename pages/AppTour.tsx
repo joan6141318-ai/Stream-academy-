@@ -195,28 +195,27 @@ const AppTour: React.FC = () => {
     ? orderedGifts 
     : [...orderedGifts, ...Array(14 - orderedGifts.length).fill({ value: '0', imageUrl: '' })];
 
-  // Map to sections based on user request
+  // Map to sections based on user request (STRICT ORDER)
   const variedadItems = [
-    { name: 'Flor', value: '1', imageUrl: safeGifts[0]?.imageUrl },
-    { name: 'Mace', value: '100', imageUrl: safeGifts[1]?.imageUrl }, 
-    { name: 'Crush', value: '100', imageUrl: safeGifts[2]?.imageUrl },
-    { name: 'Kiss me', value: '500', imageUrl: safeGifts[3]?.imageUrl },
-    { name: 'Gala dragón', value: '1000', imageUrl: safeGifts[4]?.imageUrl },
-    { name: 'Súper dragón', value: '9999', imageUrl: safeGifts[5]?.imageUrl },
-    { name: 'Cásate conmigo', value: '20000', imageUrl: safeGifts[6]?.imageUrl },
-    { name: 'Yate', value: '39999', imageUrl: safeGifts[7]?.imageUrl },
-    { name: 'Luxury car', value: '40000', imageUrl: safeGifts[8]?.imageUrl },
+    { name: 'Flor', value: '1', imageUrl: safeGifts[0]?.imageUrl }, // ID 1
+    { name: 'Mace', value: '100', imageUrl: safeGifts[1]?.imageUrl }, // ID 2
+    { name: 'Crush', value: '100', imageUrl: safeGifts[2]?.imageUrl }, // ID 3
+    { name: 'Kismee', value: '500', imageUrl: safeGifts[3]?.imageUrl }, // ID 4
+    { name: 'Luxury car', value: '40000', imageUrl: safeGifts[8]?.imageUrl }, // ID 9 (Moved up)
+    { name: 'Super dragón', value: '9999', imageUrl: safeGifts[5]?.imageUrl }, // ID 6
+    { name: 'Gala dragón', value: '1000', imageUrl: safeGifts[4]?.imageUrl }, // ID 5 (Moved down)
+    { name: 'Yate de lujo', value: '20000', imageUrl: safeGifts[7]?.imageUrl }, // ID 8
   ];
 
   const luckyItems = [
-    { name: 'Campana', value: '5', imageUrl: safeGifts[9]?.imageUrl },
-    { name: 'Gold box', value: '20', imageUrl: safeGifts[10]?.imageUrl },
-    { name: 'Fantasma', value: '500', imageUrl: safeGifts[11]?.imageUrl },
-    { name: 'Mythical', value: '3000', imageUrl: safeGifts[12]?.imageUrl },
+    { name: 'Campana', value: '5', imageUrl: safeGifts[9]?.imageUrl }, // ID 10
+    { name: 'Gold box', value: '20', imageUrl: safeGifts[10]?.imageUrl }, // ID 11
+    { name: 'Big win', value: '500', imageUrl: safeGifts[11]?.imageUrl }, // ID 12
+    { name: 'Mythical pegasus', value: '3000', imageUrl: safeGifts[12]?.imageUrl }, // ID 13
   ];
 
   const hotItems = [
-    { name: 'Regalos clientes', value: '10', imageUrl: safeGifts[13]?.imageUrl },
+    { name: 'Regalos Calientes', value: '10', imageUrl: safeGifts[13]?.imageUrl }, // ID 14
   ];
 
   const toolsData = Array.from({ length: 8 }, (_, i) => ({
