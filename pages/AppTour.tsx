@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Smartphone, Gift, Radio, PenTool, ChevronLeft, ChevronRight, Star, ArrowUpRight, CheckCircle2, Info, Clover, Flame, HelpCircle } from 'lucide-react';
+import { Smartphone, Gift, Radio, PenTool, ChevronLeft, ChevronRight, Star, ArrowUpRight, CheckCircle2, Info, Clover, Flame, HelpCircle, Users } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 
 // --- COMPONENTS ---
@@ -186,8 +186,38 @@ const AppTour: React.FC = () => {
     image: `https://picsum.photos/400/800?random=broad${i}`
   }));
 
-  // --- GIFTS LOGIC (Sorted from Context) ---
-  const sortedGifts = [...gifts].sort((a, b) => parseInt(a.value) - parseInt(b.value));
+  // --- ORGANIZE GIFTS DATA BY CATEGORY ---
+  // Sort by ID to respect original upload order for mapping
+  const orderedGifts = [...gifts].sort((a, b) => parseInt(a.id) - parseInt(b.id));
+  
+  // Ensure we have enough placeholders if data is missing
+  const safeGifts = orderedGifts.length >= 14 
+    ? orderedGifts 
+    : [...orderedGifts, ...Array(14 - orderedGifts.length).fill({ value: '0', imageUrl: '' })];
+
+  // Map to sections based on user request
+  const variedadItems = [
+    { name: 'Flor', value: '1', imageUrl: safeGifts[0]?.imageUrl },
+    { name: 'Mace', value: '100', imageUrl: safeGifts[1]?.imageUrl }, 
+    { name: 'Crush', value: '100', imageUrl: safeGifts[2]?.imageUrl },
+    { name: 'Kiss me', value: '500', imageUrl: safeGifts[3]?.imageUrl },
+    { name: 'Gala dragón', value: '1000', imageUrl: safeGifts[4]?.imageUrl },
+    { name: 'Súper dragón', value: '9999', imageUrl: safeGifts[5]?.imageUrl },
+    { name: 'Cásate conmigo', value: '20000', imageUrl: safeGifts[6]?.imageUrl },
+    { name: 'Yate', value: '39999', imageUrl: safeGifts[7]?.imageUrl },
+    { name: 'Luxury car', value: '40000', imageUrl: safeGifts[8]?.imageUrl },
+  ];
+
+  const luckyItems = [
+    { name: 'Campana', value: '5', imageUrl: safeGifts[9]?.imageUrl },
+    { name: 'Gold box', value: '20', imageUrl: safeGifts[10]?.imageUrl },
+    { name: 'Fantasma', value: '500', imageUrl: safeGifts[11]?.imageUrl },
+    { name: 'Mythical', value: '3000', imageUrl: safeGifts[12]?.imageUrl },
+  ];
+
+  const hotItems = [
+    { name: 'Regalos clientes', value: '10', imageUrl: safeGifts[13]?.imageUrl },
+  ];
 
   const toolsData = Array.from({ length: 8 }, (_, i) => ({
     id: i,
@@ -195,6 +225,42 @@ const AppTour: React.FC = () => {
     desc: "Panel de control avanzado para moderar comentarios y gestionar usuarios.",
     image: `https://picsum.photos/400/800?random=tool${i}`
   }));
+
+  // Render Helper for Gift Grid
+  const renderGiftGrid = (items: any[]) => (
+    <div className="grid grid-cols-3 gap-3 mb-8">
+        {items.map((gift, idx) => (
+            <div 
+                key={idx} 
+                className="bg-[#050505] p-2 rounded-2xl border border-white/20 flex flex-col items-center justify-center text-center group active:scale-[0.98] transition-all relative overflow-hidden aspect-square shadow-lg"
+            >
+                {/* Value Tag */}
+                <div className="absolute top-1.5 right-1.5 bg-black/60 border border-white/10 px-1.5 py-0.5 rounded backdrop-blur-sm z-10">
+                    <div className="flex items-center space-x-0.5">
+                        <span className="text-[8px] font-black text-white">{gift.value}</span>
+                        <Star size={6} className="text-yellow-400 fill-yellow-400" />
+                    </div>
+                </div>
+
+                {/* Image */}
+                <div className="w-full h-full flex items-center justify-center p-2">
+                    {gift.imageUrl ? (
+                        <img src={gift.imageUrl} alt={gift.name} className="w-full h-full object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-300" />
+                    ) : (
+                        <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center">
+                            <Gift size={18} className="text-white/20" />
+                        </div>
+                    )}
+                </div>
+                
+                {/* Name Label */}
+                <div className="absolute bottom-1 w-full px-1">
+                    <p className="text-[7px] font-bold text-gray-500 uppercase truncate">{gift.name}</p>
+                </div>
+            </div>
+        ))}
+    </div>
+  );
 
   // --- MODULE CONFIG ---
   const modules = [
@@ -261,97 +327,97 @@ const AppTour: React.FC = () => {
           cardStyle: 'bg-black text-white border-white',
           content: (
             <div className="w-full pb-12 px-6 flex flex-col gap-6">
-                {/* Intro Info Card */}
-                <div className="bg-[#151515] p-6 rounded-[2rem] border border-white/10 relative overflow-hidden group">
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="bg-white/10 p-2 rounded-xl">
-                                <Info size={20} className="text-white" />
+                
+                {/* --- SECCIÓN VARIEDAD --- */}
+                <div>
+                    {/* Info Card */}
+                    <div className="bg-[#151515] p-6 rounded-[2rem] border border-white/10 relative overflow-hidden group mb-4">
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="bg-white/10 p-2 rounded-xl">
+                                    <Info size={20} className="text-white" />
+                                </div>
+                                <h3 className="text-lg font-black text-white uppercase">Variedad</h3>
                             </div>
-                            <h3 className="text-lg font-black text-white uppercase">Variedad</h3>
-                        </div>
-                        <p className="text-xs text-gray-400 font-medium leading-relaxed">
-                            Existe una múltiple variedad de regalos, desde <span className="text-white font-bold">1 semilla</span> hasta increíbles efectos de <span className="text-white font-bold">40,000 semillas</span>.
-                        </p>
-                    </div>
-                    <Gift className="absolute -bottom-4 -right-4 text-white/5 rotate-[-15deg] group-hover:scale-110 transition-transform duration-500" size={100} strokeWidth={1} />
-                </div>
-
-                {/* Súper Lucky Section */}
-                <div className="bg-brand-purple p-6 rounded-[2rem] border border-violet-500 relative overflow-hidden group shadow-lg shadow-purple-900/20">
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
-                                <Clover size={20} className="text-white" />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-black text-white uppercase leading-none">Súper Lucky</h3>
-                                <p className="text-[10px] text-purple-200 font-bold uppercase tracking-wider">Regalo de la Suerte</p>
-                            </div>
-                        </div>
-                        <p className="text-xs text-purple-100 font-medium leading-relaxed mb-4 text-justify">
-                            Identifícalos por la etiqueta <span className="font-black bg-white/20 px-1 rounded text-[10px]">SP</span> o una pequeña cajita en la esquina.
-                        </p>
-                        <div className="bg-black/20 rounded-xl p-3 border border-white/10">
-                            <p className="text-[10px] text-white font-bold leading-tight">
-                                ✨ <span className="text-yellow-300">Posibilidad x50:</span> Al ser lanzados pueden multiplicarse. Las recompensas se van a tu <span className="underline decoration-white/50">Maleta (Equipaje)</span> o directo a tu recaudación.
+                            <p className="text-xs text-gray-400 font-medium leading-relaxed">
+                                Existe una múltiple variedad de regalos, desde <span className="text-white font-bold">1 semilla</span> hasta increíbles efectos de <span className="text-white font-bold">40,000 semillas</span>.
                             </p>
                         </div>
-                    </div>
-                    <Clover className="absolute -bottom-6 -right-6 text-white/10 rotate-[15deg] group-hover:rotate-0 transition-transform duration-500" size={120} strokeWidth={1.5} />
-                </div>
-
-                {/* Regalos HOT Section */}
-                <div className="bg-orange-500 p-6 rounded-[2rem] border border-orange-400 relative overflow-hidden group shadow-lg shadow-orange-900/20">
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
-                                <Flame size={20} className="text-white" fill="currentColor" />
-                            </div>
-                            <h3 className="text-lg font-black text-white uppercase">Regalos HOT</h3>
-                        </div>
-                        <p className="text-xs text-orange-50 font-medium leading-relaxed text-justify">
-                            Su función principal es <span className="font-black">calentar la sala</span>. Generan alta interacción y elevan la flama de popularidad rápidamente, posicionándote en los <span className="font-black underline decoration-white/50">Tops del Momento</span>.
-                        </p>
-                    </div>
-                    <Flame className="absolute -bottom-6 -right-6 text-white/10 rotate-[-15deg] group-hover:scale-110 transition-transform duration-500" size={120} strokeWidth={1.5} />
-                </div>
-
-                {/* Vertical Grid Catalog */}
-                <div className="mt-2">
-                    <div className="flex justify-between items-end mb-4">
-                        <h2 className="text-xl font-black text-white uppercase tracking-tight">Catálogo</h2>
-                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Orden x Valor</span>
+                        <Gift className="absolute -bottom-4 -right-4 text-white/5 rotate-[-15deg] group-hover:scale-110 transition-transform duration-500" size={100} strokeWidth={1} />
                     </div>
                     
-                    <div className="grid grid-cols-3 gap-3">
-                        {sortedGifts.map((gift) => (
+                    {/* Grid Variedad */}
+                    {renderGiftGrid(variedadItems)}
+                </div>
+
+                {/* --- SECCIÓN LUCKY --- */}
+                <div>
+                    {/* Info Card */}
+                    <div className="bg-brand-purple p-6 rounded-[2rem] border border-violet-500 relative overflow-hidden group shadow-lg shadow-purple-900/20 mb-4">
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
+                                    <Clover size={20} className="text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-white uppercase leading-none">Súper Lucky</h3>
+                                    <p className="text-[10px] text-purple-200 font-bold uppercase tracking-wider">Regalo de la Suerte</p>
+                                </div>
+                            </div>
+                            <p className="text-xs text-purple-100 font-medium leading-relaxed mb-4 text-justify">
+                                Identifícalos por la etiqueta <span className="font-black bg-white/20 px-1 rounded text-[10px]">SP</span>. Al ser lanzados pueden multiplicarse x50.
+                            </p>
+                        </div>
+                        <Clover className="absolute -bottom-6 -right-6 text-white/10 rotate-[15deg] group-hover:rotate-0 transition-transform duration-500" size={120} strokeWidth={1.5} />
+                    </div>
+
+                    {/* Grid Lucky */}
+                    {renderGiftGrid(luckyItems)}
+                </div>
+
+                {/* --- SECCIÓN HOT --- */}
+                <div>
+                    {/* Info Card */}
+                    <div className="bg-orange-500 p-6 rounded-[2rem] border border-orange-400 relative overflow-hidden group shadow-lg shadow-orange-900/20 mb-4">
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
+                                    <Flame size={20} className="text-white" fill="currentColor" />
+                                </div>
+                                <h3 className="text-lg font-black text-white uppercase">Regalos HOT</h3>
+                            </div>
+                            <p className="text-xs text-orange-50 font-medium leading-relaxed text-justify">
+                                Generan alta interacción y elevan la flama de popularidad rápidamente.
+                            </p>
+                        </div>
+                        <Flame className="absolute -bottom-6 -right-6 text-white/10 rotate-[-15deg] group-hover:scale-110 transition-transform duration-500" size={120} strokeWidth={1.5} />
+                    </div>
+
+                    {/* Grid Hot (Special single large card for this item) */}
+                    <div className="grid grid-cols-1 gap-3">
+                        {hotItems.map((gift, idx) => (
                             <div 
-                                key={gift.id} 
-                                className="bg-[#151515] p-2 rounded-2xl border-2 border-white/20 flex flex-col items-center justify-center text-center group active:scale-[0.98] transition-all relative overflow-hidden aspect-square shadow-lg"
+                                key={idx} 
+                                className="bg-[#050505] p-6 rounded-3xl border border-white/20 flex items-center justify-between group active:scale-[0.98] transition-all relative overflow-hidden shadow-lg"
                             >
-                                {/* Value Tag */}
-                                <div className="absolute top-1.5 right-1.5 bg-black/60 border border-white/10 px-1.5 py-0.5 rounded backdrop-blur-sm z-10">
-                                    <div className="flex items-center space-x-0.5">
-                                        <span className="text-[8px] font-black text-white">{gift.value}</span>
-                                        <Star size={6} className="text-yellow-400 fill-yellow-400" />
+                                <div className="flex items-center gap-4 relative z-10">
+                                    <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center">
+                                        {gift.imageUrl ? <img src={gift.imageUrl} className="w-full h-full object-contain" /> : <Users className="text-white/30" />}
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-black text-white uppercase tracking-wider">{gift.name}</h4>
+                                        <div className="flex items-center space-x-1 mt-1">
+                                            <span className="text-xs font-bold text-gray-400">{gift.value}</span>
+                                            <Star size={8} className="text-yellow-400 fill-yellow-400" />
+                                        </div>
                                     </div>
                                 </div>
-
-                                {/* Image */}
-                                <div className="w-full h-full flex items-center justify-center p-2">
-                                    {gift.imageUrl ? (
-                                        <img src={gift.imageUrl} alt="" className="w-full h-full object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-300" />
-                                    ) : (
-                                        <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center">
-                                            <Gift size={18} className="text-white/20" />
-                                        </div>
-                                    )}
-                                </div>
+                                <ArrowUpRight className="text-white/30" />
                             </div>
                         ))}
                     </div>
                 </div>
+
             </div>
           )
       },
