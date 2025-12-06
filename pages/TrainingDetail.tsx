@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, PlayCircle, ExternalLink, X, ShieldAlert, Clock, Gavel, Crown, ArrowUpRight, Play, Pause, Share2, Info, CheckCircle2, Zap, LayoutGrid, Volume2, VolumeX, Maximize, Check, BookOpen, Layers, MonitorPlay } from 'lucide-react';
+import { Folder, PlayCircle, X, Clock, Play, Pause, Info, CheckCircle2, LayoutGrid, Volume2, VolumeX, Maximize, Table, Calculator, Wallet, CreditCard, ScrollText, ArrowUpRight, ShieldAlert, Gavel, Crown } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { useAuth } from '../context/AuthContext';
 import * as LucideIcons from 'lucide-react';
+import { TRAINING_MODULES as LOCAL_MODULES } from '../constants';
 
 const RESOURCE_VARIANTS = [
     {
@@ -130,9 +131,15 @@ const TrainingDetail: React.FC = () => {
 
   const liveDataSteps = [ "https://i.postimg.cc/gJkXHjq3/4_20251123_185808_0001.png", "https://i.postimg.cc/SsN2fR7W/5_20251123_185808_0002.png", "https://i.postimg.cc/ZRKBxnFN/6_20251123_185808_0003.png" ];
   
-  // VERIFICACIÓN DE VIDEO UNIVERSAL: Si tiene videoUrl y no es '#', muestra el reproductor
-  const hasVideo = module.videoUrl && module.videoUrl !== '#' && module.videoUrl.trim() !== '';
-  const videoSource = module.videoUrl;
+  // --- FALLBACK LOGIC ---
+  // Si la DB no trae video (es vacío o #), buscamos en el archivo local CONSTANTS
+  const localModule = LOCAL_MODULES.find(m => m.id === module.id);
+  const dbVideo = module.videoUrl;
+  const localVideo = localModule?.videoUrl;
+  
+  // Prioridad: DB > Local (solo si DB es válido)
+  const finalVideoUrl = (dbVideo && dbVideo !== '#' && dbVideo.trim() !== '') ? dbVideo : localVideo;
+  const hasVideo = finalVideoUrl && finalVideoUrl !== '#' && finalVideoUrl.trim() !== '';
 
   return (
     <div className="flex flex-col h-full w-full bg-[#F5F5F7] dark:bg-black text-brand-black dark:text-white relative font-sans overflow-hidden transition-colors duration-300">
@@ -178,9 +185,9 @@ const TrainingDetail: React.FC = () => {
                 onClick={() => { if(isPlaying) setShowControls(!showControls); }}
             >
                 <video
-                    key={videoSource} // CRÍTICO: Fuerza recarga si cambia el video
+                    key={finalVideoUrl}
                     ref={videoRef}
-                    src={videoSource}
+                    src={finalVideoUrl}
                     className="w-full h-full object-cover"
                     poster={module.imageUrl}
                     onTimeUpdate={handleTimeUpdate}

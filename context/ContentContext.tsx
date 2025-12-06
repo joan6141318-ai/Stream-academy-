@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { collection, onSnapshot, doc, updateDoc, setDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Banner, TrainingModule, HomeConfig, PKSchedule, ModuleStyle, GiftItem } from '../types';
@@ -12,66 +12,6 @@ export const hashString = async (message: string): Promise<string> => {
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 };
-
-// Datos iniciales de Banners (Solo memoria, no escritura automática)
-const INITIAL_BANNERS: Banner[] = [
-    {
-      id: 'banner-5',
-      tag: "GAMING",
-      tagColor: "bg-green-400 text-black",
-      title: "JUEGA DIVIÉRTETE Y APRENDE",
-      subtitle: "Juega y diviértete mientras mejoras tus habilidades.",
-      gradient: "from-indigo-600 via-purple-600 to-fuchsia-600",
-      image: "https://picsum.photos/1080/430?random=banner5",
-      shadow: "shadow-purple-500/20",
-      link: '/tools/gamer',
-      imagePosition: 'object-center'
-    },
-    {
-      id: 'banner-1',
-      tag: "NUEVO",
-      tagColor: "bg-white text-brand-black",
-      title: "TORNEO PK INTER-AGENCIAS",
-      subtitle: "Participa este fin de semana y gana bonos dobles.",
-      gradient: "from-pink-600 via-purple-600 to-indigo-600",
-      image: "https://picsum.photos/1080/430?random=banner1",
-      shadow: "shadow-pink-500/20",
-      imagePosition: 'object-center'
-    },
-    {
-      id: 'banner-2',
-      tag: "RECOMPENSA",
-      tagColor: "bg-yellow-400 text-black",
-      title: "BONO CRECIENTE ACTIVADO",
-      subtitle: "Completa 40 horas y recibe +$50 USD extra.",
-      gradient: "from-emerald-500 via-teal-500 to-cyan-600",
-      image: "https://picsum.photos/1080/430?random=banner2",
-      shadow: "shadow-emerald-500/20",
-      imagePosition: 'object-center'
-    },
-    {
-      id: 'banner-3',
-      tag: "MASTERCLASS",
-      tagColor: "bg-brand-black text-white",
-      title: "TALLER DE ILUMINACIÓN",
-      subtitle: "Mejora la calidad de tu stream hoy mismo.",
-      gradient: "from-orange-500 via-red-500 to-pink-600",
-      image: "https://picsum.photos/1080/430?random=banner3",
-      shadow: "shadow-orange-500/20",
-      imagePosition: 'object-center'
-    },
-    {
-      id: 'banner-4',
-      tag: "RANKING",
-      tagColor: "bg-blue-500 text-white",
-      title: "TOP 10 EMISORES DEL MES",
-      subtitle: "Consulta la tabla de posiciones actualizada.",
-      gradient: "from-blue-600 via-indigo-600 to-violet-600",
-      image: "https://picsum.photos/1080/430?random=banner4",
-      shadow: "shadow-blue-500/20",
-      imagePosition: 'object-center'
-    }
-];
 
 // Helper para asignar estilos iniciales
 const getInitialStyle = (id: string): ModuleStyle => {
@@ -96,27 +36,6 @@ const INITIAL_HOME_CONFIG: HomeConfig = {
     maintenanceMode: 'off'
 };
 
-const INITIAL_GIFTS: GiftItem[] = [
-    // VARIEDAD (New IDs v2 to force refresh)
-    { id: 'v2-1', name: "Flor", value: "1", category: 'variedad', order: 1, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080356.jpg?alt=media&token=43fbcf9b-e527-42ec-ad9b-50fac86309fa" },
-    { id: 'v2-2', name: "Mace", value: "100", category: 'variedad', order: 2, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080518.jpg?alt=media&token=8c00c88c-31ca-464b-845d-aacc50dfca96" },
-    { id: 'v2-3', name: "Crush", value: "100", category: 'variedad', order: 3, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080556.jpg?alt=media&token=d5d96aea-c4f6-46db-aa53-e46afeaad424" },
-    { id: 'v2-4', name: "Kismee", value: "500", category: 'variedad', order: 4, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080619.jpg?alt=media&token=edc6467b-d54c-4e51-afff-4423fd3fa8d3" },
-    { id: 'v2-5', name: "Luxury car", value: "40000", category: 'variedad', order: 5, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080711.jpg?alt=media&token=22fa1f90-0e75-4dd4-9e0d-22bb4105e09c" },
-    { id: 'v2-6', name: "Super dragón", value: "9999", category: 'variedad', order: 6, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080839.jpg?alt=media&token=08e399f4-c8f6-4fb0-b14e-e5548c34609c" },
-    { id: 'v2-7', name: "Gala dragón", value: "1000", category: 'variedad', order: 7, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_081105.jpg?alt=media&token=52c9ec8d-ac6c-4b6b-875f-6303560af2a3" },
-    { id: 'v2-8', name: "Yate de lujo", value: "20000", category: 'variedad', order: 8, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_081339.jpg?alt=media&token=d8d7a6cf-90bf-4581-a96c-40d3f7532008" },
-    
-    // LUCKY
-    { id: 'v2-9', name: "Campana", value: "5", category: 'lucky', order: 1, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082317.jpg?alt=media&token=bdd1c65d-1106-42ba-87db-ed9123fffc08" },
-    { id: 'v2-10', name: "Gold box", value: "20", category: 'lucky', order: 2, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082345.jpg?alt=media&token=7cf7e2a8-4c55-4485-8c06-9c9add518f0a" },
-    { id: 'v2-11', name: "Big win", value: "500", category: 'lucky', order: 3, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082408.jpg?alt=media&token=3b6b5e18-58ec-4706-9c24-5b4ebebc1661" },
-    { id: 'v2-12', name: "Mythical pegasus", value: "3000", category: 'lucky', order: 4, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080046.jpg?alt=media&token=b61ba601-1323-4a7a-a782-48c5c5e22e5c" },
-
-    // HOT
-    { id: 'v2-13', name: "Regalos Calientes", value: "10", category: 'hot', order: 1, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080311.jpg?alt=media&token=c244e596-789f-4dd1-ba8c-9608512558df" }
-];
-
 interface ContentContextType {
   banners: Banner[];
   modules: TrainingModule[];
@@ -136,133 +55,46 @@ interface ContentContextType {
 const ContentContext = createContext<ContentContextType | undefined>(undefined);
 
 export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [banners, setBanners] = useState<Banner[]>(INITIAL_BANNERS);
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [modules, setModules] = useState<TrainingModule[]>(INITIAL_MODULES.map(m => ({...m, style: getInitialStyle(m.id)})));
-  const [gifts, setGifts] = useState<GiftItem[]>(INITIAL_GIFTS);
+  const [gifts, setGifts] = useState<GiftItem[]>([]);
   const [homeConfig, setHomeConfig] = useState<HomeConfig>(INITIAL_HOME_CONFIG);
-  
-  // SOLUCIÓN 1: Estado de carga global gestionado
   const [loading, setLoading] = useState(true);
-  const loadingFlags = useRef({ banners: false, modules: false, config: false, gifts: false });
-  const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const checkLoading = () => {
-      if (loadingFlags.current.banners && loadingFlags.current.modules && loadingFlags.current.config && loadingFlags.current.gifts) {
-          if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
-          setLoading(false);
-      }
-  };
 
   useEffect(() => {
-    // SOLUCIÓN 2: Safety Timeout. Si Firebase falla, liberamos la app en 5 segundos.
-    safetyTimeoutRef.current = setTimeout(() => {
-        console.warn("Firebase timeout: Liberando aplicación con datos locales.");
-        setLoading(false);
-    }, 5000);
-
     if (!db) {
         setLoading(false);
         return;
     }
 
-    // 1. Listen Banners
     const unsubBanners = onSnapshot(collection(db, "banners"), (snapshot) => {
         if (!snapshot.empty) {
             const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Banner));
             setBanners(list);
         }
-        loadingFlags.current.banners = true;
-        checkLoading();
-    }, (error) => {
-        console.warn("Banners load failed (using default):", error.code);
-        loadingFlags.current.banners = true;
-        checkLoading();
     });
 
-    // 2. Listen Modules (WITH AGGRESSIVE VIDEO URL OVERRIDE FIX)
     const unsubModules = onSnapshot(collection(db, "modules"), (snapshot) => {
         if (!snapshot.empty) {
-            const list = snapshot.docs.map(d => {
-                const dbData = { id: d.id, ...d.data() } as TrainingModule;
-                
-                // --- CRITICAL FIX: Merge Local Constants with DB Data ---
-                // Si la DB tiene datos vacíos o placeholder, forzamos el local CONSTANTS
-                const localData = INITIAL_MODULES.find(m => m.id === d.id);
-                
-                if (localData) {
-                    // Validar si el video de la DB es inválido
-                    const dbVideoInvalid = !dbData.videoUrl || dbData.videoUrl === '#' || dbData.videoUrl.trim() === '';
-                    // Validar si el local tiene un video real
-                    const localVideoValid = localData.videoUrl && localData.videoUrl !== '#' && localData.videoUrl.trim() !== '';
-
-                    if (localVideoValid && dbVideoInvalid) {
-                        // Force Override with local constant
-                        dbData.videoUrl = localData.videoUrl;
-                    }
-                }
-
-                return dbData;
-            });
+            const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as TrainingModule));
             setModules(list);
         }
-        loadingFlags.current.modules = true;
-        checkLoading();
-    }, (error) => {
-        console.warn("Modules load failed (using default):", error.code);
-        loadingFlags.current.modules = true;
-        checkLoading();
     });
 
-    // 3. Listen Home Config
     const unsubConfig = onSnapshot(doc(db, "config", "home"), (docSnap) => {
         if (docSnap.exists()) {
             setHomeConfig(docSnap.data() as HomeConfig);
         }
-        loadingFlags.current.config = true;
-        checkLoading();
-    }, (error) => {
-        console.warn("Config load failed (using default):", error.code);
-        loadingFlags.current.config = true;
-        checkLoading();
+        setLoading(false); 
     });
 
-    // 4. Listen Gifts Config
     const unsubGifts = onSnapshot(doc(db, "config", "app_tour"), (docSnap) => {
-        let currentGifts: GiftItem[] = [];
-        
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            if (data.gifts && Array.isArray(data.gifts)) {
-                currentGifts = data.gifts;
-            }
+        if (docSnap.exists() && docSnap.data().gifts) {
+            setGifts(docSnap.data().gifts);
         }
-
-        // --- MERGE LOGIC UPDATED ---
-        const newGifts = INITIAL_GIFTS.filter(initGift => !currentGifts.some(g => g.id === initGift.id));
-        const cleanedCurrentGifts = currentGifts.filter(g => g.id.startsWith('v2-'));
-
-        const finalGifts = [...cleanedCurrentGifts, ...newGifts].map(g => {
-            const initial = INITIAL_GIFTS.find(ig => ig.id === g.id);
-            return {
-                ...g,
-                category: g.category || initial?.category || 'variedad',
-                order: g.order !== undefined ? g.order : (initial?.order || 99),
-                name: g.name || initial?.name || 'Regalo',
-                imageUrl: g.imageUrl || initial?.imageUrl || ''
-            };
-        });
-        
-        setGifts(finalGifts);
-        loadingFlags.current.gifts = true;
-        checkLoading();
-    }, (error) => {
-        console.warn("Gifts load failed (using default):", error.code);
-        loadingFlags.current.gifts = true;
-        checkLoading();
     });
 
     return () => {
-        if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
         unsubBanners();
         unsubModules();
         unsubConfig();
