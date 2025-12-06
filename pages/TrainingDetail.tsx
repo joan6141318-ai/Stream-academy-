@@ -186,6 +186,9 @@ const TrainingDetail: React.FC = () => {
   // DISEÑO ESPECIAL: BIGO LIVE (Clean Light)
   // ==========================================
   if (module.id === 'bigo-live') {
+      // FORCE VIDEO URL TO BYPASS ANY DB CACHE ISSUES
+      const forcedVideoUrl = 'https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Videos%2FUnleash%20Your%20Story%20and%20Embark%20on%20a%20Global%20Journey%20with%20Bigo%20Live!%20%F0%9F%8C%8E%F0%9F%8E%99%EF%B8%8F%F0%9F%93%BD%EF%B8%8FJoin%20the%20%23BigoFam%20toda.mp4?alt=media&token=e1107b22-5702-4f38-bc09-241c2b2fd691';
+
       return (
         <div className="flex flex-col h-full w-full bg-[#F5F5F7] text-brand-black relative font-sans overflow-hidden">
             
@@ -221,62 +224,57 @@ const TrainingDetail: React.FC = () => {
                     onMouseEnter={() => setShowControls(true)}
                     onMouseLeave={() => isPlaying && setShowControls(false)}
                 >
-                    {hasVideo ? (
-                        <>
-                            <video
-                                ref={videoRef}
-                                src={module.videoUrl}
-                                className="w-full h-full object-cover"
-                                poster={module.imageUrl}
-                                onTimeUpdate={handleTimeUpdate}
-                                onEnded={() => setIsPlaying(false)}
+                    {/* Always use forced video URL for this module to ensure update */}
+                    <video
+                        ref={videoRef}
+                        src={forcedVideoUrl}
+                        className="w-full h-full object-cover"
+                        poster={module.imageUrl}
+                        onTimeUpdate={handleTimeUpdate}
+                        onEnded={() => setIsPlaying(false)}
+                        onClick={togglePlay}
+                        playsInline
+                    />
+                    
+                    {/* Center Play Button (Visible when paused) */}
+                    {!isPlaying && (
+                        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/30 backdrop-blur-sm transition-opacity">
+                            <button 
                                 onClick={togglePlay}
-                                playsInline
-                            />
-                            
-                            {/* Center Play Button (Visible when paused) */}
-                            {!isPlaying && (
-                                <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/30 backdrop-blur-sm transition-opacity">
-                                    <button 
-                                        onClick={togglePlay}
-                                        className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md border border-white/30 shadow-2xl text-white hover:scale-110 transition-transform"
-                                    >
-                                        <Play size={28} fill="currentColor" className="ml-1" />
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* Controls Overlay */}
-                            <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-6 pb-6 pt-12 transition-opacity duration-300 ${showControls || !isPlaying ? 'opacity-100' : 'opacity-0'}`}>
-                                
-                                {/* Progress Bar */}
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    value={progress}
-                                    onChange={handleSeek}
-                                    className="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer mb-4 accent-white hover:accent-brand-purple"
-                                />
-
-                                <div className="flex items-center justify-between text-white">
-                                    <div className="flex items-center gap-4">
-                                        <button onClick={togglePlay} className="hover:text-gray-300 transition-colors">
-                                            {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
-                                        </button>
-                                        <button onClick={toggleMute} className="hover:text-gray-300 transition-colors">
-                                            {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-                                        </button>
-                                    </div>
-                                    <button onClick={toggleFullscreen} className="hover:text-gray-300 transition-colors">
-                                        <Maximize size={20} />
-                                    </button>
-                                </div>
-                            </div>
-                        </>
-                    ) : (
-                        <img src={module.imageUrl} className="w-full h-full object-cover opacity-80" />
+                                className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md border border-white/30 shadow-2xl text-white hover:scale-110 transition-transform"
+                            >
+                                <Play size={28} fill="currentColor" className="ml-1" />
+                            </button>
+                        </div>
                     )}
+
+                    {/* Controls Overlay */}
+                    <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-6 pb-6 pt-12 transition-opacity duration-300 ${showControls || !isPlaying ? 'opacity-100' : 'opacity-0'}`}>
+                        
+                        {/* Progress Bar */}
+                        <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            value={progress}
+                            onChange={handleSeek}
+                            className="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer mb-4 accent-white hover:accent-brand-purple"
+                        />
+
+                        <div className="flex items-center justify-between text-white">
+                            <div className="flex items-center gap-4">
+                                <button onClick={togglePlay} className="hover:text-gray-300 transition-colors">
+                                    {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
+                                </button>
+                                <button onClick={toggleMute} className="hover:text-gray-300 transition-colors">
+                                    {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                                </button>
+                            </div>
+                            <button onClick={toggleFullscreen} className="hover:text-gray-300 transition-colors">
+                                <Maximize size={20} />
+                            </button>
+                        </div>
+                    </div>
                     
                     {/* Badge Overlay */}
                     <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full z-20 shadow-lg pointer-events-none">
