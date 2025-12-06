@@ -243,12 +243,15 @@ const EditorDashboard: React.FC = () => {
                }
           } else if (editingItem.type === 'gift') {
               // Encontrar el regalo en la lista y actualizarlo
+              // FIX: Ensure order is a number, defaulting to 0 if NaN/empty
+              const safeOrder = parseInt(editingItem.order) || 0;
+              
               const updatedGifts = gifts.map(g => g.id === editingItem.id ? { 
                   ...g, 
                   value: editingItem.value,
                   name: editingItem.name,
                   category: editingItem.category,
-                  order: parseInt(editingItem.order)
+                  order: safeOrder
               } : g);
               await updateGifts(updatedGifts);
           }
@@ -515,7 +518,7 @@ const EditorDashboard: React.FC = () => {
                                 <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Orden</label>
                                 <input 
                                     type="number" 
-                                    value={editingItem.order || 99} 
+                                    value={editingItem.order} 
                                     onChange={(e) => setEditingItem({...editingItem, order: e.target.value})} 
                                     className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-xs font-bold text-center text-brand-black dark:text-white outline-none" 
                                 />
