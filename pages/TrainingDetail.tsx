@@ -131,21 +131,24 @@ const TrainingDetail: React.FC = () => {
 
   const liveDataSteps = [ "https://i.postimg.cc/gJkXHjq3/4_20251123_185808_0001.png", "https://i.postimg.cc/SsN2fR7W/5_20251123_185808_0002.png", "https://i.postimg.cc/ZRKBxnFN/6_20251123_185808_0003.png" ];
   
-  // --- LÓGICA DE VIDEO LIMPIA ---
-  // 1. Buscamos el módulo equivalente en el archivo local (constants.ts)
-  const localModule = LOCAL_MODULES.find(m => m.id === module.id);
+  // --- LÓGICA DE VIDEO INFALIBLE ---
+  // Intentamos encontrar el módulo local por ID o por Título si el ID de DB es diferente
+  const localModule = LOCAL_MODULES.find(m => m.id === module.id) || LOCAL_MODULES.find(m => m.title === module.title);
   
-  // 2. Extraemos las URLs
+  // Extraemos las URLs
   const dbVideo = module.videoUrl;
   const localVideo = localModule?.videoUrl;
   
-  // 3. Selección directa: Si la base de datos tiene un video válido (empieza con http), úsalo.
-  // Si no, usa el local. Esto corrige el problema si la DB tiene datos vacíos o rotos.
+  // Helper para validar URL real
+  const isValidUrl = (url: any) => typeof url === 'string' && url.trim().length > 0 && url.startsWith('http');
+
   let finalVideoUrl = null;
   
-  if (dbVideo && typeof dbVideo === 'string' && dbVideo.startsWith('http')) {
+  // Lógica: Si la base de datos tiene una URL válida, úsala.
+  // SI NO, usa la local.
+  if (isValidUrl(dbVideo)) {
       finalVideoUrl = dbVideo;
-  } else if (localVideo && typeof localVideo === 'string' && localVideo.startsWith('http')) {
+  } else if (isValidUrl(localVideo)) {
       finalVideoUrl = localVideo;
   }
 
