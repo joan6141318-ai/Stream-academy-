@@ -202,6 +202,12 @@ const AppTour: React.FC = () => {
   // Render Helper for Gift Grid
   const renderGiftGrid = (items: any[]) => (
     <div className="grid grid-cols-3 gap-3 mb-8">
+        <style>{`
+          @keyframes gift-float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-5px) scale(1.08); }
+          }
+        `}</style>
         {items.map((gift, idx) => (
             <div 
                 key={gift.id || idx} 
@@ -216,7 +222,14 @@ const AppTour: React.FC = () => {
                 {/* Image */}
                 <div className="w-full h-full flex items-center justify-center p-2">
                     {gift.imageUrl ? (
-                        <img src={gift.imageUrl} alt={gift.name} className="w-full h-full object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-300" />
+                        <img 
+                            src={gift.imageUrl} 
+                            alt={gift.name} 
+                            className="w-full h-full object-contain drop-shadow-lg"
+                            style={{ 
+                                animation: `gift-float ${3 + (idx % 3) * 0.7}s ease-in-out infinite` 
+                            }} 
+                        />
                     ) : (
                         <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center">
                             <Gift size={18} className="text-white/20" />
