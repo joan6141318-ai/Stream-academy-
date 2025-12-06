@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Smartphone, Gift, Radio, PenTool, ChevronLeft, ChevronRight, Star, ArrowUpRight, CheckCircle2, Info, Clover, Flame, HelpCircle, Users } from 'lucide-react';
+import { Smartphone, Gift, Radio, PenTool, ChevronLeft, ChevronRight, Star, ArrowUpRight, CheckCircle2, Info, Clover, Flame, HelpCircle, Users, Bean } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 
 // --- COMPONENTS ---
@@ -238,7 +238,7 @@ const AppTour: React.FC = () => {
                 <div className="absolute top-1.5 right-1.5 bg-black/60 border border-white/10 px-1.5 py-0.5 rounded backdrop-blur-sm z-10">
                     <div className="flex items-center space-x-0.5">
                         <span className="text-[8px] font-black text-white">{gift.value}</span>
-                        <Star size={6} className="text-yellow-400 fill-yellow-400" />
+                        <Bean size={8} className="text-yellow-400 fill-yellow-400" />
                     </div>
                 </div>
 
@@ -251,11 +251,6 @@ const AppTour: React.FC = () => {
                             <Gift size={18} className="text-white/20" />
                         </div>
                     )}
-                </div>
-                
-                {/* Name Label */}
-                <div className="absolute bottom-1 w-full px-1">
-                    <p className="text-[7px] font-bold text-gray-500 uppercase truncate">{gift.name}</p>
                 </div>
             </div>
         ))}
@@ -408,7 +403,7 @@ const AppTour: React.FC = () => {
                                         <h4 className="text-sm font-black text-white uppercase tracking-wider">{gift.name}</h4>
                                         <div className="flex items-center space-x-1 mt-1">
                                             <span className="text-xs font-bold text-gray-400">{gift.value}</span>
-                                            <Star size={8} className="text-yellow-400 fill-yellow-400" />
+                                            <Bean size={8} className="text-yellow-400 fill-yellow-400" />
                                         </div>
                                     </div>
                                 </div>
