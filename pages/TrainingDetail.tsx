@@ -131,9 +131,7 @@ const TrainingDetail: React.FC = () => {
 
   const liveDataSteps = [ "https://i.postimg.cc/gJkXHjq3/4_20251123_185808_0001.png", "https://i.postimg.cc/SsN2fR7W/5_20251123_185808_0002.png", "https://i.postimg.cc/ZRKBxnFN/6_20251123_185808_0003.png" ];
   
-  // --- LÓGICA DE VIDEO ROBUSTA ---
-  // Esta función decide qué video mostrar. Prioriza la DB solo si es válida.
-  // Si la DB tiene basura (#, vacio, null), usa el Local.
+  // --- LÓGICA DE VIDEO (MODO ESTRICTO LOCAL) ---
   const getValidVideoUrl = () => {
       const dbVideo = module.videoUrl;
       const localModule = LOCAL_MODULES.find(m => m.id === module.id);
@@ -144,14 +142,16 @@ const TrainingDetail: React.FC = () => {
           return url && typeof url === 'string' && url.length > 10 && (url.startsWith('http') || url.startsWith('https'));
       };
 
-      // Si la DB tiene video y es válido, lo usamos.
-      if (isValidUrl(dbVideo)) {
-          return dbVideo;
-      }
-      
-      // Fallback: Si DB falla o está vacía, usamos local.
+      // 1. PRIORIDAD ABSOLUTA: LOCAL
+      // Si el código tiene un video válido, lo usa ignorando la base de datos.
       if (isValidUrl(localVideo)) {
           return localVideo;
+      }
+
+      // 2. FALLBACK: DB
+      // Solo si el código no tiene video, buscamos en la base de datos.
+      if (isValidUrl(dbVideo)) {
+          return dbVideo;
       }
 
       return null;
