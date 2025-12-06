@@ -139,14 +139,17 @@ const TrainingDetail: React.FC = () => {
       const localModule = LOCAL_MODULES.find(m => m.id === module.id);
       const localVideo = localModule?.videoUrl;
 
+      // Helper validación estricta
       const isValidUrl = (url: any) => {
-          return url && typeof url === 'string' && url.length > 10 && url.startsWith('http');
+          return url && typeof url === 'string' && url.length > 10 && (url.startsWith('http') || url.startsWith('https'));
       };
 
+      // Si la DB tiene video y es válido, lo usamos.
       if (isValidUrl(dbVideo)) {
           return dbVideo;
       }
       
+      // Fallback: Si DB falla o está vacía, usamos local.
       if (isValidUrl(localVideo)) {
           return localVideo;
       }
