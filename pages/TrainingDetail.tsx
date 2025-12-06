@@ -131,9 +131,10 @@ const TrainingDetail: React.FC = () => {
 
   const liveDataSteps = [ "https://i.postimg.cc/gJkXHjq3/4_20251123_185808_0001.png", "https://i.postimg.cc/SsN2fR7W/5_20251123_185808_0002.png", "https://i.postimg.cc/ZRKBxnFN/6_20251123_185808_0003.png" ];
   
-  // --- LÓGICA DE VIDEO INFALIBLE ---
-  // Intentamos encontrar el módulo local por ID o por Título si el ID de DB es diferente
-  const localModule = LOCAL_MODULES.find(m => m.id === module.id) || LOCAL_MODULES.find(m => m.title === module.title);
+  // --- LÓGICA DE VIDEO INFALIBLE V3 ---
+  // Buscamos el módulo local usando DIRECTAMENTE el ID de la URL (topicId)
+  // Esto evita problemas si el objeto 'module' de la DB tiene datos incompletos.
+  const localModule = LOCAL_MODULES.find(m => m.id === topicId);
   
   // Extraemos las URLs
   const dbVideo = module.videoUrl;
@@ -144,8 +145,9 @@ const TrainingDetail: React.FC = () => {
 
   let finalVideoUrl = null;
   
-  // Lógica: Si la base de datos tiene una URL válida, úsala.
-  // SI NO, usa la local.
+  // Lógica de Prioridad:
+  // 1. Si la DB tiene un link válido, usarlo.
+  // 2. Si no, usar el local.
   if (isValidUrl(dbVideo)) {
       finalVideoUrl = dbVideo;
   } else if (isValidUrl(localVideo)) {
