@@ -131,15 +131,24 @@ const TrainingDetail: React.FC = () => {
 
   const liveDataSteps = [ "https://i.postimg.cc/gJkXHjq3/4_20251123_185808_0001.png", "https://i.postimg.cc/SsN2fR7W/5_20251123_185808_0002.png", "https://i.postimg.cc/ZRKBxnFN/6_20251123_185808_0003.png" ];
   
-  // --- FALLBACK LOGIC ROBUSTA Y SIMPLE ---
+  // --- LÓGICA DE VIDEO LIMPIA ---
+  // 1. Buscamos el módulo equivalente en el archivo local (constants.ts)
   const localModule = LOCAL_MODULES.find(m => m.id === module.id);
+  
+  // 2. Extraemos las URLs
   const dbVideo = module.videoUrl;
   const localVideo = localModule?.videoUrl;
   
-  // Regla simple: Si la DB tiene un link que empieza con http, úsalo. Si no, usa el local si es válido.
-  const isValidUrl = (url: string | undefined) => url && typeof url === 'string' && url.trim().length > 0 && url.startsWith('http');
+  // 3. Selección directa: Si la base de datos tiene un video válido (empieza con http), úsalo.
+  // Si no, usa el local. Esto corrige el problema si la DB tiene datos vacíos o rotos.
+  let finalVideoUrl = null;
   
-  const finalVideoUrl = isValidUrl(dbVideo) ? dbVideo : (isValidUrl(localVideo) ? localVideo : null);
+  if (dbVideo && typeof dbVideo === 'string' && dbVideo.startsWith('http')) {
+      finalVideoUrl = dbVideo;
+  } else if (localVideo && typeof localVideo === 'string' && localVideo.startsWith('http')) {
+      finalVideoUrl = localVideo;
+  }
+
   const hasVideo = !!finalVideoUrl;
 
   return (
@@ -188,7 +197,7 @@ const TrainingDetail: React.FC = () => {
                 <video
                     key={finalVideoUrl}
                     ref={videoRef}
-                    src={finalVideoUrl}
+                    src={finalVideoUrl || ''}
                     className="w-full h-full object-cover"
                     poster={module.imageUrl}
                     onTimeUpdate={handleTimeUpdate}
