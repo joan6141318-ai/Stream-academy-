@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { collection, onSnapshot, doc, updateDoc, setDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
@@ -178,10 +179,30 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         checkLoading();
     });
 
-    // 2. Listen Modules
+    // 2. Listen Modules (WITH AGGRESSIVE VIDEO URL OVERRIDE FIX)
     const unsubModules = onSnapshot(collection(db, "modules"), (snapshot) => {
         if (!snapshot.empty) {
-            const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as TrainingModule));
+            const list = snapshot.docs.map(d => {
+                const dbData = { id: d.id, ...d.data() } as TrainingModule;
+                
+                // --- CRITICAL FIX: Merge Local Constants with DB Data ---
+                // Si la DB tiene datos vacíos o placeholder, forzamos el local CONSTANTS
+                const localData = INITIAL_MODULES.find(m => m.id === d.id);
+                
+                if (localData) {
+                    // Validar si el video de la DB es inválido
+                    const dbVideoInvalid = !dbData.videoUrl || dbData.videoUrl === '#' || dbData.videoUrl.trim() === '';
+                    // Validar si el local tiene un video real
+                    const localVideoValid = localData.videoUrl && localData.videoUrl !== '#' && localData.videoUrl.trim() !== '';
+
+                    if (localVideoValid && dbVideoInvalid) {
+                        // Force Override with local constant
+                        dbData.videoUrl = localData.videoUrl;
+                    }
+                }
+
+                return dbData;
+            });
             setModules(list);
         }
         loadingFlags.current.modules = true;
@@ -217,17 +238,13 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
 
         // --- MERGE LOGIC UPDATED ---
-        // Prioritize updated INITIAL structure (V2 IDs) to force refresh if old IDs persist
         const newGifts = INITIAL_GIFTS.filter(initGift => !currentGifts.some(g => g.id === initGift.id));
-        
-        // Remove old IDs that are not in V2 structure anymore (Cleanup)
         const cleanedCurrentGifts = currentGifts.filter(g => g.id.startsWith('v2-'));
 
         const finalGifts = [...cleanedCurrentGifts, ...newGifts].map(g => {
             const initial = INITIAL_GIFTS.find(ig => ig.id === g.id);
             return {
                 ...g,
-                // Ensure properties exist if old data doesn't have them
                 category: g.category || initial?.category || 'variedad',
                 order: g.order !== undefined ? g.order : (initial?.order || 99),
                 name: g.name || initial?.name || 'Regalo',

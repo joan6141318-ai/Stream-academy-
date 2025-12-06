@@ -178,6 +178,7 @@ const TrainingDetail: React.FC = () => {
                 onClick={() => { if(isPlaying) setShowControls(!showControls); }}
             >
                 <video
+                    key={videoSource} // CRÍTICO: Fuerza recarga si cambia el video
                     ref={videoRef}
                     src={videoSource}
                     className="w-full h-full object-cover"
