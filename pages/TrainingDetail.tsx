@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, PlayCircle, ExternalLink, X, ShieldAlert, Clock, Gavel, Crown, ArrowUpRight, Play, Share2, Info, CheckCircle2, Zap, LayoutGrid } from 'lucide-react';
+import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, PlayCircle, ExternalLink, X, ShieldAlert, Clock, Gavel, Crown, ArrowUpRight, Play, Pause, Share2, Info, CheckCircle2, Zap, LayoutGrid, Volume2, VolumeX, Maximize } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { Button } from '../components/Button';
 import * as LucideIcons from 'lucide-react';
@@ -59,6 +59,13 @@ const TrainingDetail: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
 
+  // VIDEO PLAYER STATES
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+
   useEffect(() => {
       if (modules.length > 0) {
           const found = modules.find(m => m.id === topicId);
@@ -86,7 +93,7 @@ const TrainingDetail: React.FC = () => {
       };
   }, [topicId]);
 
-  // Auto-scroll logic
+  // Auto-scroll logic for Live Data
   useEffect(() => {
     const scrollContainer = scrollRef.current;
     if (!scrollContainer || isPaused) return;
@@ -103,6 +110,43 @@ const TrainingDetail: React.FC = () => {
     animationFrameId = requestAnimationFrame(scroll);
     return () => cancelAnimationFrame(animationFrameId);
   }, [isPaused]);
+
+  // Video Player Logic
+  const togglePlay = () => {
+      if (!videoRef.current) return;
+      if (isPlaying) {
+          videoRef.current.pause();
+      } else {
+          videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+  };
+
+  const handleTimeUpdate = () => {
+      if (!videoRef.current) return;
+      const progress = (videoRef.current.currentTime / videoRef.current.duration) * 100;
+      setProgress(progress);
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!videoRef.current) return;
+      const time = (parseFloat(e.target.value) / 100) * videoRef.current.duration;
+      videoRef.current.currentTime = time;
+      setProgress(parseFloat(e.target.value));
+  };
+
+  const toggleMute = () => {
+      if (!videoRef.current) return;
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+  };
+
+  const toggleFullscreen = () => {
+      if (!videoRef.current) return;
+      if (videoRef.current.requestFullscreen) {
+          videoRef.current.requestFullscreen();
+      }
+  };
 
   const getResourceIcon = (iconName?: string, type?: string) => {
     if (iconName && (LucideIcons as any)[iconName]) {
@@ -171,22 +215,71 @@ const TrainingDetail: React.FC = () => {
                     </p>
                 </div>
 
-                {/* 1. VIDEO PLAYER CARD */}
-                <div className="w-full aspect-[4/3] bg-black rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 border-[5px] border-white relative mb-6">
+                {/* 1. CUSTOM VIDEO PLAYER CARD */}
+                <div 
+                    className="w-full aspect-[4/3] bg-black rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 border-[5px] border-white relative mb-6 group"
+                    onMouseEnter={() => setShowControls(true)}
+                    onMouseLeave={() => isPlaying && setShowControls(false)}
+                >
                     {hasVideo ? (
-                        <iframe 
-                            src={module.videoUrl} 
-                            title="Bigo Intro" 
-                            className="w-full h-full object-cover" 
-                            allow="autoplay; fullscreen; picture-in-picture" 
-                            allowFullScreen
-                        ></iframe>
+                        <>
+                            <video
+                                ref={videoRef}
+                                src={module.videoUrl}
+                                className="w-full h-full object-cover"
+                                poster={module.imageUrl}
+                                onTimeUpdate={handleTimeUpdate}
+                                onEnded={() => setIsPlaying(false)}
+                                onClick={togglePlay}
+                                playsInline
+                            />
+                            
+                            {/* Center Play Button (Visible when paused) */}
+                            {!isPlaying && (
+                                <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/30 backdrop-blur-sm transition-opacity">
+                                    <button 
+                                        onClick={togglePlay}
+                                        className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md border border-white/30 shadow-2xl text-white hover:scale-110 transition-transform"
+                                    >
+                                        <Play size={28} fill="currentColor" className="ml-1" />
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Controls Overlay */}
+                            <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-6 pb-6 pt-12 transition-opacity duration-300 ${showControls || !isPlaying ? 'opacity-100' : 'opacity-0'}`}>
+                                
+                                {/* Progress Bar */}
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    value={progress}
+                                    onChange={handleSeek}
+                                    className="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer mb-4 accent-white hover:accent-brand-purple"
+                                />
+
+                                <div className="flex items-center justify-between text-white">
+                                    <div className="flex items-center gap-4">
+                                        <button onClick={togglePlay} className="hover:text-gray-300 transition-colors">
+                                            {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
+                                        </button>
+                                        <button onClick={toggleMute} className="hover:text-gray-300 transition-colors">
+                                            {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                                        </button>
+                                    </div>
+                                    <button onClick={toggleFullscreen} className="hover:text-gray-300 transition-colors">
+                                        <Maximize size={20} />
+                                    </button>
+                                </div>
+                            </div>
+                        </>
                     ) : (
                         <img src={module.imageUrl} className="w-full h-full object-cover opacity-80" />
                     )}
                     
                     {/* Badge Overlay */}
-                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full z-10 shadow-lg">
+                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full z-20 shadow-lg pointer-events-none">
                         <span className="text-[9px] font-black uppercase tracking-widest text-black flex items-center gap-1.5">
                             <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                             Video
