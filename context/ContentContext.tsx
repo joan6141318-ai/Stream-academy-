@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { collection, onSnapshot, doc, updateDoc, setDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
@@ -97,24 +96,24 @@ const INITIAL_HOME_CONFIG: HomeConfig = {
 };
 
 const INITIAL_GIFTS: GiftItem[] = [
-    // VARIEDAD
-    { id: '1', name: "Flor", value: "1", category: 'variedad', order: 1, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080356.jpg?alt=media&token=43fbcf9b-e527-42ec-ad9b-50fac86309fa" },
-    { id: '2', name: "Mace", value: "100", category: 'variedad', order: 2, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080518.jpg?alt=media&token=8c00c88c-31ca-464b-845d-aacc50dfca96" },
-    { id: '3', name: "Crush", value: "100", category: 'variedad', order: 3, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080556.jpg?alt=media&token=d5d96aea-c4f6-46db-aa53-e46afeaad424" },
-    { id: '4', name: "Kismee", value: "500", category: 'variedad', order: 4, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080619.jpg?alt=media&token=edc6467b-d54c-4e51-afff-4423fd3fa8d3" },
-    { id: '5', name: "Luxury car", value: "40000", category: 'variedad', order: 5, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080711.jpg?alt=media&token=22fa1f90-0e75-4dd4-9e0d-22bb4105e09c" },
-    { id: '6', name: "Super dragón", value: "9999", category: 'variedad', order: 6, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080839.jpg?alt=media&token=08e399f4-c8f6-4fb0-b14e-e5548c34609c" },
-    { id: '7', name: "Gala dragón", value: "1000", category: 'variedad', order: 7, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_081105.jpg?alt=media&token=52c9ec8d-ac6c-4b6b-875f-6303560af2a3" },
-    { id: '8', name: "Yate de lujo", value: "20000", category: 'variedad', order: 8, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_081339.jpg?alt=media&token=d8d7a6cf-90bf-4581-a96c-40d3f7532008" },
+    // VARIEDAD (New IDs v2 to force refresh)
+    { id: 'v2-1', name: "Flor", value: "1", category: 'variedad', order: 1, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080356.jpg?alt=media&token=43fbcf9b-e527-42ec-ad9b-50fac86309fa" },
+    { id: 'v2-2', name: "Mace", value: "100", category: 'variedad', order: 2, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080518.jpg?alt=media&token=8c00c88c-31ca-464b-845d-aacc50dfca96" },
+    { id: 'v2-3', name: "Crush", value: "100", category: 'variedad', order: 3, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080556.jpg?alt=media&token=d5d96aea-c4f6-46db-aa53-e46afeaad424" },
+    { id: 'v2-4', name: "Kismee", value: "500", category: 'variedad', order: 4, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080619.jpg?alt=media&token=edc6467b-d54c-4e51-afff-4423fd3fa8d3" },
+    { id: 'v2-5', name: "Luxury car", value: "40000", category: 'variedad', order: 5, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080711.jpg?alt=media&token=22fa1f90-0e75-4dd4-9e0d-22bb4105e09c" },
+    { id: 'v2-6', name: "Super dragón", value: "9999", category: 'variedad', order: 6, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080839.jpg?alt=media&token=08e399f4-c8f6-4fb0-b14e-e5548c34609c" },
+    { id: 'v2-7', name: "Gala dragón", value: "1000", category: 'variedad', order: 7, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_081105.jpg?alt=media&token=52c9ec8d-ac6c-4b6b-875f-6303560af2a3" },
+    { id: 'v2-8', name: "Yate de lujo", value: "20000", category: 'variedad', order: 8, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_081339.jpg?alt=media&token=d8d7a6cf-90bf-4581-a96c-40d3f7532008" },
     
     // LUCKY
-    { id: '9', name: "Campana", value: "5", category: 'lucky', order: 1, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082317.jpg?alt=media&token=bdd1c65d-1106-42ba-87db-ed9123fffc08" },
-    { id: '10', name: "Gold box", value: "20", category: 'lucky', order: 2, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082345.jpg?alt=media&token=7cf7e2a8-4c55-4485-8c06-9c9add518f0a" },
-    { id: '11', name: "Big win", value: "500", category: 'lucky', order: 3, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082408.jpg?alt=media&token=3b6b5e18-58ec-4706-9c24-5b4ebebc1661" },
-    { id: '12', name: "Mythical pegasus", value: "3000", category: 'lucky', order: 4, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080046.jpg?alt=media&token=b61ba601-1323-4a7a-a782-48c5c5e22e5c" },
+    { id: 'v2-9', name: "Campana", value: "5", category: 'lucky', order: 1, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082317.jpg?alt=media&token=bdd1c65d-1106-42ba-87db-ed9123fffc08" },
+    { id: 'v2-10', name: "Gold box", value: "20", category: 'lucky', order: 2, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082345.jpg?alt=media&token=7cf7e2a8-4c55-4485-8c06-9c9add518f0a" },
+    { id: 'v2-11', name: "Big win", value: "500", category: 'lucky', order: 3, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082408.jpg?alt=media&token=3b6b5e18-58ec-4706-9c24-5b4ebebc1661" },
+    { id: 'v2-12', name: "Mythical pegasus", value: "3000", category: 'lucky', order: 4, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080046.jpg?alt=media&token=b61ba601-1323-4a7a-a782-48c5c5e22e5c" },
 
     // HOT
-    { id: '13', name: "Regalos Calientes", value: "10", category: 'hot', order: 1, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080311.jpg?alt=media&token=c244e596-789f-4dd1-ba8c-9608512558df" }
+    { id: 'v2-13', name: "Regalos Calientes", value: "10", category: 'hot', order: 1, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080311.jpg?alt=media&token=c244e596-789f-4dd1-ba8c-9608512558df" }
 ];
 
 interface ContentContextType {
@@ -217,29 +216,30 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }
         }
 
-        // Merge logic: Add missing gifts from INITIAL if not present in Firestore
-        // Also update any properties that might be missing in old data (like category or order)
-        const missingGifts = INITIAL_GIFTS.filter(initGift => !currentGifts.some(g => g.id === initGift.id));
+        // --- MERGE LOGIC UPDATED ---
+        // Prioritize updated INITIAL structure (V2 IDs) to force refresh if old IDs persist
+        const newGifts = INITIAL_GIFTS.filter(initGift => !currentGifts.some(g => g.id === initGift.id));
         
-        const finalGifts = [...currentGifts, ...missingGifts].map(g => {
-            // Check if this gift is one of the initial ones to force its initial config if fields are missing
+        // Remove old IDs that are not in V2 structure anymore (Cleanup)
+        const cleanedCurrentGifts = currentGifts.filter(g => g.id.startsWith('v2-'));
+
+        const finalGifts = [...cleanedCurrentGifts, ...newGifts].map(g => {
             const initial = INITIAL_GIFTS.find(ig => ig.id === g.id);
             return {
                 ...g,
+                // Ensure properties exist if old data doesn't have them
                 category: g.category || initial?.category || 'variedad',
                 order: g.order !== undefined ? g.order : (initial?.order || 99),
-                name: g.name || initial?.name || 'Regalo'
+                name: g.name || initial?.name || 'Regalo',
+                imageUrl: g.imageUrl || initial?.imageUrl || ''
             };
         });
         
-        setGifts(finalGifts as GiftItem[]);
-        
+        setGifts(finalGifts);
         loadingFlags.current.gifts = true;
         checkLoading();
     }, (error) => {
         console.warn("Gifts load failed (using default):", error.code);
-        // Fallback to initial
-        setGifts(INITIAL_GIFTS);
         loadingFlags.current.gifts = true;
         checkLoading();
     });
@@ -253,45 +253,35 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, []);
 
-  // --- CRUD Operations ---
-
   const updateBanner = async (id: string, data: Partial<Banner>) => {
-    setBanners(prev => prev.map(b => b.id === id ? { ...b, ...data } : b));
-    if(!db) return;
-    try { await updateDoc(doc(db, "banners", String(id)), data); } catch (e) { console.error("Update failed", e); }
+      if (!db) return;
+      await updateDoc(doc(db, "banners", id), data);
   };
 
   const updateModule = async (id: string, data: Partial<TrainingModule>) => {
-    setModules(prev => prev.map(m => m.id === id ? { ...m, ...data } : m));
-    if(!db) return;
-    try { await updateDoc(doc(db, "modules", id), data); } catch (e) { console.error("Update failed", e); }
+      if (!db) return;
+      await updateDoc(doc(db, "modules", id), data);
   };
 
   const updateHomeConfig = async (data: Partial<HomeConfig>) => {
-      setHomeConfig(prev => ({ ...prev, ...data }));
       if (!db) return;
-      try { await setDoc(doc(db, "config", "home"), data, { merge: true }); } catch (e) { console.error("Update failed", e); }
+      await setDoc(doc(db, "config", "home"), data, { merge: true });
   };
 
   const updateGifts = async (newGifts: GiftItem[]) => {
-      setGifts(newGifts);
       if (!db) return;
-      try { await setDoc(doc(db, "config", "app_tour"), { gifts: newGifts }, { merge: true }); } catch (e) { console.error("Update failed", e); }
-  }
+      await setDoc(doc(db, "config", "app_tour"), { gifts: newGifts }, { merge: true });
+  };
 
   const updatePKSchedule = async (data: PKSchedule) => {
       if (!db) return;
-      try { await setDoc(doc(db, "schedules", "main"), data); } catch (e) { console.error("Update failed", e); }
+      await setDoc(doc(db, "schedules", "main"), data);
   };
 
   const addPKRequest = async (date: string, bigoId: string, userId: string) => {
-      if (!db) throw new Error("Database not connected");
+      if (!db) return;
       await addDoc(collection(db, "pk_requests"), {
-          date,
-          bigoId,
-          userId,
-          status: 'pending',
-          createdAt: Date.now()
+          date, bigoId, userId, status: 'pending', createdAt: Date.now()
       });
   };
 
@@ -307,9 +297,9 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   return (
     <ContentContext.Provider value={{ 
-        banners, modules, homeConfig, gifts, loading, 
-        updateBanner, updateModule, updateHomeConfig, updateGifts, updatePKSchedule, 
-        addPKRequest, updatePKRequestStatus, deletePKRequest 
+        banners, modules, gifts, homeConfig, loading, 
+        updateBanner, updateModule, updateHomeConfig, updateGifts, 
+        updatePKSchedule, addPKRequest, updatePKRequestStatus, deletePKRequest 
     }}>
       {children}
     </ContentContext.Provider>
