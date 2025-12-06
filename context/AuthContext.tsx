@@ -8,7 +8,7 @@ import {
   updateProfile as updateAuthProfile,
   sendEmailVerification
 } from "firebase/auth";
-import { doc, setDoc, arrayUnion, onSnapshot, Unsubscribe } from "firebase/firestore";
+import { doc, setDoc, arrayUnion, onSnapshot, Unsubscribe, updateDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from '../firebaseConfig';
 import { DATA_VERSION } from '../constants';
@@ -36,6 +36,7 @@ interface AuthContextType {
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<void>;
   uploadPhoto: (file: Blob, base64Fallback?: string) => Promise<string>;
+  logAction: (action: string, type?: string) => Promise<void>; // New function exposed
   isAuthenticated: boolean;
   loading: boolean;
 }
@@ -134,6 +135,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (unsubscribeFirestore) unsubscribeFirestore();
     };
   }, []); 
+
+  // --- HELPER LOGGING ---
+  const logAction = async (action: string, type: string = 'info') => {
+      if (!user || !db) return;
+      try {
+          const now = new Date();
+          const newLog: ActivityLog = {
+              action,
+              timestamp: now.toISOString(),
+              device: navigator.userAgent.match(/\(([^)]+)\)/)?.[1] || 'Web Browser',
+              type: type as any
+          };
+          const userRef = doc(db, "users", user.id);
+          await updateDoc(userRef, {
+              accessLogs: arrayUnion(newLog)
+          });
+      } catch (e) {
+          console.warn("Logging failed", e);
+      }
+  };
 
   // --- LOGIN ---
   const login = async (email: string, pass: string) => {
@@ -242,7 +263,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, updateProfile, uploadPhoto, isAuthenticated: !!user, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateProfile, uploadPhoto, logAction, isAuthenticated: !!user, loading }}>
       {children}
     </AuthContext.Provider>
   );

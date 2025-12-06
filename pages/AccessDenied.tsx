@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { UserX, MessageCircle, LogOut, Shield, Lock } from 'lucide-react';
+import { UserX, MessageCircle, LogOut, Shield, Lock, Activity } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,58 +21,53 @@ const AccessDenied: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen w-full bg-white dark:bg-black items-center justify-center p-8 relative overflow-hidden transition-colors duration-300">
+    <div className="flex flex-col h-screen w-full bg-[#0a0a0a] items-center justify-center p-8 relative overflow-hidden transition-colors duration-300">
       
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-purple/5 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none"></div>
+      {/* Background Pulse Animation */}
+      <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-[500px] h-[500px] bg-red-600/10 rounded-full blur-[100px] animate-pulse"></div>
+      </div>
 
       <div className="relative z-10 text-center max-w-sm flex flex-col items-center">
           
-          <div className="relative mb-8 group">
-              <div className="absolute -inset-4 bg-brand-purple/20 rounded-full blur-xl animate-pulse"></div>
-              <div className="relative w-28 h-28 bg-white dark:bg-[#121212] rounded-full flex items-center justify-center shadow-2xl border-4 border-white dark:border-white/10 z-10">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-brand-purple to-fuchsia-600 flex items-center justify-center shadow-inner relative overflow-hidden">
-                      <div className="absolute top-0 left-0 w-full h-1/2 bg-white/10 rounded-t-full"></div>
-                      <UserX size={40} className="text-white drop-shadow-md relative z-10" strokeWidth={2} />
-                      <div className="absolute inset-0 opacity-20">
-                          <Shield size={80} className="absolute -bottom-4 -right-4 text-black rotate-[-15deg]" />
-                      </div>
-                  </div>
+          {/* Animated Icon Container */}
+          <div className="relative mb-10 group">
+              <div className="absolute -inset-4 bg-red-500/20 rounded-full blur-xl animate-[pulse_2s_infinite]"></div>
+              <div className="relative w-32 h-32 bg-[#121212] rounded-full flex items-center justify-center shadow-2xl border-[3px] border-red-500/30 z-10 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-red-900/40 to-transparent opacity-50"></div>
+                  <UserX size={48} className="text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)] relative z-10 animate-[bounce_3s_infinite]" strokeWidth={2} />
+                  
+                  {/* Radar Scan Effect */}
+                  <div className="absolute inset-0 border-t-2 border-red-500/50 rounded-full animate-[spin_4s_linear_infinite] shadow-[0_0_20px_rgba(239,68,68,0.2)]"></div>
               </div>
-              <div className="absolute bottom-0 right-0 z-20 bg-white dark:bg-black p-1.5 rounded-full shadow-lg border border-gray-100 dark:border-white/10">
-                  <div className="bg-brand-purple rounded-full p-1.5 text-white">
-                      <Lock size={12} strokeWidth={3} />
-                  </div>
+              <div className="absolute bottom-0 right-0 z-20 bg-red-600 p-2 rounded-full shadow-lg border-4 border-[#0a0a0a]">
+                  <Lock size={14} strokeWidth={3} className="text-white" />
               </div>
           </div>
 
-          <h1 className="text-2xl font-black text-brand-black dark:text-white uppercase tracking-tighter mb-4 leading-none">
-              Acceso Restringido
+          <h1 className="text-3xl font-black text-white uppercase tracking-tighter mb-4 leading-[0.9]">
+              Acceso<br/><span className="text-red-600">Restringido</span>
           </h1>
 
-          <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-2xl border border-gray-100 dark:border-white/10 mb-8 shadow-sm">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-300 leading-relaxed text-center">
-                  Tu cuenta presenta un bloqueo activo. Contacta a tu administrador para regularizar tu situación.
-              </p>
-              <div className="w-10 h-1 bg-gray-200 dark:bg-white/10 mx-auto my-4 rounded-full"></div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                  ID: {user?.id || 'Desconocido'}
+          <div className="bg-red-500/10 p-6 rounded-3xl border border-red-500/20 mb-8 shadow-inner relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
+              <p className="text-sm font-medium text-gray-300 leading-relaxed text-center relative z-10">
+                  "Lo sentimos está herramienta solo está disponible para emisores activos te invitamos a unirte a nuestro equipo"
               </p>
           </div>
 
           <div className="w-full space-y-3">
               <button 
                 onClick={() => window.location.reload()}
-                className="w-full h-14 bg-brand-black dark:bg-white text-white dark:text-black rounded-xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center space-x-2"
+                className="w-full h-14 bg-white text-black rounded-xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center space-x-2 hover:bg-gray-200"
               >
-                  <MessageCircle size={18} />
+                  <Activity size={18} />
                   <span>Verificar Estado</span>
               </button>
 
               <button 
                 onClick={handleLogout}
-                className="w-full h-14 bg-transparent border border-gray-200 dark:border-white/20 text-gray-400 hover:text-brand-black dark:hover:text-white rounded-xl font-bold uppercase tracking-widest text-[10px] active:scale-95 transition-all flex items-center justify-center space-x-2 hover:bg-gray-50 dark:hover:bg-white/5"
+                className="w-full h-14 bg-transparent border border-white/10 text-gray-500 hover:text-white rounded-xl font-bold uppercase tracking-widest text-[10px] active:scale-95 transition-all flex items-center justify-center space-x-2 hover:bg-white/5"
               >
                   <LogOut size={16} />
                   <span>Cerrar Sesión</span>
@@ -81,7 +76,7 @@ const AccessDenied: React.FC = () => {
       </div>
 
       <div className="absolute bottom-8 text-center opacity-30">
-          <p className="text-[10px] font-mono">STATUS: BLOCKED</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.3em] text-red-500">System Locked</p>
       </div>
     </div>
   );

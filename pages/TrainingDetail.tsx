@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, PlayCircle, ExternalLink, X, ShieldAlert, Clock, Gavel, Crown, ArrowUpRight, Play, Pause, Share2, Info, CheckCircle2, Zap, LayoutGrid, Volume2, VolumeX, Maximize } from 'lucide-react';
+import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, PlayCircle, ExternalLink, X, ShieldAlert, Clock, Gavel, Crown, ArrowUpRight, Play, Pause, Share2, Info, CheckCircle2, Zap, LayoutGrid, Volume2, VolumeX, Maximize, Check, BookOpen, Layers } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
+import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/Button';
 import * as LucideIcons from 'lucide-react';
 
@@ -53,6 +54,7 @@ const TrainingDetail: React.FC = () => {
   const { topicId } = useParams();
   const navigate = useNavigate();
   const { modules, loading } = useContent();
+  const { logAction } = useAuth();
   const [module, setModule] = useState<any>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -66,10 +68,16 @@ const TrainingDetail: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
 
+  // Initial Fetch & Logging
   useEffect(() => {
-      if (modules.length > 0) {
+      if (modules.length > 0 && topicId) {
           const found = modules.find(m => m.id === topicId);
           setModule(found);
+          
+          // Log visit
+          if (found) {
+              logAction(`Visitó módulo: ${found.title}`, 'module_view');
+          }
       }
   }, [modules, topicId]);
 
@@ -172,6 +180,7 @@ const TrainingDetail: React.FC = () => {
 
   const handleOpenVideo = () => {
       if (module?.videoUrl && module.videoUrl !== '#' && module.videoUrl.trim() !== '') {
+          logAction(`Abrió video externo: ${module.title}`, 'video_click');
           window.open(module.videoUrl, '_blank', 'noopener,noreferrer');
       } else {
           alert("Video no disponible por el momento.");
@@ -314,13 +323,37 @@ const TrainingDetail: React.FC = () => {
                     </div>
 
                     {/* Action Button */}
-                    <button className="relative z-10 w-full bg-brand-black text-white h-14 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center space-x-2 active:scale-[0.98] transition-all shadow-lg hover:bg-gray-900">
+                    <button className="relative z-10 w-full bg-brand-black text-white h-14 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center space-x-2 active:scale-[0.98] transition-all shadow-lg hover:bg-gray-900 mb-6">
                         <span>Descargar PDF</span>
                         <Download size={16} />
                     </button>
 
+                    {/* === NEW: TOPICS PREVIEW LIST (FILLING THE SPACE) === */}
+                    <div className="relative z-10 border-t-2 border-white/50 pt-5 mt-2">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-1">
+                            Lo que aprenderás
+                        </p>
+                        <div className="space-y-2">
+                            {[
+                                { label: 'Vocabulario Streamer', icon: BookOpen },
+                                { label: 'Interfaz de Usuario', icon: LayoutGrid },
+                                { label: 'Reglas de Comunidad', icon: Layers }
+                            ].map((item, i) => (
+                                <div key={i} className="flex items-center justify-between bg-white/50 p-2.5 rounded-xl border border-white/40">
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-white p-1.5 rounded-lg">
+                                            <item.icon size={12} className="text-brand-purple" />
+                                        </div>
+                                        <span className="text-xs font-bold text-gray-600">{item.label}</span>
+                                    </div>
+                                    <Check size={14} className="text-green-500" strokeWidth={3} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* Decor Icon */}
-                    <PlayCircle className="absolute -bottom-6 -right-6 text-brand-black/5 rotate-[-15deg] group-hover:scale-110 transition-transform duration-500" size={140} strokeWidth={1.5} />
+                    <PlayCircle className="absolute -top-10 -right-10 text-brand-black/5 rotate-[15deg] pointer-events-none" size={180} strokeWidth={1.5} />
                 </div>
 
                 {/* Footer Info */}
