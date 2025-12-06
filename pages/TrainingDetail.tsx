@@ -171,63 +171,66 @@ const TrainingDetail: React.FC = () => {
                     </p>
                 </div>
 
-                {/* MAIN CARD: Video Container (Airbnb Style) */}
-                <div className="w-full bg-white p-3 rounded-[2.5rem] shadow-xl shadow-gray-200 border-[5px] border-white relative group overflow-hidden mb-8">
+                {/* 1. VIDEO PLAYER CARD */}
+                <div className="w-full aspect-[4/3] bg-black rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 border-[5px] border-white relative mb-6">
+                    {hasVideo ? (
+                        <iframe 
+                            src={module.videoUrl} 
+                            title="Bigo Intro" 
+                            className="w-full h-full object-cover" 
+                            allow="autoplay; fullscreen; picture-in-picture" 
+                            allowFullScreen
+                        ></iframe>
+                    ) : (
+                        <img src={module.imageUrl} className="w-full h-full object-cover opacity-80" />
+                    )}
                     
-                    {/* Video Player Area */}
-                    <div className="relative w-full aspect-[4/3] bg-black rounded-[2rem] overflow-hidden shadow-inner">
-                        {hasVideo ? (
-                            <iframe 
-                                src={module.videoUrl} 
-                                title="Bigo Intro" 
-                                className="w-full h-full object-cover" 
-                                allow="autoplay; fullscreen; picture-in-picture" 
-                                allowFullScreen
-                            ></iframe>
-                        ) : (
-                            <img src={module.imageUrl} className="w-full h-full object-cover opacity-80" />
-                        )}
+                    {/* Badge Overlay */}
+                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full z-10 shadow-lg">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-black flex items-center gap-1.5">
+                            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                            Video
+                        </span>
+                    </div>
+                </div>
 
-                        {/* Floating Badge Top Left */}
-                        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg z-10">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-black flex items-center gap-1.5">
-                                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                                Video Oficial
-                            </span>
+                {/* 2. FICHA INFORMATIVA (Gris con Marco Blanco) */}
+                <div className="bg-gray-200 p-6 rounded-[2.5rem] border-[5px] border-white shadow-xl relative overflow-hidden group">
+                    
+                    {/* Header Info */}
+                    <div className="relative z-10 flex justify-between items-start mb-6">
+                        <div>
+                            <h2 className="text-2xl font-black text-brand-black uppercase leading-none tracking-tight mb-1">
+                                Conceptos Básicos
+                            </h2>
+                            <p className="text-xs text-gray-500 font-bold uppercase tracking-wide flex items-center gap-1">
+                                <Clock size={12} /> Duración: 5 Min
+                            </p>
+                        </div>
+                        <div className="bg-white p-2.5 rounded-2xl shadow-sm border border-white/50">
+                            <Info size={20} className="text-brand-black" strokeWidth={2.5} />
                         </div>
                     </div>
 
-                    {/* Card Body Info */}
-                    <div className="pt-6 pb-4 px-2">
-                        <div className="flex justify-between items-end mb-4">
-                            <div>
-                                <h2 className="text-2xl font-black text-black uppercase leading-none tracking-tight mb-1">
-                                    Conceptos Básicos
-                                </h2>
-                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wide">
-                                    Duración: 5 Minutos
-                                </p>
-                            </div>
-                            <div className="bg-gray-100 p-2 rounded-full">
-                                <ArrowUpRight size={20} className="text-black" />
-                            </div>
-                        </div>
-
-                        {/* Description Text */}
+                    {/* Description Text */}
+                    <div className="relative z-10 mb-6">
                         <p className="text-sm font-medium text-gray-600 leading-relaxed text-justify">
                             {module.textContent}
                         </p>
                     </div>
 
-                    {/* Action Button Inside Card */}
-                    <button className="w-full bg-black text-white h-14 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center space-x-2 active:scale-[0.98] transition-all shadow-lg hover:bg-gray-900 mt-2 mb-2">
-                        <span>Descargar Guía PDF</span>
+                    {/* Action Button */}
+                    <button className="relative z-10 w-full bg-brand-black text-white h-14 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center space-x-2 active:scale-[0.98] transition-all shadow-lg hover:bg-gray-900">
+                        <span>Descargar PDF</span>
                         <Download size={16} />
                     </button>
+
+                    {/* Decor Icon */}
+                    <PlayCircle className="absolute -bottom-6 -right-6 text-brand-black/5 rotate-[-15deg] group-hover:scale-110 transition-transform duration-500" size={140} strokeWidth={1.5} />
                 </div>
 
                 {/* Footer Info */}
-                <div className="flex items-center justify-center space-x-2 opacity-50 pb-8">
+                <div className="flex items-center justify-center space-x-2 opacity-50 py-8">
                     <CheckCircle2 size={14} />
                     <span className="text-[10px] font-bold uppercase tracking-widest">Contenido Verificado 2025</span>
                 </div>
