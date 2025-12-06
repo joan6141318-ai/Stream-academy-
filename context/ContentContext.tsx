@@ -218,14 +218,19 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
 
         // Merge logic: Add missing gifts from INITIAL if not present in Firestore
+        // Also update any properties that might be missing in old data (like category or order)
         const missingGifts = INITIAL_GIFTS.filter(initGift => !currentGifts.some(g => g.id === initGift.id));
-        const finalGifts = [...currentGifts, ...missingGifts].map(g => ({
-            ...g,
-            // Ensure properties exist if old data doesn't have them
-            category: g.category || 'variedad',
-            order: g.order || 99,
-            name: g.name || 'Regalo'
-        }));
+        
+        const finalGifts = [...currentGifts, ...missingGifts].map(g => {
+            // Check if this gift is one of the initial ones to force its initial config if fields are missing
+            const initial = INITIAL_GIFTS.find(ig => ig.id === g.id);
+            return {
+                ...g,
+                category: g.category || initial?.category || 'variedad',
+                order: g.order !== undefined ? g.order : (initial?.order || 99),
+                name: g.name || initial?.name || 'Regalo'
+            };
+        });
         
         setGifts(finalGifts as GiftItem[]);
         

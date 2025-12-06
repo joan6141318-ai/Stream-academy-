@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, PlayCircle, ExternalLink, X, ShieldAlert, Clock, Gavel, Crown, ArrowUpRight, Play, Share2, Info, CheckCircle2 } from 'lucide-react';
+import { FileText, Download, ChevronLeft, Table, Calculator, Wallet, CreditCard, ScrollText, Folder, PlayCircle, ExternalLink, X, ShieldAlert, Clock, Gavel, Crown, ArrowUpRight, Play, Share2, Info, CheckCircle2, Zap, LayoutGrid } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { Button } from '../components/Button';
 import * as LucideIcons from 'lucide-react';
@@ -66,23 +66,25 @@ const TrainingDetail: React.FC = () => {
       }
   }, [modules, topicId]);
 
-  // --- STATUS BAR EFFECT: FORCE BLACK ON THIS PAGE ---
+  // --- STATUS BAR EFFECT ---
   useEffect(() => {
-      // 1. Force Black Status Bar for Immersive Image
       const metaThemeColor = document.querySelector("meta[name=theme-color]");
+      // If Bigo module (Clean Light mode), set status bar to light gray, else black
+      const color = topicId === 'bigo-live' ? '#F5F5F7' : '#000000';
+      
       if (metaThemeColor) {
-          metaThemeColor.setAttribute("content", "#000000");
+          metaThemeColor.setAttribute("content", color);
       }
 
-      // 2. Cleanup: Restore dynamic behavior based on current theme when leaving
       return () => {
+          // Reset based on system pref
           const isDark = document.documentElement.classList.contains('dark');
-          const color = isDark ? '#000000' : '#ffffff';
+          const resetColor = isDark ? '#000000' : '#ffffff';
           if (metaThemeColor) {
-              metaThemeColor.setAttribute("content", color);
+              metaThemeColor.setAttribute("content", resetColor);
           }
       };
-  }, []);
+  }, [topicId]);
 
   // Auto-scroll logic
   useEffect(() => {
@@ -136,6 +138,108 @@ const TrainingDetail: React.FC = () => {
   const liveDataSteps = [ "https://i.postimg.cc/gJkXHjq3/4_20251123_185808_0001.png", "https://i.postimg.cc/SsN2fR7W/5_20251123_185808_0002.png", "https://i.postimg.cc/ZRKBxnFN/6_20251123_185808_0003.png" ];
   const hasVideo = module.videoUrl && module.videoUrl !== '#';
 
+  // ==========================================
+  // DISEÑO ESPECIAL: BIGO LIVE (Clean Light)
+  // ==========================================
+  if (module.id === 'bigo-live') {
+      return (
+        <div className="flex flex-col h-full w-full bg-[#F5F5F7] text-brand-black relative font-sans overflow-hidden">
+            
+            {/* Header Clean */}
+            <div className="px-6 pt-safe flex items-center justify-between py-4 bg-[#F5F5F7] z-20">
+                <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center shadow-sm border border-gray-100">
+                        <LayoutGrid size={16} className="text-black" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Academy</span>
+                </div>
+                <button onClick={() => navigate('/training')} className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100 text-black active:scale-95 transition-transform">
+                    <X size={20} />
+                </button>
+            </div>
+
+            {/* Content Scroll */}
+            <div className="flex-1 overflow-y-auto scrollbar-hide px-6 pb-24">
+                
+                {/* Title Section */}
+                <div className="mt-4 mb-6">
+                    <h1 className="text-4xl font-black text-black uppercase leading-[0.9] tracking-tighter mb-2">
+                        ¿Qué es<br/>Bigo Live?
+                    </h1>
+                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+                        Introducción a la Plataforma
+                    </p>
+                </div>
+
+                {/* MAIN CARD: Video Container (Airbnb Style) */}
+                <div className="w-full bg-white p-3 rounded-[2.5rem] shadow-xl shadow-gray-200 border-[5px] border-white relative group overflow-hidden mb-8">
+                    
+                    {/* Video Player Area */}
+                    <div className="relative w-full aspect-[4/3] bg-black rounded-[2rem] overflow-hidden shadow-inner">
+                        {hasVideo ? (
+                            <iframe 
+                                src={module.videoUrl} 
+                                title="Bigo Intro" 
+                                className="w-full h-full object-cover" 
+                                allow="autoplay; fullscreen; picture-in-picture" 
+                                allowFullScreen
+                            ></iframe>
+                        ) : (
+                            <img src={module.imageUrl} className="w-full h-full object-cover opacity-80" />
+                        )}
+
+                        {/* Floating Badge Top Left */}
+                        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg z-10">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-black flex items-center gap-1.5">
+                                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                                Video Oficial
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Card Body Info */}
+                    <div className="pt-6 pb-4 px-2">
+                        <div className="flex justify-between items-end mb-4">
+                            <div>
+                                <h2 className="text-2xl font-black text-black uppercase leading-none tracking-tight mb-1">
+                                    Conceptos Básicos
+                                </h2>
+                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wide">
+                                    Duración: 5 Minutos
+                                </p>
+                            </div>
+                            <div className="bg-gray-100 p-2 rounded-full">
+                                <ArrowUpRight size={20} className="text-black" />
+                            </div>
+                        </div>
+
+                        {/* Description Text */}
+                        <p className="text-sm font-medium text-gray-600 leading-relaxed text-justify">
+                            {module.textContent}
+                        </p>
+                    </div>
+
+                    {/* Action Button Inside Card */}
+                    <button className="w-full bg-black text-white h-14 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center space-x-2 active:scale-[0.98] transition-all shadow-lg hover:bg-gray-900 mt-2 mb-2">
+                        <span>Descargar Guía PDF</span>
+                        <Download size={16} />
+                    </button>
+                </div>
+
+                {/* Footer Info */}
+                <div className="flex items-center justify-center space-x-2 opacity-50 pb-8">
+                    <CheckCircle2 size={14} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Contenido Verificado 2025</span>
+                </div>
+
+            </div>
+        </div>
+      );
+  }
+
+  // ==========================================
+  // DISEÑO ESTÁNDAR: DARK MODE (Otros Módulos)
+  // ==========================================
   return (
     <div className="flex flex-col h-full w-full bg-black text-white relative transition-colors duration-300 font-sans">
       

@@ -188,7 +188,7 @@ const AppTour: React.FC = () => {
 
   // --- DYNAMIC GIFTS ORGANIZATION ---
   // Filter by category property and sort by order property
-  const variedadItems = gifts.filter(g => g.category === 'variedad').sort((a, b) => (a.order || 99) - (b.order || 99));
+  const variedadItems = gifts.filter(g => g.category === 'variedad' || !g.category).sort((a, b) => (a.order || 99) - (b.order || 99));
   const luckyItems = gifts.filter(g => g.category === 'lucky').sort((a, b) => (a.order || 99) - (b.order || 99));
   const hotItems = gifts.filter(g => g.category === 'hot').sort((a, b) => (a.order || 99) - (b.order || 99));
 
