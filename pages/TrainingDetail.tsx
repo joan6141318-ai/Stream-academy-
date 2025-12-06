@@ -116,8 +116,10 @@ const TrainingDetail: React.FC = () => {
       if (!videoRef.current) return;
       if (isPlaying) {
           videoRef.current.pause();
+          setShowControls(true);
       } else {
           videoRef.current.play();
+          setShowControls(false); // Auto hide controls on play
       }
       setIsPlaying(!isPlaying);
   };
@@ -218,11 +220,10 @@ const TrainingDetail: React.FC = () => {
                     </p>
                 </div>
 
-                {/* 1. CUSTOM VIDEO PLAYER CARD */}
+                {/* 1. CUSTOM VIDEO PLAYER CARD - Updated Aspect Ratio 16:9 (aspect-video) */}
                 <div 
-                    className="w-full aspect-[4/3] bg-black rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 border-[5px] border-white relative mb-6 group"
-                    onMouseEnter={() => setShowControls(true)}
-                    onMouseLeave={() => isPlaying && setShowControls(false)}
+                    className="w-full aspect-video bg-black rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 border-[5px] border-white relative mb-6 group"
+                    onClick={() => { if(isPlaying) setShowControls(!showControls); }}
                 >
                     {/* Always use forced video URL for this module to ensure update */}
                     <video
@@ -232,15 +233,14 @@ const TrainingDetail: React.FC = () => {
                         poster={module.imageUrl}
                         onTimeUpdate={handleTimeUpdate}
                         onEnded={() => setIsPlaying(false)}
-                        onClick={togglePlay}
+                        // Removed onClick here to handle it on parent div for controls visibility toggle
                         playsInline
                     />
                     
                     {/* Center Play Button (Visible when paused) */}
                     {!isPlaying && (
-                        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/30 backdrop-blur-sm transition-opacity">
+                        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/30 backdrop-blur-sm transition-opacity" onClick={togglePlay}>
                             <button 
-                                onClick={togglePlay}
                                 className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md border border-white/30 shadow-2xl text-white hover:scale-110 transition-transform"
                             >
                                 <Play size={28} fill="currentColor" className="ml-1" />
@@ -248,8 +248,11 @@ const TrainingDetail: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Controls Overlay */}
-                    <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-6 pb-6 pt-12 transition-opacity duration-300 ${showControls || !isPlaying ? 'opacity-100' : 'opacity-0'}`}>
+                    {/* Controls Overlay - Auto Hide on Play, Show on Hover/Pause */}
+                    <div 
+                        className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-6 pb-6 pt-12 transition-opacity duration-300 ${!isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} ${showControls ? 'opacity-100' : ''}`}
+                        onClick={(e) => e.stopPropagation()} // Prevent toggling controls when clicking the bar itself
+                    >
                         
                         {/* Progress Bar */}
                         <input
@@ -277,7 +280,7 @@ const TrainingDetail: React.FC = () => {
                     </div>
                     
                     {/* Badge Overlay */}
-                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full z-20 shadow-lg pointer-events-none">
+                    <div className={`absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full z-20 shadow-lg pointer-events-none transition-opacity duration-300 ${isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}>
                         <span className="text-[9px] font-black uppercase tracking-widest text-black flex items-center gap-1.5">
                             <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                             Video
