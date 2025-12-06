@@ -131,15 +131,21 @@ const TrainingDetail: React.FC = () => {
 
   const liveDataSteps = [ "https://i.postimg.cc/gJkXHjq3/4_20251123_185808_0001.png", "https://i.postimg.cc/SsN2fR7W/5_20251123_185808_0002.png", "https://i.postimg.cc/ZRKBxnFN/6_20251123_185808_0003.png" ];
   
-  // --- FALLBACK LOGIC ---
-  // Si la DB no trae video (es vacío o #), buscamos en el archivo local CONSTANTS
+  // --- FALLBACK LOGIC ROBUSTA ---
+  // Buscamos el módulo local correspondiente por ID
   const localModule = LOCAL_MODULES.find(m => m.id === module.id);
+  
   const dbVideo = module.videoUrl;
   const localVideo = localModule?.videoUrl;
   
-  // Prioridad: DB > Local (solo si DB es válido)
-  const finalVideoUrl = (dbVideo && dbVideo !== '#' && dbVideo.trim() !== '') ? dbVideo : localVideo;
-  const hasVideo = finalVideoUrl && finalVideoUrl !== '#' && finalVideoUrl.trim() !== '';
+  // Verificación estricta: ¿El video de la DB es un enlace válido?
+  const isDbVideoValid = dbVideo && dbVideo !== '#' && dbVideo.trim() !== '' && dbVideo.startsWith('http');
+  
+  // Si la DB tiene un enlace válido, úsalo. Si no, usa el local si existe.
+  const finalVideoUrl = isDbVideoValid ? dbVideo : localVideo;
+  
+  // Bandera final para renderizar
+  const hasVideo = finalVideoUrl && finalVideoUrl !== '#' && finalVideoUrl.startsWith('http');
 
   return (
     <div className="flex flex-col h-full w-full bg-[#F5F5F7] dark:bg-black text-brand-black dark:text-white relative font-sans overflow-hidden transition-colors duration-300">
