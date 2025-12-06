@@ -225,6 +225,7 @@ const TrainingDetail: React.FC = () => {
                     onTimeUpdate={handleTimeUpdate}
                     onEnded={() => setIsPlaying(false)}
                     playsInline
+                    preload="auto"
                 />
                 
                 {/* Center Play Button */}

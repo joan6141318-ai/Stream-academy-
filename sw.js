@@ -2,8 +2,8 @@
 // IMPORTANTE: Importar scripts de OneSignal al inicio para fusionar capacidades
 importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDKWorker.js');
 
-// Nombre del caché - Actualizado a v46 (Hotfix: Bigo Live ID Fallback)
-const CACHE_NAME = 'stream-agency-v46-bigo-fix';
+// Nombre del caché - Actualizado a v47 (Fix Video Bigo Final)
+const CACHE_NAME = 'stream-agency-v47-video-fix-final';
 
 // Archivos vitales para que la app arranque offline
 const ASSETS_TO_CACHE = [
