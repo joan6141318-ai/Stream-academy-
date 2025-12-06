@@ -97,20 +97,24 @@ const INITIAL_HOME_CONFIG: HomeConfig = {
 };
 
 const INITIAL_GIFTS: GiftItem[] = [
-    { id: '1', value: "100", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080356.jpg?alt=media&token=43fbcf9b-e527-42ec-ad9b-50fac86309fa" },
-    { id: '2', value: "39999", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080518.jpg?alt=media&token=8c00c88c-31ca-464b-845d-aacc50dfca96" },
-    { id: '3', value: "500", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080556.jpg?alt=media&token=d5d96aea-c4f6-46db-aa53-e46afeaad424" },
-    { id: '4', value: "20000", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080619.jpg?alt=media&token=edc6467b-d54c-4e51-afff-4423fd3fa8d3" },
-    { id: '5', value: "10", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080711.jpg?alt=media&token=22fa1f90-0e75-4dd4-9e0d-22bb4105e09c" },
-    { id: '6', value: "1", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080839.jpg?alt=media&token=08e399f4-c8f6-4fb0-b14e-e5548c34609c" },
-    { id: '7', value: "1", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_081105.jpg?alt=media&token=52c9ec8d-ac6c-4b6b-875f-6303560af2a3" },
-    { id: '8', value: "20", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_081339.jpg?alt=media&token=d8d7a6cf-90bf-4581-a96c-40d3f7532008" },
-    { id: '9', value: "9999", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082317.jpg?alt=media&token=bdd1c65d-1106-42ba-87db-ed9123fffc08" },
-    { id: '10', value: "500", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082345.jpg?alt=media&token=7cf7e2a8-4c55-4485-8c06-9c9add518f0a" },
-    { id: '11', value: "9999", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082408.jpg?alt=media&token=3b6b5e18-58ec-4706-9c24-5b4ebebc1661" },
-    { id: '12', value: "1", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080046.jpg?alt=media&token=b61ba601-1323-4a7a-a782-48c5c5e22e5c" },
-    { id: '13', value: "1", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080106.jpg?alt=media&token=9d142e12-f31d-418b-8331-4cea3294a747" },
-    { id: '14', value: "1", imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080311.jpg?alt=media&token=c244e596-789f-4dd1-ba8c-9608512558df" }
+    // VARIEDAD
+    { id: '6', name: "Flor", value: "1", category: 'variedad', order: 1, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080839.jpg?alt=media&token=08e399f4-c8f6-4fb0-b14e-e5548c34609c" },
+    { id: '1', name: "Mace", value: "100", category: 'variedad', order: 2, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080356.jpg?alt=media&token=43fbcf9b-e527-42ec-ad9b-50fac86309fa" },
+    { id: '7', name: "Crush", value: "100", category: 'variedad', order: 3, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_081105.jpg?alt=media&token=52c9ec8d-ac6c-4b6b-875f-6303560af2a3" },
+    { id: '3', name: "Kismee", value: "500", category: 'variedad', order: 4, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080556.jpg?alt=media&token=d5d96aea-c4f6-46db-aa53-e46afeaad424" },
+    { id: '4', name: "Luxury car", value: "20000", category: 'variedad', order: 5, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080619.jpg?alt=media&token=edc6467b-d54c-4e51-afff-4423fd3fa8d3" },
+    { id: '9', name: "Super dragón", value: "9999", category: 'variedad', order: 6, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082317.jpg?alt=media&token=bdd1c65d-1106-42ba-87db-ed9123fffc08" },
+    { id: '5', name: "Gala dragón", value: "1000", category: 'variedad', order: 7, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080711.jpg?alt=media&token=22fa1f90-0e75-4dd4-9e0d-22bb4105e09c" },
+    { id: '2', name: "Yate de lujo", value: "39999", category: 'variedad', order: 8, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080518.jpg?alt=media&token=8c00c88c-31ca-464b-845d-aacc50dfca96" },
+    
+    // LUCKY
+    { id: '12', name: "Campana", value: "5", category: 'lucky', order: 1, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080046.jpg?alt=media&token=b61ba601-1323-4a7a-a782-48c5c5e22e5c" },
+    { id: '8', name: "Gold box", value: "20", category: 'lucky', order: 2, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_081339.jpg?alt=media&token=d8d7a6cf-90bf-4581-a96c-40d3f7532008" },
+    { id: '10', name: "Big win", value: "500", category: 'lucky', order: 3, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_082345.jpg?alt=media&token=7cf7e2a8-4c55-4485-8c06-9c9add518f0a" },
+    { id: '13', name: "Mythical pegasus", value: "3000", category: 'lucky', order: 4, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080106.jpg?alt=media&token=9d142e12-f31d-418b-8331-4cea3294a747" },
+
+    // HOT
+    { id: '14', name: "Regalos Calientes", value: "10", category: 'hot', order: 1, imageUrl: "https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Regalos%2FIMG_20251205_080311.jpg?alt=media&token=c244e596-789f-4dd1-ba8c-9608512558df" }
 ];
 
 interface ContentContextType {
@@ -213,12 +217,17 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }
         }
 
-        // Merge logic: Start with Firestore gifts, add any from INITIAL that aren't present (by ID)
-        // This ensures code updates (new IDs) appear immediately for everyone
+        // Merge logic: Add missing gifts from INITIAL if not present in Firestore
         const missingGifts = INITIAL_GIFTS.filter(initGift => !currentGifts.some(g => g.id === initGift.id));
-        const finalGifts = [...currentGifts, ...missingGifts];
+        const finalGifts = [...currentGifts, ...missingGifts].map(g => ({
+            ...g,
+            // Ensure properties exist if old data doesn't have them
+            category: g.category || 'variedad',
+            order: g.order || 99,
+            name: g.name || 'Regalo'
+        }));
         
-        setGifts(finalGifts);
+        setGifts(finalGifts as GiftItem[]);
         
         loadingFlags.current.gifts = true;
         checkLoading();

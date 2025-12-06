@@ -186,53 +186,11 @@ const AppTour: React.FC = () => {
     image: `https://picsum.photos/400/800?random=broad${i}`
   }));
 
-  // --- ORGANIZE GIFTS DATA BY CATEGORY ---
-  // Sort by ID to respect original upload order for mapping
-  const orderedGifts = [...gifts].sort((a, b) => parseInt(a.id) - parseInt(b.id));
-  
-  // Ensure we have enough placeholders if data is missing
-  const safeGifts = orderedGifts.length >= 14 
-    ? orderedGifts 
-    : [...orderedGifts, ...Array(14 - orderedGifts.length).fill({ value: '0', imageUrl: '' })];
-
-  // Map to sections based on user request (STRICT ORDER - Specific Image Indices)
-  // Index Mapping based on 14 items loaded
-  // 0: Mace (100)
-  // 1: Yate (40k)
-  // 2: Kismee (500)
-  // 3: Luxury (20k)
-  // 4: Gala (1k)
-  // 5: Flor (1) - Adjusted
-  // 6: Crush (1) - Adjusted
-  // 7: Gold Box (20)
-  // 8: Super Dragon (10k)
-  // 9: Big Win (500)
-  // 10: Mythical (3k)
-  // 11: Campana (5)
-  // 12: Hot (10)
-  // 13: Extra
-
-  const variedadItems = [
-    { name: 'Flor', value: '1', imageUrl: safeGifts[5]?.imageUrl },
-    { name: 'Mace', value: '100', imageUrl: safeGifts[0]?.imageUrl },
-    { name: 'Crush', value: '100', imageUrl: safeGifts[6]?.imageUrl },
-    { name: 'Kismee', value: '500', imageUrl: safeGifts[2]?.imageUrl },
-    { name: 'Luxury car', value: '20000', imageUrl: safeGifts[3]?.imageUrl },
-    { name: 'Super dragón', value: '9999', imageUrl: safeGifts[8]?.imageUrl },
-    { name: 'Gala dragón', value: '1000', imageUrl: safeGifts[4]?.imageUrl },
-    { name: 'Yate de lujo', value: '39999', imageUrl: safeGifts[1]?.imageUrl },
-  ];
-
-  const luckyItems = [
-    { name: 'Campana', value: '5', imageUrl: safeGifts[11]?.imageUrl },
-    { name: 'Gold box', value: '20', imageUrl: safeGifts[7]?.imageUrl },
-    { name: 'Big win', value: '500', imageUrl: safeGifts[9]?.imageUrl },
-    { name: 'Mythical pegasus', value: '3000', imageUrl: safeGifts[10]?.imageUrl },
-  ];
-
-  const hotItems = [
-    { name: 'Regalos Calientes', value: '10', imageUrl: safeGifts[12]?.imageUrl },
-  ];
+  // --- DYNAMIC GIFTS ORGANIZATION ---
+  // Filter by category property and sort by order property
+  const variedadItems = gifts.filter(g => g.category === 'variedad' || !g.category).sort((a, b) => (a.order || 99) - (b.order || 99));
+  const luckyItems = gifts.filter(g => g.category === 'lucky').sort((a, b) => (a.order || 99) - (b.order || 99));
+  const hotItems = gifts.filter(g => g.category === 'hot').sort((a, b) => (a.order || 99) - (b.order || 99));
 
   const toolsData = Array.from({ length: 8 }, (_, i) => ({
     id: i,
@@ -246,15 +204,13 @@ const AppTour: React.FC = () => {
     <div className="grid grid-cols-3 gap-3 mb-8">
         {items.map((gift, idx) => (
             <div 
-                key={idx} 
+                key={gift.id || idx} 
                 className="bg-[#050505] p-2 rounded-2xl border border-white/20 flex flex-col items-center justify-center text-center group active:scale-[0.98] transition-all relative overflow-hidden aspect-square shadow-lg"
             >
                 {/* Value Tag */}
-                <div className="absolute top-1.5 right-1.5 bg-black/60 border border-white/10 px-1.5 py-0.5 rounded backdrop-blur-sm z-10">
-                    <div className="flex items-center space-x-0.5">
-                        <span className="text-[8px] font-black text-white">{gift.value}</span>
-                        <Bean size={8} className="text-yellow-400 fill-yellow-400" />
-                    </div>
+                <div className="absolute top-1.5 right-1.5 bg-black/60 border border-white/10 px-1.5 py-0.5 rounded backdrop-blur-sm z-10 flex items-center space-x-0.5">
+                    <span className="text-[8px] font-black text-white">{gift.value}</span>
+                    <Bean size={8} className="text-yellow-400 fill-yellow-400" />
                 </div>
 
                 {/* Image */}
@@ -403,29 +359,8 @@ const AppTour: React.FC = () => {
                         <Flame className="absolute -bottom-6 -right-6 text-white/10 rotate-[-15deg] group-hover:scale-110 transition-transform duration-500" size={120} strokeWidth={1.5} />
                     </div>
 
-                    {/* Grid Hot (Special single large card for this item) */}
-                    <div className="grid grid-cols-1 gap-3">
-                        {hotItems.map((gift, idx) => (
-                            <div 
-                                key={idx} 
-                                className="bg-[#050505] p-6 rounded-3xl border border-white/20 flex items-center justify-between group active:scale-[0.98] transition-all relative overflow-hidden shadow-lg"
-                            >
-                                <div className="flex items-center gap-4 relative z-10">
-                                    <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center">
-                                        {gift.imageUrl ? <img src={gift.imageUrl} className="w-full h-full object-contain" /> : <Users className="text-white/30" />}
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-black text-white uppercase tracking-wider">{gift.name}</h4>
-                                        <div className="flex items-center space-x-1 mt-1">
-                                            <span className="text-xs font-bold text-gray-400">{gift.value}</span>
-                                            <Bean size={8} className="text-yellow-400 fill-yellow-400" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <ArrowUpRight className="text-white/30" />
-                            </div>
-                        ))}
-                    </div>
+                    {/* Grid Hot (Standard Grid used for consistency) */}
+                    {renderGiftGrid(hotItems)}
                 </div>
 
             </div>

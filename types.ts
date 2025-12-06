@@ -50,7 +50,9 @@ export interface GiftItem {
   id: string;
   value: string;
   imageUrl: string;
-  name?: string;
+  name: string; // Made mandatory
+  category: 'variedad' | 'lucky' | 'hot'; // New field for grouping
+  order: number; // New field for sorting
 }
 
 export interface UserProfile {

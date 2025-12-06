@@ -216,7 +216,13 @@ const EditorDashboard: React.FC = () => {
                }
           } else if (editingItem.type === 'gift') {
               // Encontrar el regalo en la lista y actualizarlo
-              const updatedGifts = gifts.map(g => g.id === editingItem.id ? { ...g, value: editingItem.value } : g);
+              const updatedGifts = gifts.map(g => g.id === editingItem.id ? { 
+                  ...g, 
+                  value: editingItem.value,
+                  name: editingItem.name,
+                  category: editingItem.category,
+                  order: parseInt(editingItem.order)
+              } : g);
               await updateGifts(updatedGifts);
           }
           alert("¡Actualizado! Los cambios ya son visibles en la App.");
@@ -291,7 +297,7 @@ const EditorDashboard: React.FC = () => {
                         Catálogo de Regalos
                     </h3>
                     <p className="text-xs text-gray-400 font-medium">
-                        Modificar valor de semillas (App Tour)
+                        Modificar valor, orden y categoría
                     </p>
                 </div>
             </div>
@@ -377,7 +383,7 @@ const EditorDashboard: React.FC = () => {
         items = modules.map(m => ({...m, type: 'module'}));
         title = 'Módulos de Capacitación';
     } else if (activeCategory === 'gifts') {
-        items = gifts.map(g => ({...g, title: `Regalo ${g.value}`, subtitle: `${g.value} Semillas`, type: 'gift'}));
+        items = gifts.map(g => ({...g, title: g.name, subtitle: `${g.value} Semillas - ${g.category?.toUpperCase()}`, type: 'gift'})).sort((a,b) => a.order - b.order);
         title = 'Catálogo de Regalos';
     }
     
@@ -443,17 +449,55 @@ const EditorDashboard: React.FC = () => {
                     <div className="w-32 h-32 bg-gray-100 dark:bg-white/5 rounded-2xl flex items-center justify-center p-4 border border-gray-200 dark:border-white/10 mb-2">
                         <img src={editingItem.imageUrl} alt="Gift" className="w-full h-full object-contain" />
                     </div>
-                    <div className="w-full">
-                        <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Valor en Semillas</label>
-                        <input 
-                            type="number" 
-                            value={editingItem.value} 
-                            onChange={(e) => setEditingItem({...editingItem, value: e.target.value})} 
-                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-2xl font-black text-center dark:text-white focus:border-brand-purple outline-none" 
-                        />
+                    
+                    <div className="w-full space-y-4">
+                        <div>
+                            <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Nombre del Regalo</label>
+                            <input 
+                                type="text" 
+                                value={editingItem.name} 
+                                onChange={(e) => setEditingItem({...editingItem, name: e.target.value})} 
+                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-bold text-brand-black dark:text-white outline-none" 
+                            />
+                        </div>
+                        
+                        <div>
+                            <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Valor (Semillas)</label>
+                            <input 
+                                type="number" 
+                                value={editingItem.value} 
+                                onChange={(e) => setEditingItem({...editingItem, value: e.target.value})} 
+                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-lg font-black text-center text-brand-purple outline-none" 
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Categoría</label>
+                                <select 
+                                    value={editingItem.category || 'variedad'} 
+                                    onChange={(e) => setEditingItem({...editingItem, category: e.target.value})} 
+                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-xs font-bold text-brand-black dark:text-white outline-none"
+                                >
+                                    <option value="variedad">Variedad</option>
+                                    <option value="lucky">Súper Lucky</option>
+                                    <option value="hot">Regalos HOT</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Orden</label>
+                                <input 
+                                    type="number" 
+                                    value={editingItem.order || 99} 
+                                    onChange={(e) => setEditingItem({...editingItem, order: e.target.value})} 
+                                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-xs font-bold text-center text-brand-black dark:text-white outline-none" 
+                                />
+                            </div>
+                        </div>
                     </div>
+
                     <button onClick={handleSave} className="w-full bg-brand-black dark:bg-white text-white dark:text-black py-4 rounded-lg font-black uppercase tracking-widest text-xs flex items-center justify-center shadow-xl active:scale-95 transition-all mt-4">
-                        <Save size={16} className="mr-2" /> Guardar Valor
+                        <Save size={16} className="mr-2" /> Guardar Cambios
                     </button>
                 </div>
             </div>
