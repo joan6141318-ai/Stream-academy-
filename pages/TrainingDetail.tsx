@@ -129,12 +129,10 @@ const TrainingDetail: React.FC = () => {
   if (!module) return <div className="h-full w-full bg-white dark:bg-black flex items-center justify-center text-xs font-black uppercase tracking-widest text-gray-400">Módulo no encontrado</div>;
 
   const liveDataSteps = [ "https://i.postimg.cc/gJkXHjq3/4_20251123_185808_0001.png", "https://i.postimg.cc/SsN2fR7W/5_20251123_185808_0002.png", "https://i.postimg.cc/ZRKBxnFN/6_20251123_185808_0003.png" ];
+  
+  // VERIFICACIÓN DE VIDEO UNIVERSAL: Si tiene videoUrl y no es '#', muestra el reproductor
   const hasVideo = module.videoUrl && module.videoUrl !== '#' && module.videoUrl.trim() !== '';
-
-  // Determinar si usamos un video forzado (caso Bigo) o el genérico
-  const videoSource = module.id === 'bigo-live' 
-    ? 'https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Videos%2FUnleash%20Your%20Story%20and%20Embark%20on%20a%20Global%20Journey%20with%20Bigo%20Live!%20%F0%9F%8C%8E%F0%9F%8E%99%EF%B8%8F%F0%9F%93%BD%EF%B8%8FJoin%20the%20%23BigoFam%20toda.mp4?alt=media&token=e1107b22-5702-4f38-bc09-241c2b2fd691' 
-    : module.videoUrl;
+  const videoSource = module.videoUrl;
 
   return (
     <div className="flex flex-col h-full w-full bg-[#F5F5F7] dark:bg-black text-brand-black dark:text-white relative font-sans overflow-hidden transition-colors duration-300">

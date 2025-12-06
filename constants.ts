@@ -36,7 +36,7 @@ export const SALARY_TIERS = [
   { seeds: 100000, pay: 1136 }, 
   { seeds: 60000, pay: 708 },
   { seeds: 30000, pay: 354 },
-  { seeds: 20000, pay: 236 },
+  { seeds: 2000, pay: 236 },
   { seeds: 10000, pay: 122 },
   { seeds: 5000, pay: 58 },
   { seeds: 2000, pay: 23 },
@@ -80,7 +80,8 @@ export const TRAINING_MODULES: TrainingModule[] = [
     title: 'Cómo hacer un PK',
     description: 'Batallas en vivo para aumentar tus ingresos.',
     imageUrl: 'https://picsum.photos/800/600?random=4',
-    videoUrl: '#',
+    // VIDEO AGREGADO PARA EL MÓDULO DE PK
+    videoUrl: 'https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Como%20hacer%20un%20PK%2FCOMO%20HACER%20PK%20AG_MOON%202025.mp4?alt=media&token=2564a9b6-f219-41e0-9c74-a06a1cda24fa',
     textContent: 'Un PK (Player Kill) es una batalla de streaming donde dos emisores compiten por quién recibe más regalos en un tiempo determinado. Para iniciar uno, presiona el botón "VS" en la esquina inferior. Los PKs son la mejor manera de activar a tus donadores, ya que la competencia incentiva el apoyo.'
   },
   {
