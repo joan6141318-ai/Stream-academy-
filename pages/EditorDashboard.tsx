@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Layers, Image, Type, Save, Layout, ChevronRight, Edit3, Palette, Type as TypeIcon, Link as LinkIcon, ExternalLink, ArrowUp, ArrowDown, Minus, Eye, X, Smartphone, BellRing, Trophy, TrendingUp, Video, Gamepad2, Star, ShieldCheck, HelpCircle, ChevronLeft, Droplet, CreditCard, Home, Images, Grid, PaintBucket, Gift } from 'lucide-react';
+import { Layers, Image, Type, Save, Layout, ChevronRight, Edit3, Palette, Type as TypeIcon, Link as LinkIcon, ExternalLink, ArrowUp, ArrowDown, Minus, Eye, X, Smartphone, BellRing, Trophy, TrendingUp, Video, Gamepad2, Star, ShieldCheck, HelpCircle, ChevronLeft, Droplet, CreditCard, Home, Images, Grid, PaintBucket, Gift, ArrowDownUp } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import * as LucideIcons from 'lucide-react';
 import { TrainingResource, GiftItem } from '../types';
@@ -176,6 +176,33 @@ const EditorDashboard: React.FC = () => {
           return editingItem.imagePosition || 'object-center';
       } else {
           return editingItem.style?.imagePosition || 'object-center';
+      }
+  };
+
+  const handleAutoSort = async () => {
+      if (editingItem.type !== 'gift' || !editingItem.category) return;
+      setIsSaving(true);
+      try {
+          const categoryGifts = gifts.filter(g => g.category === editingItem.category);
+          const otherGifts = gifts.filter(g => g.category !== editingItem.category);
+          
+          // Sort by value numeric
+          const sorted = categoryGifts.sort((a, b) => parseInt(a.value) - parseInt(b.value));
+          
+          // Reassign order
+          const updatedCategoryGifts = sorted.map((g, index) => ({
+              ...g,
+              order: index + 1
+          }));
+          
+          await updateGifts([...otherGifts, ...updatedCategoryGifts]);
+          alert("¡Ordenado! Los regalos se han organizado por valor.");
+          handleBack(); // Refresh view
+      } catch (e) {
+          console.error(e);
+          alert("Error al ordenar.");
+      } finally {
+          setIsSaving(false);
       }
   };
 
@@ -383,7 +410,7 @@ const EditorDashboard: React.FC = () => {
         items = modules.map(m => ({...m, type: 'module'}));
         title = 'Módulos de Capacitación';
     } else if (activeCategory === 'gifts') {
-        items = gifts.map(g => ({...g, title: g.name, subtitle: `${g.value} Semillas - ${g.category?.toUpperCase()}`, type: 'gift'})).sort((a,b) => a.order - b.order);
+        items = gifts.map(g => ({...g, title: g.name, subtitle: `${g.value} Semillas - ${g.category?.toUpperCase()} [Orden: ${g.order}]`, type: 'gift'})).sort((a,b) => a.order - b.order);
         title = 'Catálogo de Regalos';
     }
     
@@ -498,6 +525,14 @@ const EditorDashboard: React.FC = () => {
 
                     <button onClick={handleSave} className="w-full bg-brand-black dark:bg-white text-white dark:text-black py-4 rounded-lg font-black uppercase tracking-widest text-xs flex items-center justify-center shadow-xl active:scale-95 transition-all mt-4">
                         <Save size={16} className="mr-2" /> Guardar Cambios
+                    </button>
+
+                    {/* NEW: Auto Sort Button */}
+                    <button 
+                        onClick={handleAutoSort} 
+                        className="w-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 py-3 rounded-lg font-bold uppercase tracking-widest text-[10px] flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/20 transition-all"
+                    >
+                        <ArrowDownUp size={14} className="mr-2" /> Auto-ordenar por Precio
                     </button>
                 </div>
             </div>
