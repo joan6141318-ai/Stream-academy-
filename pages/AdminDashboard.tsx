@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, Key, ArrowLeft, ArrowRight, ShieldCheck, UserX, Check, X, Save, Clock, Zap, Plus, Trash2, History, Edit2, Activity, Eye, FileText, Eraser } from 'lucide-react';
+import { Users, Shield, Bell, Swords, Ban, Search, Lock, Unlock, Key, ArrowLeft, ArrowRight, ShieldCheck, UserX, Check, X, Save, Clock, Zap, Plus, Trash2, History, Edit2, Activity, Eye, FileText, Eraser, ChevronDown, ChevronUp, BarChart3, Calendar } from 'lucide-react';
 import { collection, updateDoc, doc, onSnapshot, query, writeBatch } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Header } from '../components/Header';
@@ -22,6 +22,7 @@ const AdminDashboard: React.FC = () => {
   const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
   
   const [localSchedule, setLocalSchedule] = useState<PKSchedule | null>(null);
   const [pkRequests, setPkRequests] = useState<PKRequest[]>([]);
@@ -86,44 +87,26 @@ const AdminDashboard: React.FC = () => {
     );
   }, [users, searchTerm]);
 
-  // --- AUDIT LOGIC ---
-  const allActivityLogs = useMemo(() => {
-      const logs: any[] = [];
+  // --- MODULE STATISTICS CALCULATION ---
+  const moduleStats = useMemo(() => {
+      const stats: Record<string, number> = {};
       users.forEach(user => {
           if (user.accessLogs && Array.isArray(user.accessLogs)) {
               user.accessLogs.forEach((log: any) => {
-                  logs.push({
-                      ...log,
-                      userId: user.id,
-                      userName: user.name,
-                      userAvatar: user.avatarUrl
-                  });
+                  if (log.type === 'module_view') {
+                      // Extract module name from "Visitó módulo: Nombre"
+                      const moduleName = log.action.replace('Visitó módulo: ', '').trim();
+                      stats[moduleName] = (stats[moduleName] || 0) + 1;
+                  }
               });
           }
       });
-      // Sort by date desc
-      return logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      // Sort desc
+      return Object.entries(stats).sort((a, b) => b[1] - a[1]);
   }, [users]);
 
-  const handleClearAllLogs = async () => {
-      if (!window.confirm("¿Estás seguro de ELIMINAR TODO EL HISTORIAL DE ACTIVIDAD de TODOS los usuarios?")) return;
-      if (!db) return;
-      
-      const batch = writeBatch(db);
-      users.forEach(user => {
-          const userRef = doc(db, "users", user.id);
-          batch.update(userRef, { accessLogs: [] });
-      });
-      
-      try {
-          await batch.commit();
-          alert("Historial eliminado correctamente.");
-      } catch (e) {
-          alert("Error al limpiar historial.");
-      }
-  };
-
-  const handleBlockUser = async (userId: string, currentStatus: boolean) => {
+  const handleBlockUser = async (userId: string, currentStatus: boolean, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     if (!db) return;
     try { await updateDoc(doc(db, "users", userId), { isBlocked: !currentStatus }); } catch (e) { alert("Error al actualizar"); }
   };
@@ -293,90 +276,155 @@ const AdminDashboard: React.FC = () => {
       {/* SCROLLABLE CONTENT AREA */}
       <div className="flex-1 overflow-y-auto scrollbar-hide p-4 pb-24 bg-[#FAFAFA] dark:bg-black">
         
-        {/* === AUDIT TAB (NEW) === */}
+        {/* === AUDIT TAB (REDESIGNED) === */}
         {activeTab === 'audit' && (
-            <div className="space-y-6 animate-slide-up">
+            <div className="space-y-8 animate-slide-up">
                 
-                {/* 1. STATUS CONTROL (User Quick List) */}
-                <div className="bg-white dark:bg-brand-dark-card p-6 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5">
-                    <div className="flex justify-between items-center mb-6">
+                {/* 1. TARJETA PRINCIPAL: EMISORES ACTIVOS (Gris con Marco Blanco) */}
+                <div className="bg-gray-100 dark:bg-[#1A1A1A] p-6 rounded-[2.5rem] border-[5px] border-white dark:border-white/10 shadow-xl overflow-hidden relative">
+                    
+                    {/* Header de Tarjeta */}
+                    <div className="flex justify-between items-center mb-6 relative z-10">
                         <div>
-                            <h2 className="text-xl font-black uppercase text-brand-black dark:text-white leading-none">Control de Acceso</h2>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wide mt-1">Denegar / Reactivar Usuarios</p>
+                            <h2 className="text-2xl font-black uppercase text-brand-black dark:text-white leading-none tracking-tight">Emisores Activos</h2>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wide mt-1">Registro Detallado</p>
                         </div>
-                        <div className="bg-gray-100 dark:bg-white/10 p-2 rounded-xl text-gray-500 dark:text-white"><Users size={20} /></div>
+                        <div className="bg-white dark:bg-white/10 p-3 rounded-2xl shadow-sm border border-gray-200 dark:border-white/5">
+                            <Users size={24} className="text-brand-black dark:text-white" strokeWidth={2} />
+                        </div>
                     </div>
 
-                    <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
-                        {users.map(u => (
-                            <div key={u.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5">
-                                <div className="flex items-center gap-3">
-                                    <div className="relative">
-                                        <img src={u.avatarUrl} className={`w-10 h-10 rounded-full bg-gray-200 ${u.isBlocked ? 'grayscale' : ''}`} />
-                                        <div className={`absolute -bottom-1 -right-1 w-3 h-3 border-2 border-white rounded-full ${u.isBlocked ? 'bg-red-500' : 'bg-green-500'}`}></div>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-xs font-black uppercase text-brand-black dark:text-white leading-none">{u.name}</h4>
-                                        <p className="text-[9px] text-gray-400 truncate w-24">{u.id}</p>
-                                    </div>
-                                </div>
-                                <button 
-                                    onClick={() => handleBlockUser(u.id, u.isBlocked)}
-                                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${u.isBlocked ? 'bg-green-500 text-white shadow-lg shadow-green-500/30' : 'bg-red-50 text-red-500 hover:bg-red-500 hover:text-white'}`}
-                                >
-                                    {u.isBlocked ? 'REACTIVAR' : 'DENEGAR'}
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                    {/* Lista de Usuarios (Acordeón) */}
+                    <div className="space-y-3 relative z-10">
+                        {users.map(u => {
+                            const isExpanded = expandedUserId === u.id;
+                            
+                            // Calcular datos específicos del usuario
+                            const userLogs = u.accessLogs || [];
+                            const joinDate = userLogs.find((l:any) => l.type === 'login' || l.action === 'Inicio de Sesión')?.timestamp;
+                            const formattedJoin = joinDate ? new Date(joinDate).toLocaleDateString() : 'Desconocido';
+                            
+                            // Sesiones activas HOY
+                            const today = new Date().toDateString();
+                            const todaySessions = userLogs.filter((l:any) => 
+                                (l.type === 'login' || l.type === 'app_open') && 
+                                new Date(l.timestamp).toDateString() === today
+                            ).length;
 
-                {/* 2. ACTIVITY LOGS */}
-                <div className="bg-brand-black dark:bg-[#121212] p-6 rounded-[2rem] shadow-xl relative overflow-hidden">
-                    <div className="relative z-10">
-                        <div className="flex justify-between items-center mb-6">
-                            <div className="flex items-center gap-3">
-                                <div className="bg-white/10 p-2 rounded-xl text-white"><Eye size={20} /></div>
-                                <div>
-                                    <h2 className="text-xl font-black uppercase text-white leading-none">Actividad</h2>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wide mt-1">Registro de Ingresos</p>
-                                </div>
-                            </div>
-                            <button onClick={handleClearAllLogs} className="bg-red-500/20 text-red-400 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider hover:bg-red-500 hover:text-white transition-all flex items-center gap-1">
-                                <Eraser size={10} /> Eliminar Historial
-                            </button>
-                        </div>
+                            // Módulos visitados (Últimos 5)
+                            const moduleVisits = userLogs
+                                .filter((l:any) => l.type === 'module_view')
+                                .slice(-5)
+                                .reverse();
 
-                        <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                            {allActivityLogs.length === 0 ? (
-                                <p className="text-center text-gray-600 text-xs font-mono py-10">NO HAY REGISTROS</p>
-                            ) : (
-                                allActivityLogs.map((log, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors">
+                            return (
+                                <div key={u.id} className="bg-white dark:bg-black/40 rounded-2xl border border-gray-200 dark:border-white/5 overflow-hidden transition-all duration-300">
+                                    
+                                    {/* Cabecera del Usuario (Siempre visible) */}
+                                    <div 
+                                        className="p-4 flex items-center justify-between cursor-pointer active:bg-gray-50 dark:active:bg-white/5"
+                                        onClick={() => setExpandedUserId(isExpanded ? null : u.id)}
+                                    >
                                         <div className="flex items-center gap-3">
-                                            <div className="text-[9px] font-mono text-gray-500 w-12 text-center leading-none">
-                                                {new Date(log.timestamp).toLocaleDateString([], {day: '2-digit', month: '2-digit'})}<br/>
-                                                {new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                            <div className="relative">
+                                                <img src={u.avatarUrl} className={`w-10 h-10 rounded-full bg-gray-200 object-cover ${u.isBlocked ? 'grayscale' : ''}`} />
+                                                <div className={`absolute -bottom-1 -right-1 w-3 h-3 border-2 border-white dark:border-black rounded-full ${u.isBlocked ? 'bg-red-500' : 'bg-green-500'}`}></div>
                                             </div>
                                             <div>
-                                                <div className="flex items-center gap-2 mb-0.5">
-                                                    <span className="text-[10px] font-black text-white uppercase">{log.userName}</span>
-                                                    <span className="text-[8px] bg-white/10 px-1 rounded text-gray-300">{log.userId.slice(0,4)}</span>
-                                                </div>
-                                                <p className="text-[9px] text-brand-purple font-bold uppercase tracking-wide">{log.action}</p>
+                                                <h4 className="text-xs font-black uppercase text-brand-black dark:text-white leading-none mb-0.5">{u.name}</h4>
+                                                <p className="text-[9px] text-gray-400 font-medium">ID: {u.id.substring(0,6)}</p>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <span className={`text-[8px] px-2 py-0.5 rounded font-bold uppercase ${log.type === 'login' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                                                {log.type === 'login' ? 'INGRESO' : 'VISITA'}
-                                            </span>
+                                        <div className="flex items-center gap-2">
+                                            {isExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
                                         </div>
                                     </div>
-                                ))
-                            )}
+
+                                    {/* Detalle Expandido */}
+                                    {isExpanded && (
+                                        <div className="px-4 pb-4 pt-0 animate-fade-in">
+                                            <div className="h-px w-full bg-gray-100 dark:bg-white/10 mb-3"></div>
+                                            
+                                            <div className="grid grid-cols-2 gap-2 mb-4">
+                                                <div className="bg-gray-50 dark:bg-white/5 p-2 rounded-xl border border-gray-100 dark:border-white/5">
+                                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-wider mb-1">Primer Ingreso</p>
+                                                    <div className="flex items-center gap-1 text-xs font-bold text-brand-black dark:text-white">
+                                                        <Calendar size={12} /> {formattedJoin}
+                                                    </div>
+                                                </div>
+                                                <div className="bg-gray-50 dark:bg-white/5 p-2 rounded-xl border border-gray-100 dark:border-white/5">
+                                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-wider mb-1">Sesiones Hoy</p>
+                                                    <div className="flex items-center gap-1 text-xs font-bold text-brand-purple">
+                                                        <Activity size={12} /> {todaySessions} Activas
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="mb-4">
+                                                <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider mb-2">Últimos Módulos Visitados</p>
+                                                {moduleVisits.length > 0 ? (
+                                                    <div className="space-y-1">
+                                                        {moduleVisits.map((log:any, idx:number) => (
+                                                            <div key={idx} className="flex items-center gap-2 text-[10px] text-gray-600 dark:text-gray-300 font-medium">
+                                                                <Eye size={10} className="text-gray-400" />
+                                                                {log.action.replace('Visitó módulo: ', '')}
+                                                                <span className="text-[8px] text-gray-400 ml-auto">{new Date(log.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-[10px] text-gray-400 italic">Sin actividad reciente de módulos</p>
+                                                )}
+                                            </div>
+
+                                            <button 
+                                                onClick={(e) => handleBlockUser(u.id, u.isBlocked, e)}
+                                                className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${u.isBlocked ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' : 'bg-red-50 dark:bg-red-900/10 text-red-500 hover:bg-red-500 hover:text-white'}`}
+                                            >
+                                                {u.isBlocked ? <Unlock size={14} /> : <Ban size={14} />}
+                                                {u.isBlocked ? 'HABILITAR ACCESO' : 'INHABILITAR USUARIO'}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* 2. TARJETA ESTADÍSTICA: MÓDULOS MÁS VISITADOS */}
+                <div className="bg-white dark:bg-brand-dark-card p-6 rounded-[2.5rem] border-[5px] border-gray-100 dark:border-white/5 shadow-xl relative overflow-hidden">
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="bg-brand-purple/10 p-2.5 rounded-xl text-brand-purple">
+                                <BarChart3 size={24} />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-black uppercase text-brand-black dark:text-white leading-none">Ranking</h2>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wide mt-1">Módulos más visitados</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            {moduleStats.slice(0, 5).map(([name, count], idx) => (
+                                <div key={idx} className="relative">
+                                    <div className="flex justify-between items-end mb-1">
+                                        <span className="text-[10px] font-black uppercase text-brand-black dark:text-white">{idx + 1}. {name}</span>
+                                        <span className="text-[10px] font-bold text-gray-400">{count} visitas</span>
+                                    </div>
+                                    <div className="w-full h-2 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                        <div 
+                                            className="h-full bg-brand-purple rounded-full" 
+                                            style={{ width: `${(count / (moduleStats[0]?.[1] || 1)) * 100}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            ))}
+                            {moduleStats.length === 0 && <p className="text-center text-xs text-gray-400 py-4">No hay datos suficientes</p>}
                         </div>
                     </div>
                 </div>
+
             </div>
         )}
 
@@ -406,7 +454,7 @@ const AdminDashboard: React.FC = () => {
                                 </div>
                             </div>
                             <button 
-                                onClick={() => handleBlockUser(u.id, u.isBlocked)} 
+                                onClick={(e) => handleBlockUser(u.id, u.isBlocked, e)} 
                                 className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-90 ${u.isBlocked ? 'bg-green-500 text-white shadow-lg shadow-green-500/30' : 'bg-gray-100 dark:bg-white/5 text-gray-400 hover:bg-red-50 hover:text-red-500'}`}
                             >
                                 {u.isBlocked ? <Unlock size={18} strokeWidth={2.5} /> : <Lock size={18} />}
