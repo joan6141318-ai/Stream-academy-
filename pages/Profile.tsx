@@ -116,10 +116,10 @@ const Profile: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#FAFAFA] dark:bg-black transition-colors duration-300 relative font-sans">
+    <div className="relative h-full w-full bg-[#FAFAFA] dark:bg-black transition-colors duration-300 font-sans overflow-hidden">
       
-      {/* Header Minimalista (Solo Logo y Admin) */}
-      <div className="fixed top-0 left-0 right-0 z-50 px-6 pt-safe flex justify-between items-center bg-[#FAFAFA]/90 dark:bg-black/90 backdrop-blur-xl h-20">
+      {/* Header Minimalista (Fixed on Top) */}
+      <div className="fixed top-0 left-0 right-0 z-50 px-6 pt-safe flex justify-between items-center bg-[#FAFAFA]/80 dark:bg-black/80 backdrop-blur-xl h-20 border-b border-gray-100/50 dark:border-white/5">
           <div className="flex items-center space-x-2">
              <div className="w-8 h-8 bg-brand-black dark:bg-white rounded-xl flex items-center justify-center shadow-lg shadow-black/10">
                 <LayoutGrid size={16} className="text-white dark:text-black" />
@@ -135,104 +135,109 @@ const Profile: React.FC = () => {
           )}
       </div>
       
-      <div className="flex-1 overflow-y-auto scrollbar-hide pb-32">
-          
-          {/* === HERO SECTION (STICKY) === */}
-          {/* Al ser sticky top-0, se pegará arriba. Le damos fondo sólido para tapar lo que pasa por debajo */}
-          <div className="sticky top-0 z-20 px-6 pt-24 pb-6 bg-[#FAFAFA] dark:bg-black transition-colors duration-300 shadow-sm">
-              <div className="flex flex-col animate-fade-in">
-                  <p className="text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2 pl-1">
-                      {homeConfig?.welcomeText || "Espacio de Trabajo"}
-                  </p>
+      {/* === LAYER 1: FIXED HERO (Background) === */}
+      <div className="absolute top-0 left-0 w-full z-0 px-6 pt-28 pb-10">
+          <div className="flex flex-col animate-fade-in">
+              <p className="text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2 pl-1">
+                  {homeConfig?.welcomeText || "Espacio de Trabajo"}
+              </p>
+              
+              <div className="flex items-start justify-between">
+                  <h1 className="text-4xl font-black text-brand-black dark:text-white uppercase leading-[0.9] tracking-tighter mb-6 max-w-[80%]">
+                      Hola!<br/>
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
+                          {user.name.split(' ')[0]}
+                      </span>
+                  </h1>
                   
-                  <div className="flex items-start justify-between">
-                      <h1 className="text-4xl font-black text-brand-black dark:text-white uppercase leading-[0.9] tracking-tighter mb-6 max-w-[80%]">
-                          Hola!<br/>
-                          <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
-                              {user.name.split(' ')[0]}
-                          </span>
-                      </h1>
-                      
-                      {/* Mini Avatar */}
-                      <div className="w-12 h-12 rounded-full p-0.5 bg-white shadow-lg border border-gray-100 dark:border-white/10 relative">
-                          <img src={user.avatarUrl} alt="Me" className="w-full h-full rounded-full object-cover" />
-                          <div className="absolute -bottom-1 -right-1 bg-brand-black text-white p-1 rounded-full border-2 border-white">
-                              <Check size={8} strokeWidth={4} />
-                          </div>
+                  {/* Mini Avatar */}
+                  <div className="w-12 h-12 rounded-full p-0.5 bg-white shadow-lg border border-gray-100 dark:border-white/10 relative">
+                      <img src={user.avatarUrl} alt="Me" className="w-full h-full rounded-full object-cover" />
+                      <div className="absolute -bottom-1 -right-1 bg-brand-black text-white p-1 rounded-full border-2 border-white">
+                          <Check size={8} strokeWidth={4} />
                       </div>
                   </div>
               </div>
-
-              {/* BANNERS CAROUSEL (Rounded 2.5rem & Clean) */}
-              <div className="relative w-full rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 dark:shadow-none group transform transition-all border-[5px] border-white/20">
-                  {loading ? (
-                      <div className="w-full aspect-[16/9] bg-gray-100 dark:bg-white/5 animate-pulse"></div>
-                  ) : (
-                    <>
-                      <div 
-                          ref={scrollRef}
-                          onScroll={handleScroll}
-                          className="overflow-x-auto scrollbar-hide flex gap-0 snap-x snap-mandatory"
-                      >
-                          {banners.map((banner) => {
-                            const Icon = getBannerIcon(banner.tag);
-                            return (
-                              <div 
-                                key={banner.id}
-                                onClick={() => handleBannerClick(banner.link)}
-                                className={`relative flex-shrink-0 w-full overflow-hidden cursor-pointer active:scale-[0.98] transition-transform duration-300 snap-center`} 
-                                style={{ aspectRatio: '16/10' }} // Un poco más alto para estilo moderno
-                              >
-                                  {/* Background Gradient */}
-                                  <div className={`absolute inset-0 bg-gradient-to-br ${banner.gradient}`}></div>
-                                  
-                                  {/* Background Image */}
-                                  <img 
-                                    src={banner.image} 
-                                    alt={banner.title} 
-                                    className={`absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-overlay ${banner.imagePosition || 'object-center'}`} 
-                                  />
-                                  
-                                  {/* Content Overlay */}
-                                  <div className="absolute inset-0 p-8 flex flex-col justify-between z-10">
-                                      <div className="flex justify-between items-start">
-                                          <div className="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-                                              <span className="text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5">
-                                                  <Star size={10} fill="currentColor" /> {banner.tag}
-                                              </span>
-                                          </div>
-                                          <div className="bg-white/10 p-2 rounded-full backdrop-blur-sm">
-                                              <ArrowUpRight size={18} className="text-white" />
-                                          </div>
-                                      </div>
-                                      
-                                      <div>
-                                          <h2 className="text-2xl font-black text-white uppercase leading-[0.9] mb-2 drop-shadow-lg max-w-[90%] tracking-tight">{banner.title}</h2>
-                                          {/* Update: Removed uppercase for better legibility */}
-                                          <p className="text-white/90 text-[10px] font-bold max-w-[80%] leading-tight line-clamp-2">{banner.subtitle}</p>
-                                      </div>
-                                  </div>
-                              </div>
-                            );
-                          })}
-                      </div>
-                      
-                      {/* Dots Indicator (Outside/Floating) */}
-                      <div className="absolute bottom-6 right-8 flex space-x-1.5 z-20">
-                          {banners.map((_, index) => (
-                              <div key={index} className={`h-1.5 rounded-full transition-all duration-300 shadow-sm backdrop-blur-sm ${activeIndex === index ? 'w-6 bg-white' : 'w-1.5 bg-white/40'}`} />
-                          ))}
-                      </div>
-                    </>
-                  )}
-              </div>
           </div>
 
-          {/* === CONTENT BELOW (SCROLLS UNDER) === */}
-          <div className="relative z-0 px-6 pt-4">
+          {/* BANNERS CAROUSEL */}
+          <div className="relative w-full rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 dark:shadow-none group transform transition-all border-[5px] border-white/20">
+              {loading ? (
+                  <div className="w-full aspect-[16/10] bg-gray-100 dark:bg-white/5 animate-pulse"></div>
+              ) : (
+                <>
+                  <div 
+                      ref={scrollRef}
+                      onScroll={handleScroll}
+                      className="overflow-x-auto scrollbar-hide flex gap-0 snap-x snap-mandatory"
+                  >
+                      {banners.map((banner) => {
+                        const Icon = getBannerIcon(banner.tag);
+                        return (
+                          <div 
+                            key={banner.id}
+                            onClick={() => handleBannerClick(banner.link)}
+                            className={`relative flex-shrink-0 w-full overflow-hidden cursor-pointer active:scale-[0.98] transition-transform duration-300 snap-center`} 
+                            style={{ aspectRatio: '16/10' }} 
+                          >
+                              {/* Background Gradient */}
+                              <div className={`absolute inset-0 bg-gradient-to-br ${banner.gradient}`}></div>
+                              
+                              {/* Background Image */}
+                              <img 
+                                src={banner.image} 
+                                alt={banner.title} 
+                                className={`absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-overlay ${banner.imagePosition || 'object-center'}`} 
+                              />
+                              
+                              {/* Content Overlay */}
+                              <div className="absolute inset-0 p-8 flex flex-col justify-between z-10">
+                                  <div className="flex justify-between items-start">
+                                      <div className="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+                                          <span className="text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                                              <Star size={10} fill="currentColor" /> {banner.tag}
+                                          </span>
+                                      </div>
+                                      <div className="bg-white/10 p-2 rounded-full backdrop-blur-sm">
+                                          <ArrowUpRight size={18} className="text-white" />
+                                      </div>
+                                  </div>
+                                  
+                                  <div>
+                                      <h2 className="text-2xl font-black text-white uppercase leading-[0.9] mb-2 drop-shadow-lg max-w-[90%] tracking-tight">{banner.title}</h2>
+                                      <p className="text-white/90 text-[10px] font-bold max-w-[80%] leading-tight line-clamp-2">{banner.subtitle}</p>
+                                  </div>
+                              </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                  
+                  {/* Dots Indicator */}
+                  <div className="absolute bottom-6 right-8 flex space-x-1.5 z-20">
+                      {banners.map((_, index) => (
+                          <div key={index} className={`h-1.5 rounded-full transition-all duration-300 shadow-sm backdrop-blur-sm ${activeIndex === index ? 'w-6 bg-white' : 'w-1.5 bg-white/40'}`} />
+                      ))}
+                  </div>
+                </>
+              )}
+          </div>
+      </div>
+
+      {/* === LAYER 2: SCROLLABLE COVER CONTENT === */}
+      <div className="absolute inset-0 z-10 overflow-y-auto scrollbar-hide pb-32">
+          
+          {/* Spacer to reveal fixed hero initially (~450px) */}
+          <div className="w-full h-[450px] pointer-events-none"></div>
+
+          {/* Main Content Sheet */}
+          <div className="bg-[#FAFAFA] dark:bg-black rounded-t-[3rem] shadow-[0_-20px_60px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_-20px_60px_-15px_rgba(255,255,255,0.05)] relative min-h-screen px-6 pt-10 border-t border-white/50 dark:border-white/5">
               
-              {/* === MODULES GRID (ESTILO "CAPACITATE" - BENTO) === */}
-              <div className="mb-12">
+              {/* Handle Bar Visual */}
+              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-12 h-1.5 bg-gray-200 dark:bg-white/10 rounded-full mb-4"></div>
+
+              {/* === MODULES GRID === */}
+              <div className="mb-12 mt-2">
                     <div className="mb-6 px-1 text-left">
                         <span className="block text-[10px] font-black uppercase tracking-widest text-brand-purple mb-1">
                             Librería de Recursos
@@ -274,13 +279,12 @@ const Profile: React.FC = () => {
                                     <span className={`font-black uppercase leading-[0.9] block ${variant.text} tracking-tighter mb-1 group-hover:translate-x-1 transition-transform duration-300 ${isLarge ? 'text-2xl' : 'text-sm'}`}>
                                         {module.title}
                                     </span>
-                                    {/* Update: Removed uppercase for cleaner look */}
                                     <span className={`text-[9px] ${variant.subText} font-bold tracking-wide line-clamp-1`}>
                                         Explorar Módulo
                                     </span>
                                 </div>
 
-                                {/* Decorative Big Icon (Watermark) - Standardized Rotation */}
+                                {/* Decorative Big Icon (Watermark) */}
                                 <Icon 
                                     className={`absolute -bottom-6 -right-6 ${variant.decorColor} rotate-[-15deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500 pointer-events-none`} 
                                     size={isLarge ? 140 : 100} 
@@ -292,7 +296,7 @@ const Profile: React.FC = () => {
                     </div>
               </div>
 
-              {/* === UTILITY SECTION (Compact List) === */}
+              {/* === UTILITY SECTION === */}
               <div className="mb-10">
                   <div className="bg-brand-black dark:bg-[#111] rounded-[2.5rem] p-8 relative overflow-hidden shadow-2xl shadow-black/30">
                       <div className="relative z-10 flex flex-col items-center text-center">
@@ -328,7 +332,7 @@ const Profile: React.FC = () => {
               </div>
 
               {/* === FOOTER LINKS === */}
-              <div className="pb-8 flex justify-center">
+              <div className="pb-32 flex justify-center">
                     <button 
                         onClick={() => setShowPrivacy(true)}
                         className="text-[9px] font-bold text-gray-300 dark:text-gray-600 uppercase tracking-widest hover:text-brand-black dark:hover:text-white transition-colors flex items-center space-x-2"
@@ -338,7 +342,6 @@ const Profile: React.FC = () => {
                     </button>
               </div>
           </div>
-
       </div>
 
       {showPrivacy && <PrivacyPolicyModal onClose={() => setShowPrivacy(false)} />}
