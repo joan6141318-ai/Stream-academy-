@@ -131,29 +131,30 @@ const TrainingDetail: React.FC = () => {
 
   const liveDataSteps = [ "https://i.postimg.cc/gJkXHjq3/4_20251123_185808_0001.png", "https://i.postimg.cc/SsN2fR7W/5_20251123_185808_0002.png", "https://i.postimg.cc/ZRKBxnFN/6_20251123_185808_0003.png" ];
   
-  // --- LÓGICA DE VIDEO INFALIBLE V3 ---
-  // Buscamos el módulo local usando DIRECTAMENTE el ID de la URL (topicId)
-  // Esto evita problemas si el objeto 'module' de la DB tiene datos incompletos.
-  const localModule = LOCAL_MODULES.find(m => m.id === topicId);
-  
-  // Extraemos las URLs
-  const dbVideo = module.videoUrl;
-  const localVideo = localModule?.videoUrl;
-  
-  // Helper para validar URL real
-  const isValidUrl = (url: any) => typeof url === 'string' && url.trim().length > 0 && url.startsWith('http');
+  // --- LÓGICA DE VIDEO ROBUSTA ---
+  // Esta función decide qué video mostrar. Prioriza la DB solo si es válida.
+  // Si la DB tiene basura (#, vacio, null), usa el Local.
+  const getValidVideoUrl = () => {
+      const dbVideo = module.videoUrl;
+      const localModule = LOCAL_MODULES.find(m => m.id === module.id);
+      const localVideo = localModule?.videoUrl;
 
-  let finalVideoUrl = null;
-  
-  // Lógica de Prioridad:
-  // 1. Si la DB tiene un link válido, usarlo.
-  // 2. Si no, usar el local.
-  if (isValidUrl(dbVideo)) {
-      finalVideoUrl = dbVideo;
-  } else if (isValidUrl(localVideo)) {
-      finalVideoUrl = localVideo;
-  }
+      const isValidUrl = (url: any) => {
+          return url && typeof url === 'string' && url.length > 10 && url.startsWith('http');
+      };
 
+      if (isValidUrl(dbVideo)) {
+          return dbVideo;
+      }
+      
+      if (isValidUrl(localVideo)) {
+          return localVideo;
+      }
+
+      return null;
+  };
+
+  const finalVideoUrl = getValidVideoUrl();
   const hasVideo = !!finalVideoUrl;
 
   return (

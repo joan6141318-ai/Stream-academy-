@@ -48,7 +48,7 @@ export const TRAINING_MODULES: TrainingModule[] = [
     title: '¿Qué es Bigo Live?',
     description: 'Introducción a la plataforma líder de streaming global.',
     imageUrl: 'https://i.postimg.cc/VvBmfwCq/grok-image-xwya1is.jpg',
-    videoUrl: 'https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Videos%2FUnleash%20Your%20Story%20and%20Embark%20on%20a%20Global%20Journey%20with%20Bigo%20Live!%20%F0%9F%8C%8E%F0%9F%8E%99%EF%B8%8F%F0%9F%93%BD%EF%B8%8FJoin%20the%20%23BigoFam%20toda.mp4?alt=media&token=e1107b22-5702-4f38-bc09-241c2b2fd691', 
+    videoUrl: 'https://firebasestorage.googleapis.com/v0/b/streamers-academy-8c01d.firebasestorage.app/o/Videos%2FQue%20es%20bigo%20live.mp4?alt=media&token=215b343a-3085-46b9-89df-4513882f5294', 
     textContent: 'Bigo Live es una plataforma de transmisión en vivo global que permite a los usuarios transmitir sus momentos favoritos, hacer amigos de todo el mundo y realizar videollamadas en vivo. Como streamer, tu objetivo es crear contenido entretenido, interactuar con tu audiencia en tiempo real y construir una comunidad sólida.'
   },
   {
