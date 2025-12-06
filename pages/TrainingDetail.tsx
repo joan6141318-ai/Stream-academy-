@@ -131,10 +131,24 @@ const TrainingDetail: React.FC = () => {
 
   const liveDataSteps = [ "https://i.postimg.cc/gJkXHjq3/4_20251123_185808_0001.png", "https://i.postimg.cc/SsN2fR7W/5_20251123_185808_0002.png", "https://i.postimg.cc/ZRKBxnFN/6_20251123_185808_0003.png" ];
   
-  // --- LÓGICA DE VIDEO (MODO ESTRICTO LOCAL) ---
+  // --- LÓGICA DE VIDEO INTELIGENTE (BÚSQUEDA POR TÍTULO) ---
   const getValidVideoUrl = () => {
+      // 1. Intentar encontrar coincidencia exacta por ID
+      let localModule = LOCAL_MODULES.find(m => m.id === module.id);
+
+      // 2. Si no encuentra por ID, intentar buscar por Título (Para arreglar Bigo si el ID de la DB es distinto)
+      if (!localModule) {
+          const titleLower = module.title.toLowerCase();
+          localModule = LOCAL_MODULES.find(m => {
+              const localTitleLower = m.title.toLowerCase();
+              // Caso específico para Bigo Live
+              if (titleLower.includes('bigo') && localTitleLower.includes('bigo')) return true;
+              // Caso general
+              return titleLower === localTitleLower;
+          });
+      }
+
       const dbVideo = module.videoUrl;
-      const localModule = LOCAL_MODULES.find(m => m.id === module.id);
       const localVideo = localModule?.videoUrl;
 
       // Helper validación estricta
@@ -142,14 +156,13 @@ const TrainingDetail: React.FC = () => {
           return url && typeof url === 'string' && url.length > 10 && (url.startsWith('http') || url.startsWith('https'));
       };
 
-      // 1. PRIORIDAD ABSOLUTA: LOCAL
-      // Si el código tiene un video válido, lo usa ignorando la base de datos.
+      // 3. PRIORIDAD ABSOLUTA: LOCAL
+      // Si encontramos un video local (ya sea por ID o por Título), lo usamos.
       if (isValidUrl(localVideo)) {
           return localVideo;
       }
 
-      // 2. FALLBACK: DB
-      // Solo si el código no tiene video, buscamos en la base de datos.
+      // 4. FALLBACK: DB
       if (isValidUrl(dbVideo)) {
           return dbVideo;
       }
