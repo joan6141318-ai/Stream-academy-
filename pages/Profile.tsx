@@ -135,11 +135,12 @@ const Profile: React.FC = () => {
           )}
       </div>
       
-      <div className="flex-1 overflow-y-auto scrollbar-hide pt-24 pb-32 px-6">
+      <div className="flex-1 overflow-y-auto scrollbar-hide pb-32">
           
-          {/* === HERO SECTION (Style: Welcome Page) === */}
-          <div className="mb-10 animate-fade-in relative">
-              <div className="flex flex-col">
+          {/* === HERO SECTION (STICKY) === */}
+          {/* Al ser sticky top-0, se pegará arriba. Le damos fondo sólido para tapar lo que pasa por debajo */}
+          <div className="sticky top-0 z-20 px-6 pt-24 pb-6 bg-[#FAFAFA] dark:bg-black transition-colors duration-300 shadow-sm">
+              <div className="flex flex-col animate-fade-in">
                   <p className="text-gray-400 dark:text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2 pl-1">
                       {homeConfig?.welcomeText || "Espacio de Trabajo"}
                   </p>
@@ -163,7 +164,7 @@ const Profile: React.FC = () => {
               </div>
 
               {/* BANNERS CAROUSEL (Rounded 2.5rem & Clean) */}
-              <div className="relative w-full rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 dark:shadow-none group transform transition-all hover:scale-[1.01] border-[5px] border-white/20">
+              <div className="relative w-full rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20 dark:shadow-none group transform transition-all border-[5px] border-white/20">
                   {loading ? (
                       <div className="w-full aspect-[16/9] bg-gray-100 dark:bg-white/5 animate-pulse"></div>
                   ) : (
@@ -227,111 +228,115 @@ const Profile: React.FC = () => {
               </div>
           </div>
 
-          {/* === MODULES GRID (ESTILO "CAPACITATE" - BENTO) === */}
-          <div className="mb-12">
-                <div className="mb-6 px-1 text-left">
-                    <span className="block text-[10px] font-black uppercase tracking-widest text-brand-purple mb-1">
-                        Librería de Recursos
-                    </span>
-                    <h3 className="text-xl font-black uppercase tracking-tight text-brand-black dark:text-white leading-none">
-                        {homeConfig?.modulesTitle || "Capacitación"}
-                    </h3>
-                </div>
-            
-                <div className="grid grid-cols-2 gap-4">
-                  {loading ? (
-                      [1,2,3,4].map(i => <div key={i} className="h-48 w-full bg-gray-50 dark:bg-white/5 rounded-[2rem] animate-pulse"></div>)
-                  ) : modules.map((module, index) => {
-                      const style = module.style || { iconName: 'PlayCircle' };
-                      const Icon = getIconComponent(style.iconName);
-                      
-                      // Sequence: Orange, Black, Gray, Purple
-                      const variant = CARD_VARIANTS[index % CARD_VARIANTS.length];
+          {/* === CONTENT BELOW (SCROLLS UNDER) === */}
+          <div className="relative z-0 px-6 pt-4">
+              
+              {/* === MODULES GRID (ESTILO "CAPACITATE" - BENTO) === */}
+              <div className="mb-12">
+                    <div className="mb-6 px-1 text-left">
+                        <span className="block text-[10px] font-black uppercase tracking-widest text-brand-purple mb-1">
+                            Librería de Recursos
+                        </span>
+                        <h3 className="text-xl font-black uppercase tracking-tight text-brand-black dark:text-white leading-none">
+                            {homeConfig?.modulesTitle || "Capacitación"}
+                        </h3>
+                    </div>
+                
+                    <div className="grid grid-cols-2 gap-4">
+                      {loading ? (
+                          [1,2,3,4].map(i => <div key={i} className="h-48 w-full bg-gray-50 dark:bg-white/5 rounded-[2rem] animate-pulse"></div>)
+                      ) : modules.map((module, index) => {
+                          const style = module.style || { iconName: 'PlayCircle' };
+                          const Icon = getIconComponent(style.iconName);
+                          
+                          // Sequence: Orange, Black, Gray, Purple
+                          const variant = CARD_VARIANTS[index % CARD_VARIANTS.length];
 
-                      // Alternate Large Card logic (Every 3rd item is full width)
-                      const isLarge = (index + 1) % 3 === 0;
+                          // Alternate Large Card logic (Every 3rd item is full width)
+                          const isLarge = (index + 1) % 3 === 0;
 
-                      return (
-                        <button 
-                            key={module.id}
-                            onClick={() => navigate(`/training/${module.id}`)}
-                            className={`relative flex flex-col justify-between p-6 ${isLarge ? 'col-span-2 aspect-[2/1]' : 'aspect-square'} ${variant.bg} rounded-[2.5rem] shadow-xl border-[5px] ${variant.border} active:scale-[0.96] transition-all duration-300 group overflow-hidden`}
-                        >
-                            {/* Header: Icon Container */}
-                            <div className="flex justify-between items-start w-full relative z-10">
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors duration-300 ${variant.iconBg} backdrop-blur-sm border border-white/5`}>
-                                    <Icon size={20} className={`${variant.iconColor}`} strokeWidth={2.5} />
+                          return (
+                            <button 
+                                key={module.id}
+                                onClick={() => navigate(`/training/${module.id}`)}
+                                className={`relative flex flex-col justify-between p-6 ${isLarge ? 'col-span-2 aspect-[2/1]' : 'aspect-square'} ${variant.bg} rounded-[2.5rem] shadow-xl border-[5px] ${variant.border} active:scale-[0.96] transition-all duration-300 group overflow-hidden`}
+                            >
+                                {/* Header: Icon Container */}
+                                <div className="flex justify-between items-start w-full relative z-10">
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors duration-300 ${variant.iconBg} backdrop-blur-sm border border-white/5`}>
+                                        <Icon size={20} className={`${variant.iconColor}`} strokeWidth={2.5} />
+                                    </div>
+                                    <ArrowUpRight size={20} className={`${variant.arrowColor}`} />
                                 </div>
-                                <ArrowUpRight size={20} className={`${variant.arrowColor}`} />
-                            </div>
-                            
-                            {/* Body: Title */}
-                            <div className="relative z-10 mt-auto text-left">
-                                <span className={`font-black uppercase leading-[0.9] block ${variant.text} tracking-tighter mb-1 group-hover:translate-x-1 transition-transform duration-300 ${isLarge ? 'text-2xl' : 'text-sm'}`}>
-                                    {module.title}
-                                </span>
-                                {/* Update: Removed uppercase for cleaner look */}
-                                <span className={`text-[9px] ${variant.subText} font-bold tracking-wide line-clamp-1`}>
-                                    Explorar Módulo
-                                </span>
-                            </div>
+                                
+                                {/* Body: Title */}
+                                <div className="relative z-10 mt-auto text-left">
+                                    <span className={`font-black uppercase leading-[0.9] block ${variant.text} tracking-tighter mb-1 group-hover:translate-x-1 transition-transform duration-300 ${isLarge ? 'text-2xl' : 'text-sm'}`}>
+                                        {module.title}
+                                    </span>
+                                    {/* Update: Removed uppercase for cleaner look */}
+                                    <span className={`text-[9px] ${variant.subText} font-bold tracking-wide line-clamp-1`}>
+                                        Explorar Módulo
+                                    </span>
+                                </div>
 
-                            {/* Decorative Big Icon (Watermark) - Standardized Rotation */}
-                            <Icon 
-                                className={`absolute -bottom-6 -right-6 ${variant.decorColor} rotate-[-15deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500 pointer-events-none`} 
-                                size={isLarge ? 140 : 100} 
-                                strokeWidth={1} 
-                            />
-                        </button>
-                      );
-                  })}
-                </div>
-          </div>
-
-          {/* === UTILITY SECTION (Compact List) === */}
-          <div className="mb-10">
-              <div className="bg-brand-black dark:bg-[#111] rounded-[2.5rem] p-8 relative overflow-hidden shadow-2xl shadow-black/30">
-                  <div className="relative z-10 flex flex-col items-center text-center">
-                      <div className="bg-white/10 p-3 rounded-full mb-4 backdrop-blur-md border border-white/10">
-                          <HelpCircle className="text-white" size={24} />
-                      </div>
-                      <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2">
-                          ¿Necesitas Ayuda?
-                      </h3>
-                      <p className="text-xs text-white/60 font-medium max-w-[200px] mb-6">
-                          Revisa nuestras normas o consulta las preguntas frecuentes.
-                      </p>
-                      
-                      <div className="flex gap-3 w-full">
-                          <button 
-                            onClick={() => navigate('/training/seguridad')}
-                            className="flex-1 bg-white text-brand-black h-12 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center hover:bg-gray-100 transition-colors"
-                          >
-                              Normas
-                          </button>
-                          <button 
-                            onClick={() => alert("Próximamente FAQ")}
-                            className="flex-1 bg-white/10 text-white h-12 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center hover:bg-white/20 transition-colors backdrop-blur-sm border border-white/10"
-                          >
-                              FAQ
-                          </button>
-                      </div>
-                  </div>
-                  
-                  {/* Background Noise/Gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-brand-purple/20 to-transparent pointer-events-none"></div>
+                                {/* Decorative Big Icon (Watermark) - Standardized Rotation */}
+                                <Icon 
+                                    className={`absolute -bottom-6 -right-6 ${variant.decorColor} rotate-[-15deg] group-hover:scale-110 group-hover:rotate-0 transition-all duration-500 pointer-events-none`} 
+                                    size={isLarge ? 140 : 100} 
+                                    strokeWidth={1} 
+                                />
+                            </button>
+                          );
+                      })}
+                    </div>
               </div>
-          </div>
 
-          {/* === FOOTER LINKS === */}
-          <div className="pb-8 flex justify-center">
-                <button 
-                    onClick={() => setShowPrivacy(true)}
-                    className="text-[9px] font-bold text-gray-300 dark:text-gray-600 uppercase tracking-widest hover:text-brand-black dark:hover:text-white transition-colors flex items-center space-x-2"
-                >
-                    <FileText size={12} />
-                    <span>Legal & Privacidad</span>
-                </button>
+              {/* === UTILITY SECTION (Compact List) === */}
+              <div className="mb-10">
+                  <div className="bg-brand-black dark:bg-[#111] rounded-[2.5rem] p-8 relative overflow-hidden shadow-2xl shadow-black/30">
+                      <div className="relative z-10 flex flex-col items-center text-center">
+                          <div className="bg-white/10 p-3 rounded-full mb-4 backdrop-blur-md border border-white/10">
+                              <HelpCircle className="text-white" size={24} />
+                          </div>
+                          <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2">
+                              ¿Necesitas Ayuda?
+                          </h3>
+                          <p className="text-xs text-white/60 font-medium max-w-[200px] mb-6">
+                              Revisa nuestras normas o consulta las preguntas frecuentes.
+                          </p>
+                          
+                          <div className="flex gap-3 w-full">
+                              <button 
+                                onClick={() => navigate('/training/seguridad')}
+                                className="flex-1 bg-white text-brand-black h-12 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center hover:bg-gray-100 transition-colors"
+                              >
+                                  Normas
+                              </button>
+                              <button 
+                                onClick={() => alert("Próximamente FAQ")}
+                                className="flex-1 bg-white/10 text-white h-12 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center hover:bg-white/20 transition-colors backdrop-blur-sm border border-white/10"
+                              >
+                                  FAQ
+                              </button>
+                          </div>
+                      </div>
+                      
+                      {/* Background Noise/Gradient */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-brand-purple/20 to-transparent pointer-events-none"></div>
+                  </div>
+              </div>
+
+              {/* === FOOTER LINKS === */}
+              <div className="pb-8 flex justify-center">
+                    <button 
+                        onClick={() => setShowPrivacy(true)}
+                        className="text-[9px] font-bold text-gray-300 dark:text-gray-600 uppercase tracking-widest hover:text-brand-black dark:hover:text-white transition-colors flex items-center space-x-2"
+                    >
+                        <FileText size={12} />
+                        <span>Legal & Privacidad</span>
+                    </button>
+              </div>
           </div>
 
       </div>
