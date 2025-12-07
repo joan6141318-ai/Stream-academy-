@@ -17,47 +17,43 @@ interface MockupProps {
 }
 
 const IphoneMockup: React.FC<MockupProps> = ({ title, desc, img, color = "border-gray-800", index, total }) => (
-  <div className="w-full flex flex-col items-center justify-start gap-8 py-4 animate-fade-in px-4">
+  <div className="w-full flex flex-col items-center justify-start gap-6 py-2 animate-fade-in px-4">
       
-      {/* PHONE FRAME - AJUSTADO PARA VER MEJOR LA IMAGEN */}
-      {/* Cambio: aspect-[9/16] es más estándar y corta menos imagen que 9/19.5 */}
-      {/* Cambio: w-[300px] para hacerlo más ancho y visible */}
-      <div className={`relative w-[300px] aspect-[9/16] bg-black rounded-[3rem] border-[6px] ${color} shadow-2xl overflow-hidden ring-1 ring-black/5 z-10 flex-shrink-0 transition-all duration-500`}>
+      {/* PHONE FRAME - FORMATO VERTICAL 9:16 ESTANDAR */}
+      {/* Ajustado a w-[260px] para proporción estética de celular real */}
+      <div className={`relative w-[260px] aspect-[9/16] bg-black rounded-[2.5rem] border-[8px] ${color} shadow-2xl overflow-hidden ring-1 ring-black/5 z-10 flex-shrink-0 transition-all duration-500`}>
           
-          {/* Dynamic Island (Más pequeña para no estorbar) */}
-          <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-20 h-6 bg-black rounded-full z-20 flex justify-center items-center pointer-events-none">
-              <div className="w-10 h-2 bg-[#101010]/50 rounded-full"></div>
+          {/* Dynamic Island */}
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-20 h-5 bg-black rounded-full z-20 flex justify-center items-center pointer-events-none">
+              <div className="w-12 h-2 bg-[#101010]/50 rounded-full"></div>
           </div>
           
-          {/* Screen Content - Ajuste object-cover con posición superior para priorizar caras/headers */}
-          <img src={img} alt="Screen" className="w-full h-full object-cover object-top" />
+          {/* Screen Content - Centrado perfecto para imágenes 9:16 */}
+          <img src={img} alt="Screen" className="w-full h-full object-cover object-center" />
           
           {/* Glass Reflection & Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none z-20"></div>
+          <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none z-20"></div>
       </div>
 
-      {/* INFO CARD - ESTILO FICHA GRIS CON BORDE BLANCO */}
-      <div className="w-full max-w-sm bg-gray-100 dark:bg-[#151515] rounded-[2.5rem] border-[6px] border-white dark:border-[#222] p-6 shadow-xl relative overflow-hidden group">
+      {/* INFO CARD - ESTILO FICHA */}
+      <div className="w-full max-w-[280px] bg-gray-100 dark:bg-[#151515] rounded-[2rem] border-4 border-white dark:border-[#222] p-5 shadow-lg relative overflow-hidden group">
           
           <div className="relative z-10 flex flex-col items-center text-center">
               {/* Pagination Badge */}
-              <div className="mb-3 inline-flex items-center justify-center bg-white dark:bg-white/10 px-3 py-1 rounded-full shadow-sm">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-brand-purple dark:text-white">
-                      Paso {index + 1} de {total}
+              <div className="mb-2 inline-flex items-center justify-center bg-white dark:bg-white/10 px-3 py-1 rounded-full shadow-sm">
+                  <span className="text-[8px] font-black uppercase tracking-widest text-brand-purple dark:text-white">
+                      {index + 1} / {total}
                   </span>
               </div>
 
-              <h3 className="text-xl font-black text-brand-black dark:text-white uppercase leading-none mb-3 tracking-tight">
+              <h3 className="text-lg font-black text-brand-black dark:text-white uppercase leading-none mb-2 tracking-tight">
                   {title}
               </h3>
               
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-bold leading-relaxed px-2">
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold leading-relaxed px-1">
                   {desc}
               </p>
           </div>
-
-          {/* Decoración de fondo sutil */}
-          <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-white dark:bg-white/5 rounded-full blur-2xl opacity-50 pointer-events-none"></div>
       </div>
   </div>
 );
@@ -125,7 +121,7 @@ const SingleSlideCarousel: React.FC<CarouselProps> = ({ items, renderItem, contr
         >
             
             {/* TRACK */}
-            <div className="w-full relative min-h-[720px] flex items-start justify-center transition-opacity duration-300 pt-2">
+            <div className="w-full relative min-h-[650px] flex items-start justify-center transition-opacity duration-300 pt-2">
                  {/* Only render current item to enforce single view */}
                  <div className="w-full">
                      {renderItem(items[currentIndex], currentIndex)}
@@ -138,10 +134,10 @@ const SingleSlideCarousel: React.FC<CarouselProps> = ({ items, renderItem, contr
                     <button 
                         onClick={prev}
                         disabled={currentIndex === 0}
-                        className={`w-12 h-12 rounded-full border backdrop-blur-md flex items-center justify-center transition-all shadow-lg active:scale-90 ${currentIndex === 0 ? 'opacity-0 scale-50' : 'opacity-100 scale-100'} ${arrowClass}`}
+                        className={`w-10 h-10 rounded-full border backdrop-blur-md flex items-center justify-center transition-all shadow-lg active:scale-90 ${currentIndex === 0 ? 'opacity-0 scale-50' : 'opacity-100 scale-100'} ${arrowClass}`}
                         aria-label="Anterior"
                     >
-                        <ChevronLeft size={24} strokeWidth={2.5} />
+                        <ChevronLeft size={20} strokeWidth={2.5} />
                     </button>
                 </div>
 
@@ -149,10 +145,10 @@ const SingleSlideCarousel: React.FC<CarouselProps> = ({ items, renderItem, contr
                     <button 
                         onClick={next}
                         disabled={currentIndex === items.length - 1}
-                        className={`w-12 h-12 rounded-full border backdrop-blur-md flex items-center justify-center transition-all shadow-lg active:scale-90 ${currentIndex === items.length - 1 ? 'opacity-0 scale-50' : 'opacity-100 scale-100'} ${arrowClass}`}
+                        className={`w-10 h-10 rounded-full border backdrop-blur-md flex items-center justify-center transition-all shadow-lg active:scale-90 ${currentIndex === items.length - 1 ? 'opacity-0 scale-50' : 'opacity-100 scale-100'} ${arrowClass}`}
                         aria-label="Siguiente"
                     >
-                        <ChevronRight size={24} strokeWidth={2.5} />
+                        <ChevronRight size={20} strokeWidth={2.5} />
                     </button>
                 </div>
             </div>
@@ -163,7 +159,7 @@ const SingleSlideCarousel: React.FC<CarouselProps> = ({ items, renderItem, contr
                     <button 
                         key={idx} 
                         onClick={() => setCurrentIndex(idx)}
-                        className={`h-2 rounded-full transition-all duration-300 ${idx === currentIndex ? `w-8 ${dotActive}` : `w-2 ${dotInactive}`}`}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentIndex ? `w-6 ${dotActive}` : `w-1.5 ${dotInactive}`}`}
                     />
                 ))}
             </div>
