@@ -139,7 +139,7 @@ const Login: React.FC = () => {
         
         <div className="space-y-2 mb-8">
           <h1 className="text-4xl font-black tracking-tighter text-brand-black dark:text-white leading-[0.9]">
-            STREAM<br/>AGENCY
+            STREAMERS<br/>ACADEMY
           </h1>
           <div className="h-1 w-10 bg-brand-purple"></div>
           <p className="text-gray-400 text-[10px] font-bold uppercase tracking-[0.25em] pt-2">
@@ -278,7 +278,7 @@ const Login: React.FC = () => {
             Términos y Privacidad
          </button>
          <p className="text-[9px] font-bold text-gray-200 dark:text-gray-800 uppercase tracking-widest">
-           Secure Access • v2.6.1
+           Secure Access • v2.6.2
          </p>
       </div>
 
