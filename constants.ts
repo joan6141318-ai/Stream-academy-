@@ -2,7 +2,7 @@
 import { TrainingModule, UserProfile } from './types';
 
 // Incrementa este número para obligar a TODOS los usuarios a refrescar su perfil
-export const DATA_VERSION = 5; 
+export const DATA_VERSION = 6; 
 
 // --- CONFIGURACIÓN PÚBLICA (NO SENSIBLE) ---
 export const ONESIGNAL_APP_ID = "3bbf8972-d8cb-4eed-a46b-6059a4f71cd1"; // ID Público de la App
@@ -36,7 +36,7 @@ export const SALARY_TIERS = [
   { seeds: 100000, pay: 1136 }, 
   { seeds: 60000, pay: 708 },
   { seeds: 30000, pay: 354 },
-  { seeds: 2000, pay: 236 },
+  { seeds: 20000, pay: 236 }, // CORREGIDO: Era 2000, ahora es 20000 (Nivel CE)
   { seeds: 10000, pay: 122 },
   { seeds: 5000, pay: 58 },
   { seeds: 2000, pay: 23 },
