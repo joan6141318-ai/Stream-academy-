@@ -16,69 +16,70 @@ interface MockupProps {
 }
 
 const IphoneMockup: React.FC<MockupProps> = ({ title, desc, img, index, total }) => (
-  <div className="w-full flex flex-col items-center justify-start gap-6 py-4 animate-fade-in select-none">
+  <div className="w-full flex flex-col items-center justify-start gap-8 py-6 animate-fade-in select-none">
       
-      {/* PHONE CHASSIS - Ultra Premium Look */}
-      <div className="relative flex-shrink-0 z-10 transition-transform duration-500 hover:scale-[1.01]">
-          {/* Shadow behind phone */}
-          <div className="absolute top-10 left-4 right-4 bottom-0 bg-black/40 blur-3xl rounded-[3rem]"></div>
+      {/* PHONE CHASSIS - Hyper Realistic Modern Design */}
+      <div className="relative flex-shrink-0 z-10 transition-transform duration-500 hover:scale-[1.01] group">
+          
+          {/* Ambient Shadow (Soft Glow) */}
+          <div className="absolute top-12 left-8 right-8 bottom-4 bg-black/30 blur-[40px] rounded-[3rem] transition-opacity duration-500 group-hover:bg-black/40"></div>
 
-          {/* Main Body - Titanium Dark Finish */}
-          <div className="relative h-[560px] w-[270px] bg-[#121212] rounded-[3.5rem] shadow-[inset_0_0_2px_1px_rgba(255,255,255,0.1),0_20px_60px_-15px_rgba(0,0,0,0.6)] border-[6px] border-[#2a2a2a] ring-1 ring-black/50">
+          {/* Main Body - Titanium Frame Simulation */}
+          {/* Utilizamos ring y bordes sutiles para simular el metal real en lugar de un borde sólido plano */}
+          <div className="relative h-[580px] w-[280px] bg-[#1c1c1e] rounded-[3.5rem] shadow-[0_30px_60px_-10px_rgba(0,0,0,0.5),inset_0_0_0_1px_rgba(255,255,255,0.1)] ring-1 ring-white/10 overflow-hidden">
               
-              {/* Screen Container */}
-              <div className="absolute inset-[2px] bg-black rounded-[3.2rem] overflow-hidden relative border border-black">
+              {/* Button Details (Volume/Power) - Sutiles y pegados al chasis */}
+              <div className="absolute top-32 -left-[2px] w-[3px] h-7 bg-[#3a3a3c] rounded-l-sm opacity-80"></div>
+              <div className="absolute top-48 -left-[2px] w-[3px] h-12 bg-[#3a3a3c] rounded-l-sm opacity-80"></div>
+              <div className="absolute top-64 -left-[2px] w-[3px] h-12 bg-[#3a3a3c] rounded-l-sm opacity-80"></div>
+              <div className="absolute top-52 -right-[2px] w-[3px] h-20 bg-[#3a3a3c] rounded-r-sm opacity-80"></div>
+
+              {/* Screen Bezel (El marco negro fino) */}
+              <div className="absolute inset-[4px] bg-black rounded-[3.2rem] overflow-hidden border-[3px] border-black relative z-10">
                   
-                  {/* Image */}
+                  {/* Image Container */}
                   <img 
                     src={img} 
                     alt={title} 
-                    className="w-full h-full object-cover" 
+                    className="w-full h-full object-cover z-0" 
                     draggable={false}
                   />
                   
-                  {/* Dynamic Island Area */}
-                  <div className="absolute top-4 left-1/2 -translate-x-1/2 h-[28px] w-[96px] bg-black rounded-full z-20 flex items-center justify-center">
-                        {/* Camera/Sensor array */}
-                        <div className="absolute right-4 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#0a0a0a] flex items-center justify-center">
-                             <div className="w-1.5 h-1.5 bg-[#1a1a1a] rounded-full">
-                                <div className="absolute top-[1px] right-[1px] w-[1px] h-[1px] bg-blue-500/40 rounded-full"></div>
-                             </div>
-                        </div>
+                  {/* Dynamic Island (Compact & Modern) */}
+                  <div className="absolute top-5 left-1/2 -translate-x-1/2 h-[26px] w-[90px] bg-black rounded-full z-20 flex items-center justify-center pointer-events-none">
+                      {/* Sensor reflection */}
+                      <div className="absolute right-5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#1a1a1a]/50"></div>
                   </div>
 
-                  {/* Screen Glare/Reflection */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-transparent pointer-events-none z-10 opacity-60"></div>
+                  {/* Glass Reflections (Premium Glossy Look) */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.03] via-transparent to-transparent pointer-events-none z-10"></div>
+                  <div className="absolute top-0 right-0 w-2/3 h-full bg-gradient-to-l from-white/[0.02] to-transparent pointer-events-none z-10"></div>
                   
-                  {/* Bottom Line Indicator */}
-                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-white/20 rounded-full z-20"></div>
+                  {/* Home Indicator */}
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/40 rounded-full z-20 backdrop-blur-md"></div>
               </div>
-
-              {/* Side Buttons */}
-              <div className="absolute top-28 -left-[8px] w-[4px] h-7 bg-[#202020] rounded-l-md shadow-inner border-r border-[#1a1a1a]"></div>
-              <div className="absolute top-44 -left-[8px] w-[4px] h-12 bg-[#202020] rounded-l-md shadow-inner border-r border-[#1a1a1a]"></div>
-              <div className="absolute top-60 -left-[8px] w-[4px] h-12 bg-[#202020] rounded-l-md shadow-inner border-r border-[#1a1a1a]"></div>
-              <div className="absolute top-48 -right-[8px] w-[4px] h-20 bg-[#202020] rounded-r-md shadow-inner border-l border-[#1a1a1a]"></div>
           </div>
       </div>
 
-      {/* INFO CARD - Style: Light Gray + White Borders (Requested) */}
-      <div className="w-[270px] bg-gray-100 dark:bg-[#1a1a1a] p-6 rounded-3xl shadow-xl border-[4px] border-white dark:border-[#333] relative z-20">
-          <div className="flex flex-col items-center text-center space-y-2">
-              <div className="flex items-center space-x-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">
-                  <span>Paso</span>
-                  <span className="text-brand-purple dark:text-white bg-white dark:bg-white/10 px-1.5 rounded">{index + 1}</span>
-                  <span className="text-gray-300">/</span>
-                  <span>{total}</span>
+      {/* INFO CARD - Modern "Ficha" Style */}
+      <div className="w-[280px] relative z-20">
+          <div className="bg-[#F2F2F7] dark:bg-[#1C1C1E] p-6 rounded-[2rem] border-[4px] border-white dark:border-[#2C2C2E] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.08)] flex flex-col items-center text-center transition-colors duration-300">
+              
+              {/* Pagination Indicator */}
+              <div className="bg-white dark:bg-black/20 px-3 py-1 rounded-full mb-3 shadow-sm border border-gray-100 dark:border-white/5">
+                  <div className="flex items-center space-x-1.5 text-[9px] font-black uppercase tracking-widest text-gray-400">
+                      <span>Step</span>
+                      <span className="text-brand-black dark:text-white">{index + 1}</span>
+                      <span className="text-gray-300">/</span>
+                      <span>{total}</span>
+                  </div>
               </div>
               
-              <h2 className="text-lg font-black text-brand-black dark:text-white uppercase leading-none tracking-tight pt-1">
+              <h2 className="text-xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tight mb-2">
                   {title}
               </h2>
               
-              <div className="w-8 h-0.5 bg-gray-300 dark:bg-gray-700 rounded-full my-2"></div>
-
-              <p className="text-[11px] text-gray-600 dark:text-gray-300 font-bold leading-relaxed">
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed max-w-[240px]">
                   {desc}
               </p>
           </div>
@@ -149,7 +150,7 @@ const SingleSlideCarousel: React.FC<CarouselProps> = ({ items, renderItem, contr
         >
             
             {/* TRACK */}
-            <div className="w-full relative min-h-[850px] flex items-start justify-center transition-opacity duration-300 pt-4">
+            <div className="w-full relative min-h-[900px] flex items-start justify-center transition-opacity duration-300 pt-2">
                  {/* Only render current item to enforce single view */}
                  <div className="w-full">
                      {renderItem(items[currentIndex], currentIndex)}
