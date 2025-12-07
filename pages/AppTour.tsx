@@ -16,28 +16,27 @@ interface MockupProps {
 }
 
 const IphoneMockup: React.FC<MockupProps> = ({ title, desc, img, index, total }) => (
-  <div className="w-full flex flex-col items-center justify-start gap-8 py-6 animate-fade-in select-none">
+  <div className="w-full flex flex-col items-center justify-start gap-6 py-4 animate-fade-in select-none">
       
-      {/* PHONE CHASSIS - Hyper Realistic Modern Design */}
+      {/* PHONE CHASSIS - Adjusted Dimensions for better image visibility */}
       <div className="relative flex-shrink-0 z-10 transition-transform duration-500 hover:scale-[1.01] group">
           
-          {/* Ambient Shadow (Soft Glow) */}
-          <div className="absolute top-12 left-8 right-8 bottom-4 bg-black/30 blur-[40px] rounded-[3rem] transition-opacity duration-500 group-hover:bg-black/40"></div>
+          {/* Ambient Shadow */}
+          <div className="absolute top-8 left-6 right-6 bottom-4 bg-black/30 blur-[30px] rounded-[2.5rem]"></div>
 
-          {/* Main Body - Titanium Frame Simulation */}
-          {/* Utilizamos ring y bordes sutiles para simular el metal real en lugar de un borde sólido plano */}
-          <div className="relative h-[580px] w-[280px] bg-[#1c1c1e] rounded-[3.5rem] shadow-[0_30px_60px_-10px_rgba(0,0,0,0.5),inset_0_0_0_1px_rgba(255,255,255,0.1)] ring-1 ring-white/10 overflow-hidden">
+          {/* Main Body - Taller and narrower for modern look (approx 20:9 ratio) */}
+          <div className="relative h-[560px] w-[270px] bg-[#1c1c1e] rounded-[3.5rem] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.5),inset_0_0_0_1px_rgba(255,255,255,0.1)] ring-1 ring-white/10 overflow-hidden">
               
-              {/* Button Details (Volume/Power) - Sutiles y pegados al chasis */}
-              <div className="absolute top-32 -left-[2px] w-[3px] h-7 bg-[#3a3a3c] rounded-l-sm opacity-80"></div>
-              <div className="absolute top-48 -left-[2px] w-[3px] h-12 bg-[#3a3a3c] rounded-l-sm opacity-80"></div>
-              <div className="absolute top-64 -left-[2px] w-[3px] h-12 bg-[#3a3a3c] rounded-l-sm opacity-80"></div>
-              <div className="absolute top-52 -right-[2px] w-[3px] h-20 bg-[#3a3a3c] rounded-r-sm opacity-80"></div>
+              {/* Button Details */}
+              <div className="absolute top-28 -left-[2px] w-[3px] h-7 bg-[#3a3a3c] rounded-l-sm opacity-80"></div>
+              <div className="absolute top-40 -left-[2px] w-[3px] h-12 bg-[#3a3a3c] rounded-l-sm opacity-80"></div>
+              <div className="absolute top-56 -left-[2px] w-[3px] h-12 bg-[#3a3a3c] rounded-l-sm opacity-80"></div>
+              <div className="absolute top-44 -right-[2px] w-[3px] h-20 bg-[#3a3a3c] rounded-r-sm opacity-80"></div>
 
-              {/* Screen Bezel (El marco negro fino) */}
-              <div className="absolute inset-[4px] bg-black rounded-[3.2rem] overflow-hidden border-[3px] border-black relative z-10">
+              {/* Screen Bezel - Thinner to maximize image area */}
+              <div className="absolute inset-[5px] bg-black rounded-[3.2rem] overflow-hidden border-[2px] border-black relative z-10">
                   
-                  {/* Image Container */}
+                  {/* Image Container - Full coverage */}
                   <img 
                     src={img} 
                     alt={title} 
@@ -45,28 +44,26 @@ const IphoneMockup: React.FC<MockupProps> = ({ title, desc, img, index, total })
                     draggable={false}
                   />
                   
-                  {/* Dynamic Island (Compact & Modern) */}
-                  <div className="absolute top-5 left-1/2 -translate-x-1/2 h-[26px] w-[90px] bg-black rounded-full z-20 flex items-center justify-center pointer-events-none">
-                      {/* Sensor reflection */}
-                      <div className="absolute right-5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#1a1a1a]/50"></div>
+                  {/* Dynamic Island - Compact */}
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 h-[24px] w-[80px] bg-black rounded-full z-20 flex items-center justify-center pointer-events-none">
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#1a1a1a]/50"></div>
                   </div>
 
-                  {/* Glass Reflections (Premium Glossy Look) */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.03] via-transparent to-transparent pointer-events-none z-10"></div>
-                  <div className="absolute top-0 right-0 w-2/3 h-full bg-gradient-to-l from-white/[0.02] to-transparent pointer-events-none z-10"></div>
+                  {/* Glass Reflections */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.05] via-transparent to-transparent pointer-events-none z-10"></div>
                   
                   {/* Home Indicator */}
-                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/40 rounded-full z-20 backdrop-blur-md"></div>
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-28 h-1 bg-white/40 rounded-full z-20 backdrop-blur-md"></div>
               </div>
           </div>
       </div>
 
-      {/* INFO CARD - Modern "Ficha" Style */}
-      <div className="w-[280px] relative z-20">
-          <div className="bg-[#F2F2F7] dark:bg-[#1C1C1E] p-6 rounded-[2rem] border-[4px] border-white dark:border-[#2C2C2E] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.08)] flex flex-col items-center text-center transition-colors duration-300">
+      {/* INFO CARD - Requested Design: Gray Background, White Border */}
+      <div className="w-[270px] relative z-20">
+          <div className="bg-gray-100 dark:bg-[#1C1C1E] p-5 rounded-[2rem] border-[4px] border-white dark:border-[#2C2C2E] shadow-xl flex flex-col items-center text-center transition-colors duration-300">
               
-              {/* Pagination Indicator */}
-              <div className="bg-white dark:bg-black/20 px-3 py-1 rounded-full mb-3 shadow-sm border border-gray-100 dark:border-white/5">
+              {/* Pagination */}
+              <div className="bg-white dark:bg-black/20 px-3 py-1 rounded-full mb-3 shadow-sm border border-gray-200 dark:border-white/5">
                   <div className="flex items-center space-x-1.5 text-[9px] font-black uppercase tracking-widest text-gray-400">
                       <span>Step</span>
                       <span className="text-brand-black dark:text-white">{index + 1}</span>
@@ -75,7 +72,7 @@ const IphoneMockup: React.FC<MockupProps> = ({ title, desc, img, index, total })
                   </div>
               </div>
               
-              <h2 className="text-xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tight mb-2">
+              <h2 className="text-lg font-black text-brand-black dark:text-white uppercase leading-none tracking-tight mb-2">
                   {title}
               </h2>
               
@@ -149,8 +146,8 @@ const SingleSlideCarousel: React.FC<CarouselProps> = ({ items, renderItem, contr
             onTouchEnd={onTouchEnd}
         >
             
-            {/* TRACK */}
-            <div className="w-full relative min-h-[900px] flex items-start justify-center transition-opacity duration-300 pt-2">
+            {/* TRACK - Adjusted height for new mockup size */}
+            <div className="w-full relative min-h-[850px] flex items-start justify-center transition-opacity duration-300 pt-2">
                  {/* Only render current item to enforce single view */}
                  <div className="w-full">
                      {renderItem(items[currentIndex], currentIndex)}
