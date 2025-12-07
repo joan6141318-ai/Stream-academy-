@@ -11,46 +11,65 @@ interface MockupProps {
   title: string;
   desc: string;
   img: string;
-  color?: string;
   index: number;
   total: number;
 }
 
-const IphoneMockup: React.FC<MockupProps> = ({ title, desc, img, color = "border-gray-800", index, total }) => (
-  <div className="w-full flex flex-col items-center justify-start gap-6 py-2 animate-fade-in px-4">
+const IphoneMockup: React.FC<MockupProps> = ({ title, desc, img, index, total }) => (
+  <div className="w-full flex flex-col items-center justify-start gap-8 py-6 animate-fade-in select-none">
       
-      {/* PHONE FRAME - FORMATO VERTICAL 9:16 ESTANDAR */}
-      {/* Ajustado a w-[260px] para proporción estética de celular real */}
-      <div className={`relative w-[260px] aspect-[9/16] bg-black rounded-[2.5rem] border-[8px] ${color} shadow-2xl overflow-hidden ring-1 ring-black/5 z-10 flex-shrink-0 transition-all duration-500`}>
-          
-          {/* Dynamic Island */}
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-20 h-5 bg-black rounded-full z-20 flex justify-center items-center pointer-events-none">
-              <div className="w-12 h-2 bg-[#101010]/50 rounded-full"></div>
-          </div>
-          
-          {/* Screen Content - Centrado perfecto para imágenes 9:16 */}
-          <img src={img} alt="Screen" className="w-full h-full object-cover object-center" />
-          
-          {/* Glass Reflection & Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none z-20"></div>
-      </div>
+      {/* PHONE CHASSIS - Modern Realistic Look (Titanium/Dark Style) */}
+      <div className="relative flex-shrink-0 z-10 transition-transform duration-500 hover:scale-[1.01]">
+          {/* Frame Outer Structure */}
+          <div className="relative h-[580px] w-[280px] bg-[#1a1a1a] rounded-[3.5rem] shadow-[0_0_0_2px_#333,0_30px_60px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10">
+              
+              {/* Inner Black Bezel */}
+              <div className="absolute inset-[3px] bg-black rounded-[3.3rem] border-[4px] border-black overflow-hidden relative">
+                  
+                  {/* Screen Content */}
+                  <img 
+                    src={img} 
+                    alt={title} 
+                    className="w-full h-full object-cover" 
+                    draggable={false}
+                  />
+                  
+                  {/* Glossy Overlay (Glass Effect) */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none z-10"></div>
 
-      {/* INFO CARD - ESTILO FICHA */}
-      <div className="w-full max-w-[280px] bg-gray-100 dark:bg-[#151515] rounded-[2rem] border-4 border-white dark:border-[#222] p-5 shadow-lg relative overflow-hidden group">
-          
-          <div className="relative z-10 flex flex-col items-center text-center">
-              {/* Pagination Badge */}
-              <div className="mb-2 inline-flex items-center justify-center bg-white dark:bg-white/10 px-3 py-1 rounded-full shadow-sm">
-                  <span className="text-[8px] font-black uppercase tracking-widest text-brand-purple dark:text-white">
-                      {index + 1} / {total}
-                  </span>
+                  {/* Dynamic Island / Notch Area */}
+                  <div className="absolute top-5 left-1/2 -translate-x-1/2 h-7 w-[90px] bg-black rounded-full z-20 flex items-center justify-center pointer-events-none">
+                        <div className="w-16 h-4 bg-[#0a0a0a] rounded-full flex items-center justify-end pr-2 relative">
+                            {/* Camera Lens Reflection */}
+                            <div className="w-1.5 h-1.5 bg-[#1a1a1a] rounded-full absolute right-3 top-1"></div>
+                            <div className="w-0.5 h-0.5 bg-blue-900/50 rounded-full absolute right-3.5 top-1.5"></div>
+                        </div>
+                  </div>
               </div>
 
-              <h3 className="text-lg font-black text-brand-black dark:text-white uppercase leading-none mb-2 tracking-tight">
-                  {title}
-              </h3>
+              {/* Hardware Buttons (CSS Decoration) */}
+              <div className="absolute top-28 -left-[3px] w-[3px] h-7 bg-[#2a2a2a] rounded-l-sm shadow-sm"></div> {/* Mute */}
+              <div className="absolute top-40 -left-[3px] w-[3px] h-12 bg-[#2a2a2a] rounded-l-sm shadow-sm"></div> {/* Vol Up */}
+              <div className="absolute top-56 -left-[3px] w-[3px] h-12 bg-[#2a2a2a] rounded-l-sm shadow-sm"></div> {/* Vol Down */}
+              <div className="absolute top-44 -right-[3px] w-[3px] h-16 bg-[#2a2a2a] rounded-r-sm shadow-sm"></div> {/* Power */}
+          </div>
+      </div>
+
+      {/* INFO CARD - Clean & Detached */}
+      <div className="w-[280px] bg-white dark:bg-[#121212] p-6 rounded-3xl shadow-xl border border-gray-100 dark:border-white/5 relative z-20">
+          <div className="flex flex-col items-center text-center space-y-3">
+              <div className="flex items-center space-x-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">
+                  <span>Paso</span>
+                  <span className="text-brand-purple dark:text-white">{index + 1}</span>
+                  <span className="text-gray-300">/</span>
+                  <span>{total}</span>
+              </div>
               
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold leading-relaxed px-1">
+              <h2 className="text-xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tight">
+                  {title}
+              </h2>
+              
+              <p className="text-xs text-gray-500 font-medium leading-relaxed">
                   {desc}
               </p>
           </div>
@@ -120,8 +139,8 @@ const SingleSlideCarousel: React.FC<CarouselProps> = ({ items, renderItem, contr
             onTouchEnd={onTouchEnd}
         >
             
-            {/* TRACK */}
-            <div className="w-full relative min-h-[650px] flex items-start justify-center transition-opacity duration-300 pt-2">
+            {/* TRACK - Increased height for taller phone model */}
+            <div className="w-full relative min-h-[850px] flex items-start justify-center transition-opacity duration-300 pt-4">
                  {/* Only render current item to enforce single view */}
                  <div className="w-full">
                      {renderItem(items[currentIndex], currentIndex)}
@@ -129,7 +148,7 @@ const SingleSlideCarousel: React.FC<CarouselProps> = ({ items, renderItem, contr
             </div>
 
             {/* CONTROLS (Floating on sides - Adjusted position) */}
-            <div className="absolute top-[40%] transform -translate-y-1/2 left-0 right-0 pointer-events-none flex items-center justify-between px-2 md:px-8 z-30 w-full max-w-md mx-auto">
+            <div className="absolute top-[35%] transform -translate-y-1/2 left-0 right-0 pointer-events-none flex items-center justify-between px-2 md:px-8 z-30 w-full max-w-md mx-auto">
                 <div className="pointer-events-auto">
                     <button 
                         onClick={prev}
@@ -260,7 +279,7 @@ const AppTour: React.FC = () => {
           subtitle: 'Guía de uso',
           icon: Smartphone,
           bg: 'bg-gray-200',
-          border: 'border-gray-300', // For Mockup (Dark gray/black works best now with the new card style)
+          border: 'border-gray-300', 
           text: 'text-brand-black',
           cardStyle: 'bg-gray-200 text-brand-black border-white',
           content: (
@@ -272,7 +291,6 @@ const AppTour: React.FC = () => {
                         title={item.title} 
                         desc={item.desc} 
                         img={item.image} 
-                        color="border-gray-800"
                         index={idx}
                         total={functionsData.length}
                     />
@@ -298,7 +316,6 @@ const AppTour: React.FC = () => {
                         title={item.title} 
                         desc={item.desc} 
                         img={item.image} 
-                        color="border-orange-500"
                         index={idx}
                         total={broadcastData.length}
                     />
@@ -408,7 +425,6 @@ const AppTour: React.FC = () => {
                         title={item.title} 
                         desc={item.desc} 
                         img={item.image} 
-                        color="border-brand-purple"
                         index={idx}
                         total={toolsData.length}
                     />
