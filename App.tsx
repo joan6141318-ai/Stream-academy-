@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
@@ -28,6 +27,7 @@ import EditorDashboard from './pages/EditorDashboard';
 import WelcomeIntermediate from './pages/WelcomeIntermediate';
 import PKCalendar from './pages/PKCalendar'; 
 import AppTour from './pages/AppTour';
+import TopStreamers from './pages/TopStreamers';
 import MaintenanceMode from './pages/MaintenanceMode';
 import AccessDenied from './pages/AccessDenied';
 import { MainLayout } from './components/MainLayout';
@@ -78,6 +78,7 @@ const AppContent: React.FC = () => {
                     <Route path="/training/:topicId" element={<TrainingDetail />} />
                     <Route path="/pk-calendar" element={<PKCalendar />} />
                     <Route path="/app-tour" element={<AppTour />} />
+                    <Route path="/top-streamers" element={<TopStreamers />} />
                     
                     {/* Sub-secciones de Entrenamiento */}
                     <Route path="/training/bloqueos/motivos" element={<BloqueoMotivos />} />

@@ -1,4 +1,3 @@
-
 import { TrainingModule, UserProfile } from './types';
 
 // Incrementa este número para obligar a TODOS los usuarios a refrescar su perfil
@@ -29,7 +28,7 @@ export const SALARY_TIERS = [
   { seeds: 750000, pay: 9072 },
   { seeds: 500000, pay: 5931 },
   { seeds: 400000, pay: 4604 },
-  { seeds: 300000, pay: 3409 },
+  { seeds: 30000, pay: 3409 },
   { seeds: 250000, pay: 2840 },
   { seeds: 200000, pay: 2272 }, 
   { seeds: 150000, pay: 1704 },
@@ -43,6 +42,20 @@ export const SALARY_TIERS = [
 ];
 
 export const TRAINING_MODULES: TrainingModule[] = [
+  {
+    id: 'top-10',
+    title: 'Top 10 Emisores',
+    description: 'Los mejores del mes.',
+    imageUrl: 'https://i.postimg.cc/Qd9nvgq0/Top-10.jpg', // Placeholder visual
+    videoUrl: '#',
+    textContent: 'Ranking oficial de los emisores con mejor desempeño. Consulta las metas logradas y récords históricos.',
+    style: {
+        bg: 'bg-yellow-500',
+        shadow: 'shadow-yellow-500/40',
+        iconName: 'Trophy',
+        imagePosition: 'object-center'
+    }
+  },
   {
     id: 'bigo-live',
     title: '¿Qué es Bigo Live?',

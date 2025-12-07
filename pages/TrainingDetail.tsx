@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Folder, PlayCircle, X, Clock, Play, Pause, Info, CheckCircle2, LayoutGrid, Volume2, VolumeX, Maximize, Table, Calculator, Wallet, CreditCard, ScrollText, ArrowUpRight, ShieldAlert, Gavel, Crown } from 'lucide-react';
@@ -58,6 +57,12 @@ const TrainingDetail: React.FC = () => {
 
   // Initial Fetch & Logging
   useEffect(() => {
+      // SPECIAL REDIRECT: Top 10 Module
+      if (topicId === 'top-10') {
+          navigate('/top-streamers', { replace: true });
+          return;
+      }
+
       if (modules.length > 0 && topicId) {
           const found = modules.find(m => m.id === topicId);
           setModule(found);
@@ -65,7 +70,7 @@ const TrainingDetail: React.FC = () => {
               logAction(`Visitó módulo: ${found.title}`, 'module_view');
           }
       }
-  }, [modules, topicId]);
+  }, [modules, topicId, navigate]);
 
   // Video Player Logic
   const togglePlay = () => {
