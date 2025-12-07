@@ -16,17 +16,20 @@ interface MockupProps {
 }
 
 const IphoneMockup: React.FC<MockupProps> = ({ title, desc, img, index, total }) => (
-  <div className="w-full flex flex-col items-center justify-start gap-8 py-6 animate-fade-in select-none">
+  <div className="w-full flex flex-col items-center justify-start gap-6 py-4 animate-fade-in select-none">
       
-      {/* PHONE CHASSIS - Modern Realistic Look (Titanium/Dark Style) */}
+      {/* PHONE CHASSIS - Ultra Premium Look */}
       <div className="relative flex-shrink-0 z-10 transition-transform duration-500 hover:scale-[1.01]">
-          {/* Frame Outer Structure */}
-          <div className="relative h-[580px] w-[280px] bg-[#1a1a1a] rounded-[3.5rem] shadow-[0_0_0_2px_#333,0_30px_60px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10">
+          {/* Shadow behind phone */}
+          <div className="absolute top-10 left-4 right-4 bottom-0 bg-black/40 blur-3xl rounded-[3rem]"></div>
+
+          {/* Main Body - Titanium Dark Finish */}
+          <div className="relative h-[560px] w-[270px] bg-[#121212] rounded-[3.5rem] shadow-[inset_0_0_2px_1px_rgba(255,255,255,0.1),0_20px_60px_-15px_rgba(0,0,0,0.6)] border-[6px] border-[#2a2a2a] ring-1 ring-black/50">
               
-              {/* Inner Black Bezel */}
-              <div className="absolute inset-[3px] bg-black rounded-[3.3rem] border-[4px] border-black overflow-hidden relative">
+              {/* Screen Container */}
+              <div className="absolute inset-[2px] bg-black rounded-[3.2rem] overflow-hidden relative border border-black">
                   
-                  {/* Screen Content */}
+                  {/* Image */}
                   <img 
                     src={img} 
                     alt={title} 
@@ -34,42 +37,48 @@ const IphoneMockup: React.FC<MockupProps> = ({ title, desc, img, index, total })
                     draggable={false}
                   />
                   
-                  {/* Glossy Overlay (Glass Effect) */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none z-10"></div>
-
-                  {/* Dynamic Island / Notch Area */}
-                  <div className="absolute top-5 left-1/2 -translate-x-1/2 h-7 w-[90px] bg-black rounded-full z-20 flex items-center justify-center pointer-events-none">
-                        <div className="w-16 h-4 bg-[#0a0a0a] rounded-full flex items-center justify-end pr-2 relative">
-                            {/* Camera Lens Reflection */}
-                            <div className="w-1.5 h-1.5 bg-[#1a1a1a] rounded-full absolute right-3 top-1"></div>
-                            <div className="w-0.5 h-0.5 bg-blue-900/50 rounded-full absolute right-3.5 top-1.5"></div>
+                  {/* Dynamic Island Area */}
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 h-[28px] w-[96px] bg-black rounded-full z-20 flex items-center justify-center">
+                        {/* Camera/Sensor array */}
+                        <div className="absolute right-4 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#0a0a0a] flex items-center justify-center">
+                             <div className="w-1.5 h-1.5 bg-[#1a1a1a] rounded-full">
+                                <div className="absolute top-[1px] right-[1px] w-[1px] h-[1px] bg-blue-500/40 rounded-full"></div>
+                             </div>
                         </div>
                   </div>
+
+                  {/* Screen Glare/Reflection */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-transparent pointer-events-none z-10 opacity-60"></div>
+                  
+                  {/* Bottom Line Indicator */}
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-white/20 rounded-full z-20"></div>
               </div>
 
-              {/* Hardware Buttons (CSS Decoration) */}
-              <div className="absolute top-28 -left-[3px] w-[3px] h-7 bg-[#2a2a2a] rounded-l-sm shadow-sm"></div> {/* Mute */}
-              <div className="absolute top-40 -left-[3px] w-[3px] h-12 bg-[#2a2a2a] rounded-l-sm shadow-sm"></div> {/* Vol Up */}
-              <div className="absolute top-56 -left-[3px] w-[3px] h-12 bg-[#2a2a2a] rounded-l-sm shadow-sm"></div> {/* Vol Down */}
-              <div className="absolute top-44 -right-[3px] w-[3px] h-16 bg-[#2a2a2a] rounded-r-sm shadow-sm"></div> {/* Power */}
+              {/* Side Buttons */}
+              <div className="absolute top-28 -left-[8px] w-[4px] h-7 bg-[#202020] rounded-l-md shadow-inner border-r border-[#1a1a1a]"></div>
+              <div className="absolute top-44 -left-[8px] w-[4px] h-12 bg-[#202020] rounded-l-md shadow-inner border-r border-[#1a1a1a]"></div>
+              <div className="absolute top-60 -left-[8px] w-[4px] h-12 bg-[#202020] rounded-l-md shadow-inner border-r border-[#1a1a1a]"></div>
+              <div className="absolute top-48 -right-[8px] w-[4px] h-20 bg-[#202020] rounded-r-md shadow-inner border-l border-[#1a1a1a]"></div>
           </div>
       </div>
 
-      {/* INFO CARD - Clean & Detached */}
-      <div className="w-[280px] bg-white dark:bg-[#121212] p-6 rounded-3xl shadow-xl border border-gray-100 dark:border-white/5 relative z-20">
-          <div className="flex flex-col items-center text-center space-y-3">
+      {/* INFO CARD - Style: Light Gray + White Borders (Requested) */}
+      <div className="w-[270px] bg-gray-100 dark:bg-[#1a1a1a] p-6 rounded-3xl shadow-xl border-[4px] border-white dark:border-[#333] relative z-20">
+          <div className="flex flex-col items-center text-center space-y-2">
               <div className="flex items-center space-x-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">
                   <span>Paso</span>
-                  <span className="text-brand-purple dark:text-white">{index + 1}</span>
+                  <span className="text-brand-purple dark:text-white bg-white dark:bg-white/10 px-1.5 rounded">{index + 1}</span>
                   <span className="text-gray-300">/</span>
                   <span>{total}</span>
               </div>
               
-              <h2 className="text-xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tight">
+              <h2 className="text-lg font-black text-brand-black dark:text-white uppercase leading-none tracking-tight pt-1">
                   {title}
               </h2>
               
-              <p className="text-xs text-gray-500 font-medium leading-relaxed">
+              <div className="w-8 h-0.5 bg-gray-300 dark:bg-gray-700 rounded-full my-2"></div>
+
+              <p className="text-[11px] text-gray-600 dark:text-gray-300 font-bold leading-relaxed">
                   {desc}
               </p>
           </div>
@@ -139,7 +148,7 @@ const SingleSlideCarousel: React.FC<CarouselProps> = ({ items, renderItem, contr
             onTouchEnd={onTouchEnd}
         >
             
-            {/* TRACK - Increased height for taller phone model */}
+            {/* TRACK */}
             <div className="w-full relative min-h-[850px] flex items-start justify-center transition-opacity duration-300 pt-4">
                  {/* Only render current item to enforce single view */}
                  <div className="w-full">
