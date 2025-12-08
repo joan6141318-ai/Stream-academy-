@@ -43,16 +43,32 @@ export interface HomeConfig {
   modulesTitle: string;
   modulesSubtitle: string;
   agencyCodeHash?: string; 
-  maintenanceMode?: 'off' | 'lockdown' | 'maintenance'; // CHANGED: String union for specific modes
+  maintenanceMode?: 'off' | 'lockdown' | 'maintenance'; 
+}
+
+// --- TOP STREAMERS TYPES ---
+export interface TopStreamer {
+  rank: 1 | 2 | 3;
+  name: string;
+  id: string;
+  avatar: string;
+  meta: string; // Recaudación Meta
+  record: string; // Récord Histórico
+  trend: 'up' | 'down' | 'stable';
+}
+
+export interface TopStreamersConfig {
+  month: string; // Ej: "Noviembre 2025"
+  list: TopStreamer[];
 }
 
 export interface GiftItem {
   id: string;
   value: string;
   imageUrl: string;
-  name: string; // Made mandatory
-  category: 'variedad' | 'lucky' | 'hot'; // New field for grouping
-  order: number; // New field for sorting
+  name: string; 
+  category: 'variedad' | 'lucky' | 'hot'; 
+  order: number; 
 }
 
 export interface UserProfile {
@@ -61,6 +77,7 @@ export interface UserProfile {
   role: string;
   avatarUrl: string;
   isAdmin?: boolean; 
+  isBlocked?: boolean; 
 }
 
 // --- SECURITY & LOGS ---
@@ -68,16 +85,16 @@ export interface ActivityLog {
   action: string;
   timestamp: string; // ISO String
   device: string;
-  type?: 'login' | 'security_alert' | 'profile_update';
+  type?: 'login' | 'security_alert' | 'profile_update' | 'module_view' | 'app_open';
 }
 
 // --- PK ARENA TYPES ---
 export interface PKEvent {
   id: string;
   time: string;
-  user1: string; // Deprecated visually, but kept for structure
+  user1: string; 
   id1: string;
-  user2: string; // Deprecated visually, but kept for structure
+  user2: string; 
   id2: string;
   confirmed: boolean;
 }
@@ -89,7 +106,7 @@ export interface PKSchedule {
 
 export interface PKRequest {
   id: string;
-  userId: string; // ID del usuario que solicita
+  userId: string; 
   date: string;
   bigoId: string;
   status: 'pending' | 'approved' | 'rejected';

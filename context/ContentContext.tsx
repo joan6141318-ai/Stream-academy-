@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { collection, onSnapshot, doc, updateDoc, setDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-import { Banner, TrainingModule, HomeConfig, PKSchedule, ModuleStyle, GiftItem } from '../types';
+import { Banner, TrainingModule, HomeConfig, PKSchedule, ModuleStyle, GiftItem, TopStreamersConfig } from '../types';
 import { TRAINING_MODULES as INITIAL_MODULES } from '../constants';
 
 // --- CRYPTO UTILITY ---
@@ -16,6 +16,7 @@ export const hashString = async (message: string): Promise<string> => {
 // Helper para asignar estilos iniciales
 const getInitialStyle = (id: string): ModuleStyle => {
     switch (id) {
+      case 'top-10': return { iconName: 'Trophy', bg: 'bg-yellow-500', shadow: 'shadow-yellow-500/40', imagePosition: 'object-center' };
       case 'bigo-live': return { iconName: 'PlayCircle', bg: 'bg-blue-600', shadow: 'shadow-blue-600/40', imagePosition: 'object-center' };
       case 'pagos': return { iconName: 'DollarSign', bg: 'bg-emerald-500', shadow: 'shadow-emerald-500/40', imagePosition: 'object-center' };
       case 'bloqueos': return { iconName: 'Shield', bg: 'bg-rose-600', shadow: 'shadow-rose-600/40', imagePosition: 'object-center' };
@@ -36,16 +37,27 @@ const INITIAL_HOME_CONFIG: HomeConfig = {
     maintenanceMode: 'off'
 };
 
+const INITIAL_TOP_STREAMERS: TopStreamersConfig = {
+    month: "Mes Actual",
+    list: [
+        { rank: 1, name: "Top 1", id: "ID-001", avatar: "https://ui-avatars.com/api/?name=1&background=FFD700&color=fff", meta: "0", record: "0", trend: "stable" },
+        { rank: 2, name: "Top 2", id: "ID-002", avatar: "https://ui-avatars.com/api/?name=2&background=C0C0C0&color=fff", meta: "0", record: "0", trend: "stable" },
+        { rank: 3, name: "Top 3", id: "ID-003", avatar: "https://ui-avatars.com/api/?name=3&background=CD7F32&color=fff", meta: "0", record: "0", trend: "stable" }
+    ]
+};
+
 interface ContentContextType {
   banners: Banner[];
   modules: TrainingModule[];
   gifts: GiftItem[];
   homeConfig: HomeConfig;
+  topStreamers: TopStreamersConfig;
   loading: boolean;
   updateBanner: (id: string, data: Partial<Banner>) => Promise<void>;
   updateModule: (id: string, data: Partial<TrainingModule>) => Promise<void>;
   updateHomeConfig: (data: Partial<HomeConfig>) => Promise<void>;
   updateGifts: (newGifts: GiftItem[]) => Promise<void>;
+  updateTopStreamers: (data: TopStreamersConfig) => Promise<void>;
   updatePKSchedule: (data: PKSchedule) => Promise<void>;
   addPKRequest: (date: string, bigoId: string, userId: string) => Promise<void>;
   updatePKRequestStatus: (id: string, status: 'approved' | 'rejected') => Promise<void>;
@@ -59,6 +71,7 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [modules, setModules] = useState<TrainingModule[]>(INITIAL_MODULES.map(m => ({...m, style: getInitialStyle(m.id)})));
   const [gifts, setGifts] = useState<GiftItem[]>([]);
   const [homeConfig, setHomeConfig] = useState<HomeConfig>(INITIAL_HOME_CONFIG);
+  const [topStreamers, setTopStreamers] = useState<TopStreamersConfig>(INITIAL_TOP_STREAMERS);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -74,23 +87,21 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
         
         // --- INYECCIÓN DE BANNER TOP 10 ---
-        // Si no existe un banner que lleve al Top 10, lo agregamos al inicio para el carrusel.
         const hasTop10Banner = list.some(b => b.link === '/top-streamers' || b.tag === 'RANKING' || (b.title && b.title.toLowerCase().includes('top 10')));
         
         if (!hasTop10Banner) {
             const top10Banner: Banner = {
                 id: 'top-10-auto',
-                title: 'Top 10 Emisores',
+                title: 'Top 3 Emisores',
                 subtitle: 'Conoce el ranking oficial del mes',
                 tag: 'RANKING',
-                tagColor: 'bg-yellow-500 text-black', // Dorado
-                gradient: 'from-yellow-600 via-orange-500 to-yellow-600', // Efecto dorado
-                image: 'https://i.postimg.cc/Qd9nvgq0/Top-10.jpg', // Placeholder de trofeo/ranking
+                tagColor: 'bg-yellow-500 text-black', 
+                gradient: 'from-yellow-600 via-orange-500 to-yellow-600', 
+                image: 'https://i.postimg.cc/Qd9nvgq0/Top-10.jpg', 
                 shadow: 'shadow-yellow-500/30',
                 link: '/top-streamers',
                 imagePosition: 'object-center'
             };
-            // Insertar al inicio del carrusel
             list.unshift(top10Banner);
         }
 
@@ -99,16 +110,11 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const unsubModules = onSnapshot(collection(db, "modules"), (snapshot) => {
         let list: TrainingModule[] = [];
-        
         if (!snapshot.empty) {
-            // Datos de la DB
             list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as TrainingModule));
         } else {
-            // Fallback a Local si DB vacía
             list = [...INITIAL_MODULES]; 
         }
-        // Eliminada la inyección de módulo top-10 aquí para que no salga abajo
-        
         setModules(list);
     });
 
@@ -125,11 +131,19 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     });
 
+    // Nuevo Listener para Top Streamers
+    const unsubTop = onSnapshot(doc(db, "config", "top_streamers"), (docSnap) => {
+        if (docSnap.exists()) {
+            setTopStreamers(docSnap.data() as TopStreamersConfig);
+        }
+    });
+
     return () => {
         unsubBanners();
         unsubModules();
         unsubConfig();
         unsubGifts();
+        unsubTop();
     };
   }, []);
 
@@ -151,6 +165,11 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const updateGifts = async (newGifts: GiftItem[]) => {
       if (!db) return;
       await setDoc(doc(db, "config", "app_tour"), { gifts: newGifts }, { merge: true });
+  };
+
+  const updateTopStreamers = async (data: TopStreamersConfig) => {
+      if (!db) return;
+      await setDoc(doc(db, "config", "top_streamers"), data);
   };
 
   const updatePKSchedule = async (data: PKSchedule) => {
@@ -177,8 +196,8 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   return (
     <ContentContext.Provider value={{ 
-        banners, modules, gifts, homeConfig, loading, 
-        updateBanner, updateModule, updateHomeConfig, updateGifts, 
+        banners, modules, gifts, homeConfig, topStreamers, loading, 
+        updateBanner, updateModule, updateHomeConfig, updateGifts, updateTopStreamers,
         updatePKSchedule, addPKRequest, updatePKRequestStatus, deletePKRequest 
     }}>
       {children}
