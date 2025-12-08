@@ -223,7 +223,7 @@ const OnboardingSetup: React.FC = () => {
                 <div className="w-full animate-fade-in flex flex-col flex-1">
                     <div className="w-full text-left space-y-8">
                         <div>
-                            <h1 className="text-2xl font-black text-brand-black dark:text-white uppercase leading-tight tracking-tight mb-6 text-left">
+                            <h1 className="text-2xl font-black uppercase leading-tight tracking-tight mb-6 text-left text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
                                 ¿Cómo te gustaría<br/>que te llamáramos?
                             </h1>
                             <input 
@@ -285,7 +285,7 @@ const OnboardingSetup: React.FC = () => {
                 <div className="animate-fade-in flex-1 flex flex-col items-center">
                     <div className="w-full flex flex-col items-center space-y-6">
                         <div className="text-left w-full mb-2">
-                            <h1 className="text-2xl font-black text-brand-black dark:text-white uppercase tracking-tighter mb-1 text-left">
+                            <h1 className="text-2xl font-black uppercase tracking-tighter mb-1 text-left text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
                                 Foto de Perfil
                             </h1>
                             <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wide text-left">configuremos una foto para tu perfil</p>
@@ -430,7 +430,7 @@ const OnboardingSetup: React.FC = () => {
                 <div className="w-full animate-fade-in flex-1 flex flex-col">
                     <div className="space-y-8 w-full">
                         <div className="text-left w-full mb-6">
-                            <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none mb-2 tracking-tight text-left">
+                            <h1 className="text-3xl font-black uppercase leading-none mb-2 tracking-tight text-left text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
                                 YA CASI<br/>TERMINAMOS
                             </h1>
                             <p className="text-xs text-gray-500 font-bold uppercase tracking-wider text-left">Ayúdanos a conocerte mejor</p>
@@ -529,7 +529,7 @@ const OnboardingSetup: React.FC = () => {
                         </div>
                     </div>
 
-                    <h1 className="text-5xl font-black text-brand-black dark:text-white uppercase tracking-tighter mb-4 leading-none">
+                    <h1 className="text-5xl font-black uppercase tracking-tighter mb-4 leading-none text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
                         LISTO !
                     </h1>
                     

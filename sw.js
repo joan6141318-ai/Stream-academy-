@@ -2,8 +2,8 @@
 // IMPORTANTE: Importar scripts de OneSignal al inicio para fusionar capacidades
 importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDKWorker.js');
 
-// Nombre del caché - Actualizado a v51 (Branding Update)
-const CACHE_NAME = 'streamers-academy-v51-branding';
+// Nombre del caché - Actualizado a v52 (Branding Gradient & Icon)
+const CACHE_NAME = 'streamers-academy-v52-gradient';
 
 // Archivos vitales para que la app arranque offline
 const ASSETS_TO_CACHE = [

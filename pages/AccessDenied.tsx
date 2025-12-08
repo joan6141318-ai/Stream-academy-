@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { UserX, LogOut, Activity, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -39,7 +38,7 @@ const AccessDenied: React.FC = () => {
               </div>
           </div>
 
-          <h1 className="text-3xl font-black uppercase tracking-tighter mb-4 leading-none text-brand-black">
+          <h1 className="text-3xl font-black uppercase tracking-tighter mb-4 leading-none text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
               Acceso<br/>Restringido
           </h1>
 

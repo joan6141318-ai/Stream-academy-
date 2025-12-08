@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Zap, AlertCircle, WifiOff, Check, ShieldAlert, FileText, Loader2 } from 'lucide-react';
@@ -138,7 +137,7 @@ const Login: React.FC = () => {
         </div>
         
         <div className="space-y-2 mb-8">
-          <h1 className="text-4xl font-black tracking-tighter text-brand-black dark:text-white leading-[0.9]">
+          <h1 className="text-4xl font-black tracking-tighter leading-[0.9] text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
             STREAMERS<br/>ACADEMY
           </h1>
           <div className="h-1 w-10 bg-brand-purple"></div>

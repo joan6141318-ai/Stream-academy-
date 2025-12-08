@@ -32,7 +32,7 @@ const Onboarding: React.FC = () => {
         </div>
 
         {/* Textos */}
-        <h1 className="text-4xl font-black text-brand-black dark:text-white uppercase tracking-tighter mb-4 leading-none">
+        <h1 className="text-4xl font-black uppercase tracking-tighter mb-4 leading-none text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
           Bienvenido
         </h1>
         

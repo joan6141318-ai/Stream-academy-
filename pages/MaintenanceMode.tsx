@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { ShieldAlert, Lock, RefreshCw, AlertTriangle, Bot, Wrench, Settings } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
@@ -36,7 +35,7 @@ const MaintenanceMode: React.FC = () => {
 
           <div className="relative z-10 text-center max-w-sm space-y-6">
               <div>
-                  <h1 className="text-4xl font-black uppercase tracking-tighter leading-none mb-2">Protocolo de<br/>Seguridad</h1>
+                  <h1 className="text-4xl font-black uppercase tracking-tighter leading-none mb-2 text-white drop-shadow-md">Protocolo de<br/>Seguridad</h1>
                   <div className="inline-flex items-center bg-black/30 px-4 py-1 rounded-full border border-white/10">
                       <span className="w-2 h-2 bg-red-400 rounded-full animate-ping mr-2"></span>
                       <span className="text-[10px] font-black uppercase tracking-widest">Lockdown Activo</span>
@@ -59,7 +58,7 @@ const MaintenanceMode: React.FC = () => {
               </div>
           </div>
           <div className="space-y-4 mb-8">
-              <h1 className="text-3xl font-black uppercase tracking-tighter leading-none">Estamos<br/>Trabajando</h1>
+              <h1 className="text-3xl font-black uppercase tracking-tighter leading-none text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">Estamos<br/>Trabajando</h1>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-300 leading-relaxed">Disculpa las molestias, estamos mejorando la plataforma. Intenta acceder en unos minutos.</p>
           </div>
           <button onClick={handleRefresh} className="w-full h-14 bg-brand-black dark:bg-white text-white dark:text-black rounded-xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center space-x-2">

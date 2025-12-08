@@ -159,9 +159,8 @@ const Profile: React.FC = () => {
                   </p>
                   
                   <div className="flex items-start justify-between">
-                      <h1 className="text-4xl font-black uppercase leading-[0.9] tracking-tighter max-w-[80%] text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
-                          Hola!<br/>
-                          {user.name.split(' ')[0]}
+                      <h1 className="text-3xl font-black uppercase leading-none tracking-tighter max-w-[90%] text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
+                          Hola! {user.name.split(' ')[0]}
                       </h1>
                       
                       {/* Mini Avatar */}

@@ -13,7 +13,7 @@ const AdminSelection: React.FC = () => {
       <div className="flex-1 flex flex-col items-center justify-center px-6 pt-safe pb-safe">
         
         <div className="text-center mb-12 animate-fade-in">
-            <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase tracking-tighter mb-2">
+            <h1 className="text-3xl font-black uppercase tracking-tighter mb-2 text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
                 Panel de Control
             </h1>
             <p className="text-sm text-gray-500 font-medium">
