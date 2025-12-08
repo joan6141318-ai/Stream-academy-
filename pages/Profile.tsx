@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useContent } from '../context/ContentContext';
 import * as LucideIcons from 'lucide-react';
 import { PrivacyPolicyModal } from './PrivacyPolicyModal';
+import { Banner } from '../types';
 
 const CARD_VARIANTS = [
     {
@@ -100,9 +101,19 @@ const Profile: React.FC = () => {
     }
   };
 
-  const handleBannerClick = (link?: string) => {
-    if (link) {
-      navigate(link);
+  const handleBannerClick = (banner: Banner) => {
+    // Lógica inteligente: Si el banner es de Top 10 (por título, tag o link), ir a la página correcta
+    const title = banner.title?.toLowerCase() || '';
+    const tag = banner.tag?.toLowerCase() || '';
+    const link = banner.link || '';
+    
+    if (title.includes('top 10') || title.includes('ranking') || tag.includes('ranking') || link === '/top-streamers') {
+        navigate('/top-streamers');
+        return;
+    }
+
+    if (banner.link) {
+      navigate(banner.link);
     }
   };
 
@@ -182,7 +193,7 @@ const Profile: React.FC = () => {
                             return (
                               <div 
                                 key={banner.id}
-                                onClick={() => handleBannerClick(banner.link)}
+                                onClick={() => handleBannerClick(banner)}
                                 className={`relative flex-shrink-0 w-full overflow-hidden cursor-pointer active:scale-[0.98] transition-transform duration-300 snap-center`} 
                                 style={{ aspectRatio: '16/10' }} 
                               >
@@ -199,8 +210,8 @@ const Profile: React.FC = () => {
                                   {/* Content Overlay */}
                                   <div className="absolute inset-0 p-8 flex flex-col justify-between z-10">
                                       <div className="flex justify-between items-start">
-                                          <div className="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-                                              <span className="text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                                          <div className={`backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 ${banner.tagColor || 'bg-white/20'}`}>
+                                              <span className="text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5">
                                                   <Star size={10} fill="currentColor" /> {banner.tag}
                                               </span>
                                           </div>

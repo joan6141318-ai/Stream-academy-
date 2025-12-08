@@ -44,20 +44,6 @@ export const SALARY_TIERS = [
 
 export const TRAINING_MODULES: TrainingModule[] = [
   {
-    id: 'top-10',
-    title: 'Top 10 Emisores',
-    description: 'Los mejores del mes.',
-    imageUrl: 'https://i.postimg.cc/Qd9nvgq0/Top-10.jpg', // Placeholder visual
-    videoUrl: '#',
-    textContent: 'Ranking oficial de los emisores con mejor desempeño. Consulta las metas logradas y récords históricos.',
-    style: {
-        bg: 'bg-yellow-500',
-        shadow: 'shadow-yellow-500/40',
-        iconName: 'Trophy',
-        imagePosition: 'object-center'
-    }
-  },
-  {
     id: 'bigo-live',
     title: '¿Qué es Bigo Live?',
     description: 'Introducción a la plataforma líder de streaming global.',

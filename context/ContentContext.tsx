@@ -16,7 +16,6 @@ export const hashString = async (message: string): Promise<string> => {
 // Helper para asignar estilos iniciales
 const getInitialStyle = (id: string): ModuleStyle => {
     switch (id) {
-      case 'top-10': return { iconName: 'Trophy', bg: 'bg-yellow-500', shadow: 'shadow-yellow-500/40', imagePosition: 'object-center' };
       case 'bigo-live': return { iconName: 'PlayCircle', bg: 'bg-blue-600', shadow: 'shadow-blue-600/40', imagePosition: 'object-center' };
       case 'pagos': return { iconName: 'DollarSign', bg: 'bg-emerald-500', shadow: 'shadow-emerald-500/40', imagePosition: 'object-center' };
       case 'bloqueos': return { iconName: 'Shield', bg: 'bg-rose-600', shadow: 'shadow-rose-600/40', imagePosition: 'object-center' };
@@ -75,8 +74,8 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
         
         // --- INYECCIÓN DE BANNER TOP 10 ---
-        // Si no existe un banner que lleve al Top 10, lo agregamos al inicio.
-        const hasTop10Banner = list.some(b => b.link === '/top-streamers' || b.tag === 'RANKING');
+        // Si no existe un banner que lleve al Top 10, lo agregamos al inicio para el carrusel.
+        const hasTop10Banner = list.some(b => b.link === '/top-streamers' || b.tag === 'RANKING' || (b.title && b.title.toLowerCase().includes('top 10')));
         
         if (!hasTop10Banner) {
             const top10Banner: Banner = {
@@ -108,22 +107,8 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
             // Fallback a Local si DB vacía
             list = [...INITIAL_MODULES]; 
         }
-
-        // --- INYECCIÓN HÍBRIDA (TOP 10 MÓDULO) ---
-        // Verificar si el módulo 'top-10' existe en la lista descargada.
-        // Si no existe (porque es nuevo y no está en tu DB), lo inyectamos desde el código local.
-        const hasTop10 = list.some(m => m.id === 'top-10');
+        // Eliminada la inyección de módulo top-10 aquí para que no salga abajo
         
-        if (!hasTop10) {
-            const localTop10 = INITIAL_MODULES.find(m => m.id === 'top-10');
-            if (localTop10) {
-                // Lo agregamos al principio de la lista para mayor visibilidad
-                // Asignamos estilo por si acaso
-                const moduleWithStyle = { ...localTop10, style: getInitialStyle('top-10') };
-                list.unshift(moduleWithStyle);
-            }
-        }
-
         setModules(list);
     });
 
