@@ -16,6 +16,7 @@ export const hashString = async (message: string): Promise<string> => {
 // Helper para asignar estilos iniciales
 const getInitialStyle = (id: string): ModuleStyle => {
     switch (id) {
+      case 'top-10': return { iconName: 'Trophy', bg: 'bg-yellow-500', shadow: 'shadow-yellow-500/40', imagePosition: 'object-center' };
       case 'bigo-live': return { iconName: 'PlayCircle', bg: 'bg-blue-600', shadow: 'shadow-blue-600/40', imagePosition: 'object-center' };
       case 'pagos': return { iconName: 'DollarSign', bg: 'bg-emerald-500', shadow: 'shadow-emerald-500/40', imagePosition: 'object-center' };
       case 'bloqueos': return { iconName: 'Shield', bg: 'bg-rose-600', shadow: 'shadow-rose-600/40', imagePosition: 'object-center' };
@@ -75,10 +76,32 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
 
     const unsubModules = onSnapshot(collection(db, "modules"), (snapshot) => {
+        let list: TrainingModule[] = [];
+        
         if (!snapshot.empty) {
-            const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as TrainingModule));
-            setModules(list);
+            // Datos de la DB
+            list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as TrainingModule));
+        } else {
+            // Fallback a Local si DB vacía
+            list = [...INITIAL_MODULES]; 
         }
+
+        // --- INYECCIÓN HÍBRIDA (TOP 10) ---
+        // Verificar si el módulo 'top-10' existe en la lista descargada.
+        // Si no existe (porque es nuevo y no está en tu DB), lo inyectamos desde el código local.
+        const hasTop10 = list.some(m => m.id === 'top-10');
+        
+        if (!hasTop10) {
+            const localTop10 = INITIAL_MODULES.find(m => m.id === 'top-10');
+            if (localTop10) {
+                // Lo agregamos al principio de la lista para mayor visibilidad
+                // CRITICAL: Asegurar que el estilo se calcule correctamente usando el ID 'top-10'
+                const moduleWithStyle = { ...localTop10, style: getInitialStyle('top-10') };
+                list.unshift(moduleWithStyle);
+            }
+        }
+
+        setModules(list);
     });
 
     const unsubConfig = onSnapshot(doc(db, "config", "home"), (docSnap) => {

@@ -2,8 +2,8 @@
 // IMPORTANTE: Importar scripts de OneSignal al inicio para fusionar capacidades
 importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDKWorker.js');
 
-// Nombre del caché - Actualizado a v48 (Fix Calculadora Critico)
-const CACHE_NAME = 'stream-agency-v48-calc-fix';
+// Nombre del caché - Actualizado a v49 (Top 10 Style Fix)
+const CACHE_NAME = 'stream-agency-v49-top10-fix';
 
 // Archivos vitales para que la app arranque offline
 const ASSETS_TO_CACHE = [
