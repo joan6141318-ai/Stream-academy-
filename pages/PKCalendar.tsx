@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
@@ -118,7 +117,7 @@ const PKCalendar: React.FC = () => {
       <Header title="Agenda PK" showBack onBack={() => navigate('/welcome')} />
       <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] px-6 pb-24">
         
-        <div className="mt-6 mb-8"><h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tighter">Programación<br/>Diaria</h1></div>
+        <div className="mt-6 mb-8"><h1 className="text-3xl font-black uppercase leading-none tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">Programación<br/>Diaria</h1></div>
 
         {/* --- SECCIÓN: PK POTENCIAL --- */}
         <div className="mb-6 animate-fade-in">

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calculator, Clock, DollarSign, TrendingUp, AlertTriangle, XCircle, CheckCircle, PartyPopper, Target, Layers, Coins } from 'lucide-react';
@@ -150,7 +149,7 @@ const CalculatorTool: React.FC = () => {
             <div className="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-orange-500/30">
                 <Calculator className="text-white" size={24} strokeWidth={2.5} />
             </div>
-            <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none mb-2">Simulador de<br/>Ingresos</h1>
+            <h1 className="text-3xl font-black uppercase leading-none mb-2 text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">Simulador de<br/>Ingresos</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed">Calcula tu salario estimado.</p>
         </div>
 

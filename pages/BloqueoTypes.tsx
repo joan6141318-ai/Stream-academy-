@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TriangleAlert, Clock, Ban, CalendarX, ShieldAlert } from 'lucide-react';
@@ -97,7 +96,7 @@ const BloqueoTypes: React.FC = () => {
         
         {/* Intro */}
         <div className="mt-8 mb-10 px-1">
-            <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tighter mb-2">
+            <h1 className="text-3xl font-black uppercase leading-none tracking-tighter mb-2 text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
                 Escala de<br/>Sanciones
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wide">

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Calendar, Clock, AlertTriangle, ShieldCheck, DollarSign, Info } from 'lucide-react';
 import { Header } from '../components/Header';
@@ -38,7 +37,7 @@ const PaymentTableTool: React.FC = () => {
         {/* Descripción Superior */}
         <div className="mt-4 mb-6 flex justify-between items-end px-1">
             <div>
-                <h1 className="text-2xl font-black text-brand-black dark:text-white uppercase leading-none mb-1 tracking-tighter">
+                <h1 className="text-2xl font-black uppercase leading-none mb-1 tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
                     Tabla Oficial
                 </h1>
                 <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest">

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Gavel, AlertTriangle, FileText, CheckCircle2, XCircle, Crown, ZoomIn, X, Info, Smartphone, Eye, Check, ListChecks, ArrowRight } from 'lucide-react';
@@ -157,7 +156,7 @@ const BloqueoAppeal: React.FC = () => {
         
         {/* Header Hero */}
         <div className="mt-6 mb-8 px-1">
-            <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-none tracking-tight mb-2">
+            <h1 className="text-3xl font-black uppercase leading-none tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
                 Gestión de<br/>Apelaciones
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed max-w-xs">

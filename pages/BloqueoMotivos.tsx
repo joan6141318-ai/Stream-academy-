@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserMinus, EyeOff, FlaskConical, TriangleAlert, Banknote, Clock } from 'lucide-react';
@@ -91,7 +90,7 @@ const BloqueoMotivos: React.FC = () => {
         
         {/* Intro */}
         <div className="mt-6 mb-8 px-1">
-            <h1 className="text-3xl font-black text-brand-black dark:text-white uppercase leading-tight mb-2">
+            <h1 className="text-3xl font-black uppercase leading-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
                 Motivos de<br/>Bloqueo
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed">

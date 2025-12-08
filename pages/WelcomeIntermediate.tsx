@@ -55,7 +55,7 @@ const WelcomeIntermediate: React.FC = () => {
                </div>
           </div>
           
-          <h1 className="text-3xl font-black uppercase tracking-tight mb-2 text-center leading-none text-brand-black">
+          <h1 className="text-3xl font-black uppercase tracking-tight mb-2 text-center leading-none text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
               {user.name}
           </h1>
           

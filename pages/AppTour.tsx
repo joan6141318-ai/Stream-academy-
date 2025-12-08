@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
@@ -458,7 +457,7 @@ const AppTour: React.FC = () => {
             <div className="pb-24 px-6 animate-fade-in">
                 {/* Intro */}
                 <div className="mt-8 mb-8 text-left">
-                    <h1 className="text-4xl font-black text-brand-black dark:text-white uppercase tracking-tighter leading-[0.9] mb-3">
+                    <h1 className="text-4xl font-black uppercase tracking-tighter leading-[0.9] mb-3 text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
                         GUÍA<br/>INTERACTIVA
                     </h1>
                     <p className="text-xs text-gray-500 font-medium max-w-xs leading-relaxed">

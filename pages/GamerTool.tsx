@@ -28,7 +28,7 @@ const GamerTool: React.FC = () => {
                  <div className="w-12 h-12 bg-green-400 rounded-sm flex items-center justify-center mb-3 shadow-lg shadow-green-400/30">
                     <Gamepad2 className="text-black" size={24} strokeWidth={2.5} />
                 </div>
-                <h1 className="text-4xl font-black text-brand-black dark:text-white uppercase leading-[0.9] mb-2 tracking-tighter">
+                <h1 className="text-4xl font-black uppercase leading-[0.9] mb-2 tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
                     Juega,<br/>Diviértete<br/>y Aprende
                 </h1>
              </div>

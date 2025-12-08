@@ -207,7 +207,7 @@ const TrainingDetail: React.FC = () => {
           
           {/* Title Section */}
           <div className="mt-4 mb-6">
-              <h1 className="text-4xl font-black text-brand-black dark:text-white uppercase leading-[0.9] tracking-tighter mb-2">
+              <h1 className="text-4xl font-black uppercase leading-[0.9] tracking-tighter mb-2 text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
                   {module.title}
               </h1>
               <p className="text-sm font-bold text-gray-400 uppercase tracking-widest line-clamp-1">
