@@ -1,3 +1,4 @@
+
 import { TrainingModule, UserProfile } from './types';
 
 // Incrementa este número para obligar a TODOS los usuarios a refrescar su perfil
