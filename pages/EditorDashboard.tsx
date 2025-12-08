@@ -129,7 +129,7 @@ const EditorDashboard: React.FC = () => {
             setUrlInput(compressedBase64);
             
             if (editingItem && editingItem.type === 'top3_streamer') {
-                // Update Top Streamer Avatar
+                // Update Top Streamer Avatar in local state immediately for preview
                 const newList = localTopConfig.list.map(s => s.rank === editingItem.rank ? { ...s, avatar: compressedBase64 } : s);
                 const newConfig = { ...localTopConfig, list: newList };
                 setLocalTopConfig(newConfig);
@@ -420,70 +420,75 @@ const EditorDashboard: React.FC = () => {
         const list = localTopConfig.list.sort((a,b) => a.rank - b.rank);
         
         return (
-            <div className="animate-slide-up space-y-6">
-                
-                {/* Header Config */}
-                <div className="bg-white dark:bg-brand-dark-card p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5 space-y-4">
-                    <div className="border-b border-gray-100 dark:border-white/5 pb-2">
-                        <h4 className="text-xs font-black uppercase text-brand-purple mb-1">Configuración General</h4>
-                    </div>
-                    <div>
-                        <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Título del Mes / Periodo</label>
-                        <input 
-                            type="text" 
-                            value={localTopConfig.month}
-                            onChange={(e) => setLocalTopConfig({...localTopConfig, month: e.target.value})}
-                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-bold text-brand-black dark:text-white outline-none"
-                        />
-                    </div>
-                    <div>
-                        <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Título de Felicitación</label>
-                        <input 
-                            type="text" 
-                            value={localTopConfig.congratsTitle || ''}
-                            onChange={(e) => setLocalTopConfig({...localTopConfig, congratsTitle: e.target.value})}
-                            placeholder="¡Felicidades!"
-                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-bold text-brand-black dark:text-white outline-none"
-                        />
-                    </div>
-                    <div>
-                        <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Mensaje de Felicitación</label>
-                        <textarea 
-                            value={localTopConfig.congratsMessage || ''}
-                            onChange={(e) => setLocalTopConfig({...localTopConfig, congratsMessage: e.target.value})}
-                            placeholder="Mensaje corto motivador..."
-                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-medium text-brand-black dark:text-white outline-none h-20 resize-none"
-                        />
-                    </div>
-                </div>
-
-                {/* List of 3 */}
-                <div className="space-y-4">
-                    {list.map((streamer) => (
-                        <div key={streamer.rank} className="bg-white dark:bg-brand-dark-card p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5">
-                            <div className="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-white/5 pb-2">
-                                <div className="flex items-center gap-2">
-                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${streamer.rank === 1 ? 'bg-yellow-500 text-black' : streamer.rank === 2 ? 'bg-gray-300 text-black' : 'bg-orange-400 text-white'}`}>
-                                        #{streamer.rank}
-                                    </div>
-                                    <span className="text-xs font-black uppercase text-gray-500">Puesto {streamer.rank}</span>
-                                </div>
-                                <button onClick={() => { setEditingItem({...streamer, type: 'top3_streamer'}); setUrlInput(streamer.avatar); }} className="text-[10px] font-bold text-brand-purple hover:underline uppercase">Editar Detalle</button>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <img src={streamer.avatar} className="w-12 h-12 rounded-full object-cover bg-gray-100" />
-                                <div>
-                                    <h4 className="text-sm font-black uppercase text-brand-black dark:text-white">{streamer.name}</h4>
-                                    <p className="text-[10px] text-gray-400 font-bold">{streamer.id}</p>
-                                </div>
-                            </div>
+            <div className="animate-slide-up relative min-h-[calc(100vh-200px)]">
+                <div className="space-y-6 pb-32"> {/* Added padding bottom to prevent overlap with fixed footer */}
+                    
+                    {/* Header Config */}
+                    <div className="bg-white dark:bg-brand-dark-card p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5 space-y-4">
+                        <div className="border-b border-gray-100 dark:border-white/5 pb-2">
+                            <h4 className="text-xs font-black uppercase text-brand-purple mb-1">Configuración General</h4>
                         </div>
-                    ))}
+                        <div>
+                            <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Título del Mes / Periodo</label>
+                            <input 
+                                type="text" 
+                                value={localTopConfig.month}
+                                onChange={(e) => setLocalTopConfig({...localTopConfig, month: e.target.value})}
+                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-bold text-brand-black dark:text-white outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Título de Felicitación</label>
+                            <input 
+                                type="text" 
+                                value={localTopConfig.congratsTitle || ''}
+                                onChange={(e) => setLocalTopConfig({...localTopConfig, congratsTitle: e.target.value})}
+                                placeholder="¡Felicidades!"
+                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-bold text-brand-black dark:text-white outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Mensaje de Felicitación</label>
+                            <textarea 
+                                value={localTopConfig.congratsMessage || ''}
+                                onChange={(e) => setLocalTopConfig({...localTopConfig, congratsMessage: e.target.value})}
+                                placeholder="Mensaje corto motivador..."
+                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-medium text-brand-black dark:text-white outline-none h-20 resize-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* List of 3 */}
+                    <div className="space-y-4">
+                        {list.map((streamer) => (
+                            <div key={streamer.rank} className="bg-white dark:bg-brand-dark-card p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5">
+                                <div className="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-white/5 pb-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${streamer.rank === 1 ? 'bg-yellow-500 text-black' : streamer.rank === 2 ? 'bg-gray-300 text-black' : 'bg-orange-400 text-white'}`}>
+                                            #{streamer.rank}
+                                        </div>
+                                        <span className="text-xs font-black uppercase text-gray-500">Puesto {streamer.rank}</span>
+                                    </div>
+                                    <button onClick={() => { setEditingItem({...streamer, type: 'top3_streamer'}); setUrlInput(streamer.avatar); }} className="text-[10px] font-bold text-brand-purple hover:underline uppercase">Editar Detalle</button>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <img src={streamer.avatar} className="w-12 h-12 rounded-full object-cover bg-gray-100" />
+                                    <div>
+                                        <h4 className="text-sm font-black uppercase text-brand-black dark:text-white">{streamer.name}</h4>
+                                        <p className="text-[10px] text-gray-400 font-bold">{streamer.id}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
-                <button onClick={handleSave} className="w-full bg-brand-black dark:bg-white text-white dark:text-black py-4 rounded-lg font-black uppercase tracking-widest text-xs flex items-center justify-center shadow-xl active:scale-95 transition-all mt-4 sticky bottom-6">
-                    <Save size={16} className="mr-2" /> Guardar Ranking
-                </button>
+                {/* Fixed Footer Bar for Saving */}
+                <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/90 dark:bg-black/90 backdrop-blur-lg border-t border-gray-100 dark:border-white/10 z-20 shadow-[-10px_0_30px_rgba(0,0,0,0.1)]">
+                    <button onClick={handleSave} className="w-full max-w-lg mx-auto bg-brand-black dark:bg-white text-white dark:text-black py-4 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center shadow-xl active:scale-95 transition-all">
+                        <Save size={16} className="mr-2" /> Guardar Ranking
+                    </button>
+                </div>
             </div>
         );
     }
@@ -629,6 +634,27 @@ const EditorDashboard: React.FC = () => {
             setEditingItem({...editingItem, [field]: value});
         };
 
+        // NEW: Immediate save function
+        const saveIndividualStreamer = async () => {
+            setIsSaving(true);
+            try {
+                const newList = localTopConfig.list.map(s => s.rank === editingItem.rank ? { ...editingItem } : s);
+                const finalConfig = { ...localTopConfig, list: newList };
+                
+                await updateTopStreamers(finalConfig); // Save to DB
+                setLocalTopConfig(finalConfig); // Sync local state
+                
+                setEditingItem(null); 
+                setUrlInput('');
+                alert("Emisor actualizado correctamente.");
+            } catch (error) {
+                console.error("Error saving individual streamer:", error);
+                alert("Error al guardar en la base de datos.");
+            } finally {
+                setIsSaving(false);
+            }
+        };
+
         return (
             <div className="animate-slide-up space-y-6">
                 <div className="bg-white dark:bg-brand-dark-card p-6 rounded-xl shadow-lg border border-gray-100 dark:border-white/5 space-y-5">
@@ -653,8 +679,8 @@ const EditorDashboard: React.FC = () => {
                     <div><label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Tendencia</label><div className="flex bg-gray-50 dark:bg-white/5 p-1 rounded-lg border border-gray-200 dark:border-white/10"><button onClick={() => handleLocalChange('trend', 'up')} className={`flex-1 py-2 rounded text-xs font-black uppercase ${editingItem.trend === 'up' ? 'bg-white shadow text-green-500' : 'text-gray-400'}`}>Subiendo</button><button onClick={() => handleLocalChange('trend', 'stable')} className={`flex-1 py-2 rounded text-xs font-black uppercase ${editingItem.trend === 'stable' ? 'bg-white shadow text-gray-600' : 'text-gray-400'}`}>Estable</button><button onClick={() => handleLocalChange('trend', 'down')} className={`flex-1 py-2 rounded text-xs font-black uppercase ${editingItem.trend === 'down' ? 'bg-white shadow text-red-500' : 'text-gray-400'}`}>Bajando</button></div></div>
 
                     <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
-                    <button onClick={() => { setEditingItem(null); setUrlInput(''); }} className="w-full bg-brand-black dark:bg-white text-white dark:text-black py-4 rounded-lg font-black uppercase tracking-widest text-xs flex items-center justify-center shadow-xl active:scale-95 transition-all mt-4">
-                        <Save size={16} className="mr-2" /> Guardar Cambios
+                    <button onClick={saveIndividualStreamer} disabled={isSaving} className="w-full bg-brand-black dark:bg-white text-white dark:text-black py-4 rounded-lg font-black uppercase tracking-widest text-xs flex items-center justify-center shadow-xl active:scale-95 transition-all mt-4">
+                        {isSaving ? <span className="animate-pulse">Guardando...</span> : <><Save size={16} className="mr-2" /> Guardar Cambios</>}
                     </button>
                 </div>
             </div>
