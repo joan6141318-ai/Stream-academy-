@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Download, X } from 'lucide-react';
 import { usePWA } from '../hooks/usePWA';
@@ -25,7 +24,7 @@ export const InstallPrompt: React.FC = () => {
                     Instalar App
                 </h3>
                 <p className="text-[10px] opacity-80 font-medium">
-                    Agrega StreamAgency a tu inicio para un acceso más rápido.
+                    Agrega Streamers Academy a tu inicio para un acceso más rápido.
                 </p>
             </div>
         </div>

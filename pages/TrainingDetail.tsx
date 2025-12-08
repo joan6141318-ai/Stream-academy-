@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Folder, PlayCircle, X, Clock, Play, Pause, Info, CheckCircle2, LayoutGrid, Volume2, VolumeX, Maximize, Table, Calculator, Wallet, CreditCard, ScrollText, ArrowUpRight, ShieldAlert, Gavel, Crown } from 'lucide-react';
@@ -196,7 +195,7 @@ const TrainingDetail: React.FC = () => {
               <div className="w-8 h-8 bg-white dark:bg-[#1A1A1A] rounded-xl flex items-center justify-center shadow-sm border border-gray-100 dark:border-white/10">
                   <LayoutGrid size={16} className="text-black dark:text-white" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Academy</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Streamers Academy</span>
           </div>
           <button onClick={() => navigate('/training')} className="w-10 h-10 bg-white dark:bg-[#1A1A1A] rounded-full flex items-center justify-center shadow-sm border border-gray-100 dark:border-white/10 text-black dark:text-white active:scale-95 transition-transform">
               <X size={20} />

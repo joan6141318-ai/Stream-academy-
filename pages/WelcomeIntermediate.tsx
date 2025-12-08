@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Zap, Calendar, ClipboardCheck, MessageCircle, PlayCircle, ArrowRight, Check, Star, ArrowUpRight, LayoutGrid } from 'lucide-react';
@@ -24,7 +23,7 @@ const WelcomeIntermediate: React.FC = () => {
              <div className="w-8 h-8 bg-brand-black rounded-lg flex items-center justify-center shadow-lg shadow-black/20">
                 <LayoutGrid size={16} className="text-white" />
              </div>
-             <span className="text-[10px] font-black uppercase tracking-[0.15em]">StreamAgency</span>
+             <span className="text-[10px] font-black uppercase tracking-[0.15em]">Streamers Academy</span>
           </div>
           <button 
             onClick={handleLogout}

@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlayCircle, Shield, Zap, Star, BellRing, Trophy, TrendingUp, Video, ShieldCheck, HelpCircle, Gamepad2, FileText, ChevronRight, LayoutGrid, ArrowUpRight, Check } from 'lucide-react';
@@ -135,7 +134,7 @@ const Profile: React.FC = () => {
              <div className="w-8 h-8 bg-brand-black dark:bg-white rounded-xl flex items-center justify-center shadow-lg shadow-black/10">
                 <LayoutGrid size={16} className="text-white dark:text-black" />
              </div>
-             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-black dark:text-white">StreamAgency</span>
+             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-black dark:text-white">Streamers Academy</span>
           </div>
           
           <div className="flex items-center gap-2">
@@ -193,7 +192,7 @@ const Profile: React.FC = () => {
                             return (
                               <div 
                                 key={banner.id}
-                                onClick={() => handleBannerClick(banner)}
+                                onClick={() => handleBannerClick(banner)} // Pass full object
                                 className={`relative flex-shrink-0 w-full overflow-hidden cursor-pointer active:scale-[0.98] transition-transform duration-300 snap-center`} 
                                 style={{ aspectRatio: '16/10' }} 
                               >

@@ -72,7 +72,7 @@ const AdminSelection: React.FC = () => {
         </div>
 
         <p className="mt-12 text-[10px] font-bold text-gray-300 dark:text-gray-700 uppercase tracking-widest">
-            StreamAgency Secure Access v2.0
+            Streamers Academy Secure Access v2.0
         </p>
       </div>
     </div>

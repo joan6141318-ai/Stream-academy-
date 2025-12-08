@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -26,7 +25,7 @@ export const LoadingGate: React.FC<{ children: React.ReactNode }> = ({ children 
         </div>
         <div className="flex flex-col items-center space-y-2 animate-pulse">
             <h2 className="text-xs font-black uppercase tracking-[0.2em] text-brand-black dark:text-white">
-                StreamAgency
+                Streamers Academy
             </h2>
             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
                 Conectando...
