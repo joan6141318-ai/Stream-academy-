@@ -83,29 +83,66 @@ const EditorDashboard: React.FC = () => {
     fileInputRef.current?.click();
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // --- IMAGE COMPRESSION UTILITY ---
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800; // Limit width to 800px for Firestore safety
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            // Compress to JPEG with 0.7 quality (~80KB)
+            resolve(canvas.toDataURL('image/jpeg', 0.7)); 
+          } else {
+            reject(new Error("Canvas context failed"));
+          }
+        };
+        img.onerror = (error) => reject(error);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            if (event.target?.result) {
-                const result = event.target.result as string;
-                setUrlInput(result);
-                
-                if (editingItem && editingItem.type === 'top3_streamer') {
-                    // Update Top Streamer Avatar
-                    const newList = localTopConfig.list.map(s => s.rank === editingItem.rank ? { ...s, avatar: result } : s);
-                    const newConfig = { ...localTopConfig, list: newList };
-                    setLocalTopConfig(newConfig);
-                    setEditingItem({ ...editingItem, avatar: result });
-                } else if (editingItem && editingItem.type === 'banner') {
-                    setEditingItem({ ...editingItem, image: result });
-                } else if (editingItem && editingItem.type === 'module') {
-                    setEditingItem({ ...editingItem, imageUrl: result });
-                }
+        try {
+            // Use compression before setting state
+            const compressedBase64 = await compressImage(file);
+            setUrlInput(compressedBase64);
+            
+            if (editingItem && editingItem.type === 'top3_streamer') {
+                // Update Top Streamer Avatar
+                const newList = localTopConfig.list.map(s => s.rank === editingItem.rank ? { ...s, avatar: compressedBase64 } : s);
+                const newConfig = { ...localTopConfig, list: newList };
+                setLocalTopConfig(newConfig);
+                setEditingItem({ ...editingItem, avatar: compressedBase64 });
+            } else if (editingItem && editingItem.type === 'banner') {
+                setEditingItem({ ...editingItem, image: compressedBase64 });
+            } else if (editingItem && editingItem.type === 'module') {
+                setEditingItem({ ...editingItem, imageUrl: compressedBase64 });
             }
-        };
-        reader.readAsDataURL(file);
+        } catch (error) {
+            console.error("Error processing image", error);
+            alert("Error al procesar la imagen. Intenta con una más pequeña.");
+        }
     }
   };
 
@@ -277,7 +314,7 @@ const EditorDashboard: React.FC = () => {
           }
       } catch (e) {
           console.error(e);
-          alert("Error al guardar cambios. Verifica tu conexión.");
+          alert("Error al guardar cambios. Verifica que la imagen no sea demasiado pesada (Máx 1MB).");
       } finally {
           setIsSaving(false);
       }
