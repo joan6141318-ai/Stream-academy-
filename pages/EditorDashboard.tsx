@@ -365,7 +365,7 @@ const EditorDashboard: React.FC = () => {
                         Ranking Top 3
                     </h3>
                     <p className="text-xs text-gray-400 font-medium">
-                        Editar ganadores, mes y récords
+                        Editar ganadores, mes y tarjeta de felicitación
                     </p>
                 </div>
             </div>
@@ -386,14 +386,38 @@ const EditorDashboard: React.FC = () => {
             <div className="animate-slide-up space-y-6">
                 
                 {/* Header Config */}
-                <div className="bg-white dark:bg-brand-dark-card p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5">
-                    <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Título del Mes / Periodo</label>
-                    <input 
-                        type="text" 
-                        value={localTopConfig.month}
-                        onChange={(e) => setLocalTopConfig({...localTopConfig, month: e.target.value})}
-                        className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-bold text-brand-black dark:text-white outline-none"
-                    />
+                <div className="bg-white dark:bg-brand-dark-card p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5 space-y-4">
+                    <div className="border-b border-gray-100 dark:border-white/5 pb-2">
+                        <h4 className="text-xs font-black uppercase text-brand-purple mb-1">Configuración General</h4>
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Título del Mes / Periodo</label>
+                        <input 
+                            type="text" 
+                            value={localTopConfig.month}
+                            onChange={(e) => setLocalTopConfig({...localTopConfig, month: e.target.value})}
+                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-bold text-brand-black dark:text-white outline-none"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Título de Felicitación</label>
+                        <input 
+                            type="text" 
+                            value={localTopConfig.congratsTitle || ''}
+                            onChange={(e) => setLocalTopConfig({...localTopConfig, congratsTitle: e.target.value})}
+                            placeholder="¡Felicidades!"
+                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-bold text-brand-black dark:text-white outline-none"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-black uppercase text-gray-400 mb-1 block">Mensaje de Felicitación</label>
+                        <textarea 
+                            value={localTopConfig.congratsMessage || ''}
+                            onChange={(e) => setLocalTopConfig({...localTopConfig, congratsMessage: e.target.value})}
+                            placeholder="Mensaje corto motivador..."
+                            className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-sm font-medium text-brand-black dark:text-white outline-none h-20 resize-none"
+                        />
+                    </div>
                 </div>
 
                 {/* List of 3 */}
@@ -427,6 +451,7 @@ const EditorDashboard: React.FC = () => {
         );
     }
 
+    // ... (rest of the file remains the same)
     if (activeCategory === 'home') {
         // ... (existing home logic) ...
         if (!subCategory) {

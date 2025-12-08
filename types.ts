@@ -59,6 +59,8 @@ export interface TopStreamer {
 
 export interface TopStreamersConfig {
   month: string; // Ej: "Noviembre 2025"
+  congratsTitle?: string; // Nuevo: Título tarjeta felicitación
+  congratsMessage?: string; // Nuevo: Mensaje tarjeta felicitación
   list: TopStreamer[];
 }
 

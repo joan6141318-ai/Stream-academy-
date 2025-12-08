@@ -39,6 +39,8 @@ const INITIAL_HOME_CONFIG: HomeConfig = {
 
 const INITIAL_TOP_STREAMERS: TopStreamersConfig = {
     month: "Mes Actual",
+    congratsTitle: "¡Felicidades!",
+    congratsMessage: "A nuestros emisores destacados por su increíble desempeño y dedicación este mes.",
     list: [
         { rank: 1, name: "Top 1", id: "ID-001", avatar: "https://ui-avatars.com/api/?name=1&background=FFD700&color=fff", meta: "0", record: "0", trend: "stable" },
         { rank: 2, name: "Top 2", id: "ID-002", avatar: "https://ui-avatars.com/api/?name=2&background=C0C0C0&color=fff", meta: "0", record: "0", trend: "stable" },

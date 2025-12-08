@@ -2,135 +2,129 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Trophy, Medal, Crown, TrendingUp, Zap, Flame, Minus, Sparkles } from 'lucide-react';
+import { Trophy, TrendingUp, Zap, Flame, Sparkles, PartyPopper } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 
 const TopStreamers: React.FC = () => {
   const navigate = useNavigate();
   const { topStreamers } = useContent();
 
-  const { month, list } = topStreamers;
+  const { month, list, congratsTitle, congratsMessage } = topStreamers;
 
   // Asegurar orden
   const sortedList = [...list].sort((a, b) => a.rank - b.rank).slice(0, 3);
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#FAFAFA] dark:bg-black transition-colors duration-300 font-sans relative overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-white dark:bg-black transition-colors duration-300 font-sans relative overflow-hidden">
       <Header title="Ranking Oficial" showBack onBack={() => navigate('/home')} />
       
-      {/* Fondo Decorativo Sutil */}
-      <div className="absolute top-0 inset-x-0 h-[50vh] bg-gradient-to-b from-gray-100 to-transparent dark:from-white/5 pointer-events-none"></div>
+      {/* Fondo Decorativo Fluido */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+      <div className="absolute top-40 left-0 w-48 h-48 bg-pink-500/20 rounded-full blur-3xl -ml-20 pointer-events-none"></div>
 
       <div className="flex-1 overflow-y-auto scrollbar-hide pt-[calc(3.5rem+env(safe-area-inset-top))] px-6 pb-24 relative z-10">
         
-        {/* --- HEADER --- */}
-        <div className="mt-6 mb-10 text-center">
-            <div className="inline-flex items-center space-x-2 bg-brand-purple/10 text-brand-purple px-4 py-1.5 rounded-full mb-3 border border-brand-purple/20">
-                <Trophy size={14} fill="currentColor" />
-                <span className="text-[10px] font-black uppercase tracking-widest">{month}</span>
+        {/* --- TARJETA DE FELICITACIÓN (HERO) --- */}
+        <div className="mt-6 mb-8">
+            <div className="relative w-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-orange-500 rounded-[2.5rem] p-8 border-[6px] border-white dark:border-[#1A1A1A] shadow-2xl overflow-hidden group">
+                
+                {/* Noise Texture Overlay */}
+                <div className="absolute inset-0 bg-white opacity-5 pointer-events-none mix-blend-overlay"></div>
+                
+                <div className="relative z-10 text-center">
+                    <div className="inline-flex items-center justify-center bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-4 shadow-sm">
+                        <Trophy size={14} className="text-white mr-2" fill="currentColor" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white">{month}</span>
+                    </div>
+                    
+                    <h1 className="text-3xl font-black text-white uppercase tracking-tighter leading-none mb-3 drop-shadow-lg">
+                        {congratsTitle || "¡Felicidades!"}
+                    </h1>
+                    
+                    <p className="text-xs font-bold text-white/90 leading-relaxed max-w-[260px] mx-auto">
+                        {congratsMessage || "A nuestros emisores destacados por su increíble desempeño."}
+                    </p>
+                </div>
+
+                {/* Floating Elements */}
+                <PartyPopper className="absolute top-6 left-6 text-white/20 -rotate-12" size={40} />
+                <Sparkles className="absolute bottom-6 right-6 text-yellow-300 animate-pulse" size={32} />
             </div>
-            <h1 className="text-4xl font-black uppercase leading-[0.85] tracking-tighter text-brand-black dark:text-white mb-2">
-                Top 3<br/>Agency
-            </h1>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                Los mejores del mes
-            </p>
         </div>
 
-        {/* --- LISTA TOP 3 --- */}
-        <div className="space-y-6">
+        {/* --- LISTA TOP 3 (MINIMALISTA) --- */}
+        <div className="space-y-5">
             {sortedList.map((streamer) => {
                 const isTop1 = streamer.rank === 1;
-                const isTop2 = streamer.rank === 2;
-                const isTop3 = streamer.rank === 3;
                 
-                // --- ESTILOS PREMIUM ---
-                let containerClass = "bg-white dark:bg-[#111] border-gray-100 dark:border-white/5";
-                let rankBadge = "";
-                let accentColor = "";
-                let glow = "";
-                
-                // TOP 1: ORO PREMIUM
-                if (isTop1) {
-                    containerClass = "bg-gradient-to-b from-[#1a1a1a] to-black border-[#FFD700] border-2 shadow-2xl relative overflow-hidden";
-                    rankBadge = "bg-gradient-to-br from-[#FFD700] via-[#FDB931] to-[#D4AF37] text-black shadow-[0_0_20px_rgba(255,215,0,0.5)]";
-                    accentColor = "text-[#FFD700]";
-                    glow = "shadow-[0_10px_40px_-10px_rgba(255,215,0,0.3)]";
-                } 
-                // TOP 2: PLATA ELEGANTE
-                else if (isTop2) {
-                    containerClass = "bg-white dark:bg-[#151515] border-gray-300 dark:border-gray-600 border shadow-xl relative overflow-hidden";
-                    rankBadge = "bg-gradient-to-br from-[#E0E0E0] via-[#F5F5F5] to-[#BDBDBD] text-gray-800 shadow-[0_0_15px_rgba(255,255,255,0.3)]";
-                    accentColor = "text-gray-400 dark:text-gray-300";
-                    glow = "shadow-[0_10px_30px_-10px_rgba(200,200,200,0.2)]";
-                } 
-                // TOP 3: BRONCE CÁLIDO
-                else if (isTop3) {
-                    containerClass = "bg-white dark:bg-[#151515] border-orange-200 dark:border-orange-900 border shadow-lg relative overflow-hidden";
-                    rankBadge = "bg-gradient-to-br from-[#CD7F32] via-[#E29D67] to-[#8B4513] text-white shadow-[0_0_15px_rgba(205,127,50,0.3)]";
-                    accentColor = "text-orange-400 dark:text-orange-600";
-                    glow = "shadow-[0_10px_30px_-10px_rgba(205,127,50,0.2)]";
+                // Colores "Joviales" y Modernos (Flat Colors)
+                let rankColor = "";
+                let rankBg = "";
+                let shadowColor = "";
+
+                if (streamer.rank === 1) {
+                    rankColor = "text-yellow-400"; // Neon Yellow
+                    rankBg = "bg-yellow-400";
+                    shadowColor = "shadow-yellow-400/30";
+                } else if (streamer.rank === 2) {
+                    rankColor = "text-slate-400"; // Cool Gray
+                    rankBg = "bg-slate-300";
+                    shadowColor = "shadow-slate-300/30";
+                } else {
+                    rankColor = "text-orange-400"; // Bright Orange
+                    rankBg = "bg-orange-400";
+                    shadowColor = "shadow-orange-400/30";
                 }
 
                 return (
                     <div 
                         key={streamer.rank}
-                        className={`relative rounded-[2.5rem] p-6 transition-transform duration-300 ${containerClass} ${glow} ${isTop1 ? 'scale-105 z-10 my-8' : ''}`}
+                        className={`relative rounded-[2.5rem] p-5 transition-transform duration-300 bg-white dark:bg-[#111] border-[3px] border-gray-100 dark:border-white/5 shadow-xl ${isTop1 ? 'scale-105 z-10 mb-8 border-yellow-400/30 dark:border-yellow-400/20' : ''}`}
                     >
-                        {/* Fondo Top 1 Brillo */}
-                        {isTop1 && <div className="absolute inset-0 bg-gradient-to-tr from-[#FFD700]/10 via-transparent to-transparent pointer-events-none"></div>}
-
-                        <div className="relative z-10 flex items-center gap-5">
+                        <div className="flex items-center gap-5">
                             
-                            {/* Ranking Badge & Avatar */}
+                            {/* Avatar & Rank */}
                             <div className="relative">
-                                <div className={`w-12 h-12 absolute -top-4 -left-3 rounded-full flex items-center justify-center z-20 ${rankBadge}`}>
-                                    {isTop1 ? <Crown size={20} fill="currentColor" /> : <span className="text-xl font-black italic">#{streamer.rank}</span>}
+                                {/* Rank Pill */}
+                                <div className={`absolute -top-3 -left-2 px-3 py-1 rounded-full ${rankBg} text-white dark:text-black shadow-lg z-20`}>
+                                    <span className="text-xs font-black italic">#{streamer.rank}</span>
                                 </div>
-                                <div className={`w-20 h-20 rounded-full p-1 ${isTop1 ? 'bg-gradient-to-tr from-[#FFD700] to-[#FDB931]' : isTop2 ? 'bg-gray-300' : 'bg-orange-300'}`}>
-                                    <img src={streamer.avatar} className="w-full h-full rounded-full object-cover border-4 border-white dark:border-black" alt={streamer.name} />
+                                
+                                <div className={`w-20 h-20 rounded-[1.5rem] p-1 bg-white dark:bg-[#222] shadow-md overflow-hidden relative`}>
+                                    <img src={streamer.avatar} className="w-full h-full rounded-[1.2rem] object-cover" alt={streamer.name} />
                                 </div>
                             </div>
 
                             {/* Info */}
                             <div className="flex-1 min-w-0">
-                                <h3 className={`text-2xl font-black uppercase truncate leading-none mb-1 ${isTop1 ? 'text-white' : 'text-brand-black dark:text-white'}`}>
+                                <h3 className={`text-xl font-black uppercase truncate leading-none mb-1 text-brand-black dark:text-white`}>
                                     {streamer.name}
                                 </h3>
-                                <p className={`text-[10px] font-bold uppercase tracking-widest mb-3 ${isTop1 ? 'text-[#FFD700]' : 'text-gray-400'}`}>
-                                    {streamer.id}
-                                </p>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className="bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider">
+                                        ID: {streamer.id}
+                                    </span>
+                                </div>
 
-                                {/* Stats Grid */}
-                                <div className="flex items-center gap-4">
-                                    <div className="flex flex-col">
-                                        <span className="text-[8px] font-black uppercase text-gray-500 mb-0.5">Recaudación</span>
-                                        <div className="flex items-center gap-1 text-sm font-black text-brand-black dark:text-white">
-                                            <Zap size={12} className={isTop1 ? 'text-[#FFD700]' : 'text-brand-purple'} fill="currentColor" />
-                                            {streamer.meta}
-                                        </div>
+                                {/* Stats Modernas */}
+                                <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-1.5 bg-purple-50 dark:bg-purple-900/20 px-2.5 py-1.5 rounded-lg border border-purple-100 dark:border-purple-500/20">
+                                        <Zap size={10} className="text-brand-purple" fill="currentColor" />
+                                        <span className="text-[10px] font-black text-brand-purple">{streamer.meta}</span>
                                     </div>
-                                    <div className="w-px h-6 bg-gray-200 dark:bg-white/10"></div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[8px] font-black uppercase text-gray-500 mb-0.5">Récord</span>
-                                        <div className="flex items-center gap-1 text-sm font-black text-brand-black dark:text-white">
-                                            <Flame size={12} className={isTop1 ? 'text-[#FFD700]' : 'text-orange-500'} fill="currentColor" />
-                                            {streamer.record}
-                                        </div>
+                                    <div className="flex items-center gap-1.5 bg-orange-50 dark:bg-orange-900/20 px-2.5 py-1.5 rounded-lg border border-orange-100 dark:border-orange-500/20">
+                                        <Flame size={10} className="text-orange-500" fill="currentColor" />
+                                        <span className="text-[10px] font-black text-orange-500">{streamer.record}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Trend */}
-                            <div className="flex flex-col items-center justify-center opacity-50">
-                                {streamer.trend === 'up' && <TrendingUp size={20} className="text-green-500" />}
-                                {streamer.trend === 'down' && <TrendingUp size={20} className="text-red-500 transform rotate-180" />}
-                                {streamer.trend === 'stable' && <Minus size={20} className="text-gray-400" />}
+                            {/* Trend Indicator Simple */}
+                            <div className="flex flex-col items-center justify-center pr-2">
+                                {streamer.trend === 'up' && <div className="bg-green-100 dark:bg-green-900/20 p-1.5 rounded-full"><TrendingUp size={16} className="text-green-500" /></div>}
+                                {streamer.trend === 'down' && <div className="bg-red-100 dark:bg-red-900/20 p-1.5 rounded-full"><TrendingUp size={16} className="text-red-500 transform rotate-180" /></div>}
                             </div>
                         </div>
-
-                        {/* Top 1 Decor */}
-                        {isTop1 && <Sparkles className="absolute top-4 right-4 text-[#FFD700] animate-pulse" size={24} />}
                     </div>
                 );
             })}
