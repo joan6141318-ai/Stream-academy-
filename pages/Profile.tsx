@@ -126,13 +126,16 @@ const Profile: React.FC = () => {
              </div>
              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-black dark:text-white">StreamAgency</span>
           </div>
-          {/* Admin Badge */}
-          {user.isAdmin && (
-            <div className="flex items-center space-x-1 bg-black/5 dark:bg-white/10 px-3 py-1.5 rounded-full border border-black/5 dark:border-white/5">
-                <ShieldCheck size={10} className="text-brand-purple" />
-                <span className="text-[8px] font-black uppercase tracking-widest text-brand-black dark:text-white">Admin</span>
-            </div>
-          )}
+          
+          <div className="flex items-center gap-2">
+            {/* Admin Badge */}
+            {user.isAdmin && (
+                <div className="flex items-center space-x-1 bg-black/5 dark:bg-white/10 px-3 py-1.5 rounded-full border border-black/5 dark:border-white/5">
+                    <ShieldCheck size={10} className="text-brand-purple" />
+                    <span className="text-[8px] font-black uppercase tracking-widest text-brand-black dark:text-white">Admin</span>
+                </div>
+            )}
+          </div>
       </div>
       
       {/* SCROLLABLE CONTENT */}

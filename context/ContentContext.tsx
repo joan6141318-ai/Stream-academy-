@@ -69,10 +69,33 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     const unsubBanners = onSnapshot(collection(db, "banners"), (snapshot) => {
+        let list: Banner[] = [];
         if (!snapshot.empty) {
-            const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Banner));
-            setBanners(list);
+            list = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Banner));
         }
+        
+        // --- INYECCIÓN DE BANNER TOP 10 ---
+        // Si no existe un banner que lleve al Top 10, lo agregamos al inicio.
+        const hasTop10Banner = list.some(b => b.link === '/top-streamers' || b.tag === 'RANKING');
+        
+        if (!hasTop10Banner) {
+            const top10Banner: Banner = {
+                id: 'top-10-auto',
+                title: 'Top 10 Emisores',
+                subtitle: 'Conoce el ranking oficial del mes',
+                tag: 'RANKING',
+                tagColor: 'bg-yellow-500 text-black', // Dorado
+                gradient: 'from-yellow-600 via-orange-500 to-yellow-600', // Efecto dorado
+                image: 'https://i.postimg.cc/Qd9nvgq0/Top-10.jpg', // Placeholder de trofeo/ranking
+                shadow: 'shadow-yellow-500/30',
+                link: '/top-streamers',
+                imagePosition: 'object-center'
+            };
+            // Insertar al inicio del carrusel
+            list.unshift(top10Banner);
+        }
+
+        setBanners(list);
     });
 
     const unsubModules = onSnapshot(collection(db, "modules"), (snapshot) => {
@@ -86,7 +109,7 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
             list = [...INITIAL_MODULES]; 
         }
 
-        // --- INYECCIÓN HÍBRIDA (TOP 10) ---
+        // --- INYECCIÓN HÍBRIDA (TOP 10 MÓDULO) ---
         // Verificar si el módulo 'top-10' existe en la lista descargada.
         // Si no existe (porque es nuevo y no está en tu DB), lo inyectamos desde el código local.
         const hasTop10 = list.some(m => m.id === 'top-10');
@@ -95,7 +118,7 @@ export const ContentProvider: React.FC<{ children: React.ReactNode }> = ({ child
             const localTop10 = INITIAL_MODULES.find(m => m.id === 'top-10');
             if (localTop10) {
                 // Lo agregamos al principio de la lista para mayor visibilidad
-                // CRITICAL: Asegurar que el estilo se calcule correctamente usando el ID 'top-10'
+                // Asignamos estilo por si acaso
                 const moduleWithStyle = { ...localTop10, style: getInitialStyle('top-10') };
                 list.unshift(moduleWithStyle);
             }
