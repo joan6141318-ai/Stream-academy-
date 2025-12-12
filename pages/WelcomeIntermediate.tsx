@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Zap, Calendar, ClipboardCheck, MessageCircle, PlayCircle, ArrowRight, Check, Star, ArrowUpRight, LayoutGrid } from 'lucide-react';
@@ -123,9 +124,9 @@ const WelcomeIntermediate: React.FC = () => {
               <Calendar className="absolute -right-5 -bottom-5 text-white dark:text-white/5 rotate-[-15deg] group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500" size={90} strokeWidth={1.5} />
           </button>
 
-          {/* Card 2: Evaluaciones (Negro Puro Minimalista) */}
+          {/* Card 2: Evaluaciones (Negro Puro Minimalista) - ACTUALIZADO */}
           <button 
-            onClick={() => alert('Próximamente: Exámenes')}
+            onClick={() => navigate('/training/evaluation')}
             className="bg-black text-white p-5 rounded-[2rem] flex flex-col justify-between aspect-square shadow-xl shadow-black/20 active:scale-[0.96] transition-all group relative overflow-hidden border-[5px] border-[#1A1A1A]"
           >
               <div className="flex justify-between items-start w-full relative z-10">

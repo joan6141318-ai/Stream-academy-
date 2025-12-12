@@ -29,6 +29,7 @@ import WelcomeIntermediate from './pages/WelcomeIntermediate';
 import PKCalendar from './pages/PKCalendar'; 
 import AppTour from './pages/AppTour';
 import TopStreamers from './pages/TopStreamers';
+import EvaluationQuiz from './pages/EvaluationQuiz'; // NUEVA IMPORTACIÓN
 import MaintenanceMode from './pages/MaintenanceMode';
 import AccessDenied from './pages/AccessDenied';
 import { MainLayout } from './components/MainLayout';
@@ -77,6 +78,7 @@ const AppContent: React.FC = () => {
 
                     {/* --- PÁGINAS INDIVIDUALES (Pantalla completa sin Nav) --- */}
                     <Route path="/training/:topicId" element={<TrainingDetail />} />
+                    <Route path="/training/evaluation" element={<EvaluationQuiz />} /> {/* NUEVA RUTA */}
                     <Route path="/pk-calendar" element={<PKCalendar />} />
                     <Route path="/app-tour" element={<AppTour />} />
                     <Route path="/top-streamers" element={<TopStreamers />} />
