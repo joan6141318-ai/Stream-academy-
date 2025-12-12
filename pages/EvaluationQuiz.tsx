@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { CheckCircle2, XCircle, Trophy, RefreshCw, ArrowRight, BrainCircuit, AlertCircle, Check, X, HelpCircle, ChevronRight, PartyPopper, Star, Zap, GraduationCap, ArrowUpRight } from 'lucide-react';
+import { CheckCircle2, XCircle, Trophy, RefreshCw, ArrowRight, BrainCircuit, AlertCircle, Check, X, HelpCircle, Share2, Award, Zap, BarChart3, PartyPopper } from 'lucide-react';
 
 // --- DATA: QUESTIONS BASED ON PROVIDED TEXT ---
 const RAW_QUESTIONS = [
@@ -143,26 +143,28 @@ const RAW_QUESTIONS = [
     }
 ];
 
-// Componente de Anillo de Progreso (Donut Chart) - Updated for better visuals
+// Modern Circular Progress with Gradient
 const CircularProgress = ({ percentage, colorClass }: { percentage: number, colorClass: string }) => {
-    const radius = 55;
-    const stroke = 8;
+    const radius = 65;
+    const stroke = 12;
     const normalizedRadius = radius - stroke * 2;
     const circumference = normalizedRadius * 2 * Math.PI;
     const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
     return (
-        <div className="relative flex items-center justify-center w-40 h-40">
-            <svg height="100%" width="100%" viewBox="0 0 110 110" className="rotate-[-90deg]">
+        <div className="relative flex items-center justify-center w-48 h-48 drop-shadow-2xl">
+            <svg height="100%" width="100%" viewBox="0 0 130 130" className="rotate-[-90deg]">
+                {/* Background Track */}
                 <circle
                     stroke="currentColor"
                     strokeWidth={stroke}
                     fill="transparent"
                     r={normalizedRadius}
-                    cx="55"
-                    cy="55"
-                    className="text-gray-100 dark:text-white/5"
+                    cx="65"
+                    cy="65"
+                    className="text-black/10 dark:text-white/5"
                 />
+                {/* Foreground Progress */}
                 <circle
                     stroke="currentColor"
                     strokeWidth={stroke}
@@ -171,15 +173,16 @@ const CircularProgress = ({ percentage, colorClass }: { percentage: number, colo
                     strokeLinecap="round"
                     fill="transparent"
                     r={normalizedRadius}
-                    cx="55"
-                    cy="55"
+                    cx="65"
+                    cy="65"
                     className={colorClass}
                 />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center flex-col">
-                <span className="text-4xl font-black text-brand-black dark:text-white leading-none tracking-tighter">
-                    {percentage}<span className="text-lg text-gray-400">%</span>
+                <span className="text-5xl font-black text-brand-black dark:text-white leading-none tracking-tighter">
+                    {percentage}<span className="text-2xl align-top">%</span>
                 </span>
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 mt-1">Precisión</span>
             </div>
         </div>
     );
@@ -198,21 +201,16 @@ const EvaluationQuiz: React.FC = () => {
   const [wrongAnswers, setWrongAnswers] = useState<any[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
   
-  // Results Animation State
   const [displayedScore, setDisplayedScore] = useState(0);
 
   // --- LOGIC: SHUFFLE ---
   const startQuiz = () => {
-      // Shuffle Questions
       const shuffledQ = [...RAW_QUESTIONS].sort(() => Math.random() - 0.5);
-      
-      // Shuffle Options inside each question & Assign A/B/C labels dynamically based on new order
       const finalQuestions = shuffledQ.map(q => {
           const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
-          // Re-assign IDs to A, B, C for display purposes after shuffle
           const labeledOptions = shuffledOptions.map((opt, idx) => ({
               ...opt,
-              id: String.fromCharCode(65 + idx) // 65 is 'A'
+              id: String.fromCharCode(65 + idx)
           }));
           return { ...q, options: labeledOptions };
       });
@@ -228,21 +226,19 @@ const EvaluationQuiz: React.FC = () => {
   };
 
   const handleAnswer = (optionId: string, isCorrect: boolean, correctText: string) => {
-      if (selectedOption) return; // Prevent double click
+      if (selectedOption) return; 
       
       setSelectedOption(optionId);
 
       if (isCorrect) {
           setScore(prev => prev + 1);
       } else {
-          // Guardar el error para el reporte final
           setWrongAnswers(prev => [...prev, {
               q: questions[currentQuestionIndex].question,
               a: correctText
           }]);
       }
 
-      // Auto advance
       setTimeout(() => {
           setIsAnimating(true);
           setTimeout(() => {
@@ -255,29 +251,24 @@ const EvaluationQuiz: React.FC = () => {
                   setIsPlaying(false);
                   setIsAnimating(false);
               }
-          }, 300);
-      }, 1500);
+          }, 200);
+      }, 1200); // Tiempos ajustados para disfrutar la animación
   };
 
-  // Effect for counting up score
+  // Score Animation
   useEffect(() => {
       if (isFinished) {
           const targetScore = Math.round((score / questions.length) * 100);
           let start = 0;
-          const duration = 1500; // ms
-          const stepTime = 20;
-          const steps = duration / stepTime;
-          const increment = targetScore / steps;
-
           const timer = setInterval(() => {
-              start += increment;
+              start += 1;
               if (start >= targetScore) {
                   setDisplayedScore(targetScore);
                   clearInterval(timer);
               } else {
-                  setDisplayedScore(Math.floor(start));
+                  setDisplayedScore(start);
               }
-          }, stepTime);
+          }, 10);
           return () => clearInterval(timer);
       }
   }, [isFinished, score, questions.length]);
@@ -287,141 +278,130 @@ const EvaluationQuiz: React.FC = () => {
       return (
         <div className="flex flex-col h-full w-full bg-[#FAFAFA] dark:bg-black transition-colors duration-300">
             <Header title="Evaluación" showBack onBack={() => navigate('/welcome')} />
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-fade-in">
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-fade-in relative overflow-hidden">
                 
-                <div className="relative mb-8">
-                    <div className="absolute inset-0 bg-brand-purple/20 rounded-full blur-2xl"></div>
-                    <div className="relative bg-white dark:bg-[#1A1A1A] p-6 rounded-[2.5rem] shadow-2xl border-[5px] border-white dark:border-white/10">
-                        <BrainCircuit size={64} className="text-brand-purple" strokeWidth={1.5} />
+                {/* Background Decor */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-purple/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl -ml-20 -mb-20"></div>
+
+                <div className="relative mb-10 z-10">
+                    <div className="w-24 h-24 bg-white dark:bg-[#1A1A1A] rounded-[2rem] flex items-center justify-center shadow-2xl border-[3px] border-gray-100 dark:border-white/5 rotate-3 hover:rotate-0 transition-transform duration-500">
+                        <BrainCircuit size={48} className="text-brand-purple" strokeWidth={1.5} />
+                    </div>
+                    <div className="absolute -top-2 -right-2 bg-brand-black text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg animate-bounce">
+                        Examen
                     </div>
                 </div>
 
-                <h1 className="text-3xl font-black uppercase tracking-tighter leading-none mb-4 text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
-                    Evaluación<br/>Mensual
+                <h1 className="text-4xl font-black uppercase tracking-tighter leading-[0.9] mb-4 text-transparent bg-clip-text bg-gradient-to-br from-brand-purple to-pink-600 relative z-10">
+                    Certificación<br/>Mensual
                 </h1>
 
-                <div className="bg-white dark:bg-brand-dark-card p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 mb-8 w-full max-w-xs">
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 leading-relaxed">
-                        Demuestra tu conocimiento sobre las normas, monetización y seguridad de la plataforma. Tienes <strong>15 preguntas</strong> para probar que eres un experto.
-                    </p>
-                </div>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 leading-relaxed max-w-[280px] mb-10 relative z-10">
+                    Demuestra tu dominio sobre las normas, monetización y seguridad de la plataforma.
+                </p>
 
                 <button 
                     onClick={startQuiz}
-                    className="w-full max-w-xs h-14 bg-brand-black dark:bg-white text-white dark:text-black rounded-xl font-black uppercase tracking-[0.2em] text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 group"
+                    className="w-full max-w-xs h-16 bg-brand-black dark:bg-white text-white dark:text-black rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-brand-black/20 dark:shadow-white/10 active:scale-95 transition-all flex items-center justify-center gap-3 group relative z-10"
                 >
-                    <span>Comenzar Test</span>
-                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                    <span>Iniciar Test</span>
+                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </button>
             </div>
         </div>
       );
   }
 
-  // --- RENDER: RESULTS SCREEN (REDESIGNED) ---
+  // --- RENDER: RESULTS SCREEN (PREMIUM DASHBOARD) ---
   if (isFinished) {
       const percentage = Math.round((score / questions.length) * 100);
-      let status = { text: "Necesitas Estudiar", color: "text-red-500", ringColor: "text-red-500", bg: "bg-red-50", icon: AlertCircle };
-      let isHigh = false;
+      let config = { 
+          title: "Inténtalo de Nuevo", 
+          msg: "Repasa los módulos antes de volver a intentarlo.",
+          color: "text-red-500", 
+          ringColor: "text-red-500",
+          icon: AlertCircle,
+          bgGradient: "from-red-500/20 to-orange-500/20"
+      };
 
       if (percentage >= 90) {
-          status = { text: "Experto Total", color: "text-green-500", ringColor: "text-green-500", bg: "bg-green-50", icon: Trophy };
-          isHigh = true;
+          config = { 
+              title: "¡Experto Certificado!", 
+              msg: "Has demostrado un dominio total de la plataforma.",
+              color: "text-emerald-500", 
+              ringColor: "text-emerald-500",
+              icon: Trophy,
+              bgGradient: "from-emerald-500/20 to-teal-500/20"
+          };
       } else if (percentage >= 70) {
-          status = { text: "Conocimiento Sólido", color: "text-brand-purple", ringColor: "text-brand-purple", bg: "bg-purple-50", icon: GraduationCap };
-          isHigh = true;
-      } else if (percentage >= 50) {
-          status = { text: "Puedes Mejorar", color: "text-orange-500", ringColor: "text-orange-500", bg: "bg-orange-50", icon: Zap };
+          config = { 
+              title: "Conocimiento Sólido", 
+              msg: "Tienes las bases claras, afina los detalles.",
+              color: "text-brand-purple", 
+              ringColor: "text-brand-purple",
+              icon: Award,
+              bgGradient: "from-purple-500/20 to-pink-500/20"
+          };
       }
 
       return (
         <div className="flex flex-col h-full w-full bg-[#FAFAFA] dark:bg-black transition-colors duration-300">
-            <Header title="Resultados" showBack onBack={() => navigate('/welcome')} />
+            <Header title="Reporte Final" showBack onBack={() => navigate('/welcome')} />
             <div className="flex-1 overflow-y-auto scrollbar-hide px-6 pt-[calc(3.5rem+env(safe-area-inset-top))] pb-24">
                 
-                {/* --- HERO SCORE CARD --- */}
-                <div className="bg-white dark:bg-[#111] rounded-[2.5rem] p-8 shadow-xl border border-gray-100 dark:border-white/5 text-center mb-8 relative overflow-hidden group">
+                {/* --- HERO DASHBOARD CARD --- */}
+                <div className="bg-white dark:bg-[#121212] rounded-[2.5rem] p-8 shadow-2xl border border-gray-100 dark:border-white/5 mb-8 relative overflow-hidden text-center mt-4">
+                    {/* Background Glow */}
+                    <div className={`absolute top-0 inset-x-0 h-40 bg-gradient-to-b ${config.bgGradient} opacity-50 blur-3xl pointer-events-none`}></div>
                     
-                    {/* Dynamic Background Gradient (Subtle) */}
-                    <div className={`absolute top-0 inset-x-0 h-32 ${status.bg} dark:bg-opacity-10 rounded-t-[2.5rem] transition-colors duration-500`}></div>
-
-                    {/* Decor Icons (Background Only - z-0) */}
-                    {isHigh && (
-                        <>
-                            <PartyPopper size={80} className="absolute -top-4 -left-4 text-brand-purple/10 rotate-12 z-0 pointer-events-none" />
-                            <Star size={60} className="absolute top-10 -right-6 text-yellow-400/20 rotate-45 z-0 pointer-events-none" />
-                        </>
-                    )}
-
-                    {/* Main Content (z-10) */}
                     <div className="relative z-10 flex flex-col items-center">
-                        
-                        {/* Rank Badge */}
-                        <div className="inline-flex items-center gap-2 bg-white dark:bg-[#222] px-4 py-1.5 rounded-full shadow-sm mb-6 border border-gray-100 dark:border-white/5">
-                            <status.icon size={14} className={status.color} />
-                            <span className={`text-[10px] font-black uppercase tracking-widest ${status.color}`}>
-                                {status.text}
-                            </span>
+                        <div className="mb-6 scale-110">
+                            <CircularProgress percentage={displayedScore} colorClass={config.ringColor} />
                         </div>
 
-                        {/* Chart */}
-                        <div className="mb-6">
-                            <CircularProgress percentage={displayedScore} colorClass={status.ringColor} />
-                        </div>
+                        <h2 className={`text-2xl font-black uppercase tracking-tight leading-none mb-2 ${config.color}`}>
+                            {config.title}
+                        </h2>
+                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 max-w-[240px] leading-relaxed">
+                            {config.msg}
+                        </p>
 
-                        {/* Stats Grid */}
-                        <div className="grid grid-cols-2 gap-4 w-full">
-                            <div className="bg-green-50 dark:bg-green-900/10 p-3 rounded-2xl flex flex-col items-center justify-center border border-green-100 dark:border-green-900/20">
-                                <span className="text-xl font-black text-green-600 dark:text-green-400 leading-none mb-1">{score}</span>
-                                <span className="text-[9px] font-bold text-green-800/50 dark:text-green-400/50 uppercase tracking-widest">Aciertos</span>
+                        <div className="grid grid-cols-2 gap-4 w-full mt-8">
+                            <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl flex flex-col items-center border border-gray-100 dark:border-white/5">
+                                <div className="text-emerald-500 mb-1"><CheckCircle2 size={20} /></div>
+                                <span className="text-2xl font-black text-brand-black dark:text-white">{score}</span>
+                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Correctas</span>
                             </div>
-                            <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-2xl flex flex-col items-center justify-center border border-red-100 dark:border-red-900/20">
-                                <span className="text-xl font-black text-red-500 leading-none mb-1">{questions.length - score}</span>
-                                <span className="text-[9px] font-bold text-red-800/50 dark:text-red-400/50 uppercase tracking-widest">Errores</span>
+                            <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl flex flex-col items-center border border-gray-100 dark:border-white/5">
+                                <div className="text-red-500 mb-1"><XCircle size={20} /></div>
+                                <span className="text-2xl font-black text-brand-black dark:text-white">{questions.length - score}</span>
+                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Fallos</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* --- WRONG ANSWERS SECTION --- */}
-                {wrongAnswers.length > 0 && (
-                    <div className="mb-8 animate-slide-up">
-                        <div className="flex items-center justify-between mb-4 px-2">
-                            <div className="flex items-center gap-2">
-                                <div className="bg-red-100 dark:bg-red-900/20 p-1.5 rounded-full">
-                                    <BrainCircuit size={14} className="text-red-500" />
-                                </div>
-                                <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest">Áreas de Mejora</h3>
-                            </div>
-                            <span className="text-[9px] font-bold bg-gray-100 dark:bg-white/10 px-2 py-1 rounded-md text-gray-500">{wrongAnswers.length} Items</span>
+                {/* --- INSIGHTS / CORRECTIONS --- */}
+                {wrongAnswers.length > 0 ? (
+                    <div className="animate-slide-up">
+                        <div className="flex items-center gap-2 mb-4 px-2">
+                            <BrainCircuit size={16} className="text-brand-purple" />
+                            <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest">Correcciones Clave</h3>
                         </div>
-
                         <div className="space-y-4">
                             {wrongAnswers.map((item, idx) => (
-                                <div key={idx} className="bg-white dark:bg-[#111] p-5 rounded-2xl border-l-4 border-l-red-500 border-y border-r border-gray-100 dark:border-r-white/5 dark:border-y-white/5 shadow-sm relative overflow-hidden group">
-                                    
-                                    {/* Subtle Decor Icon */}
-                                    <XCircle className="absolute right-[-10px] top-[-10px] text-red-500/5 rotate-12 pointer-events-none" size={100} />
-
+                                <div key={idx} className="bg-white dark:bg-[#121212] p-5 rounded-[1.5rem] border-l-4 border-l-red-500 border-y border-r border-gray-100 dark:border-r-white/5 dark:border-y-white/5 shadow-sm relative overflow-hidden group">
                                     <div className="relative z-10">
-                                        {/* Question */}
-                                        <div className="mb-4">
-                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider block mb-1">Pregunta</span>
-                                            <p className="text-sm font-bold text-brand-black dark:text-white leading-snug">
-                                                {item.q}
-                                            </p>
-                                        </div>
-                                        
-                                        {/* Correction Block */}
-                                        <div className="bg-green-50 dark:bg-green-900/10 p-3 rounded-xl border border-green-100 dark:border-green-900/20 flex items-start gap-3">
-                                            <div className="mt-0.5 bg-green-200 dark:bg-green-800 rounded-full p-0.5">
-                                                <Check size={10} className="text-green-700 dark:text-green-100" strokeWidth={4} />
-                                            </div>
-                                            <div className="flex-1">
-                                                <span className="text-[9px] font-black text-green-600 dark:text-green-400 uppercase tracking-widest block mb-0.5">Solución</span>
-                                                <p className="text-xs font-bold text-green-800 dark:text-green-100 leading-tight">
-                                                    {item.a}
-                                                </p>
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-wide mb-2">Pregunta</p>
+                                        <p className="text-xs font-bold text-brand-black dark:text-white mb-4 leading-relaxed">
+                                            {item.q}
+                                        </p>
+                                        <div className="bg-emerald-50 dark:bg-emerald-900/10 p-3 rounded-xl border border-emerald-100 dark:border-emerald-500/20 flex items-start gap-3">
+                                            <Check size={14} className="text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" strokeWidth={3} />
+                                            <div>
+                                                <p className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-0.5">Respuesta Correcta</p>
+                                                <p className="text-xs font-bold text-emerald-800 dark:text-emerald-100 leading-snug">{item.a}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -429,80 +409,107 @@ const EvaluationQuiz: React.FC = () => {
                             ))}
                         </div>
                     </div>
+                ) : (
+                    <div className="bg-emerald-50 dark:bg-emerald-900/10 p-6 rounded-3xl border border-emerald-100 dark:border-emerald-500/20 text-center animate-slide-up">
+                        <PartyPopper size={32} className="text-emerald-500 mx-auto mb-3" />
+                        <h3 className="text-lg font-black text-emerald-700 dark:text-emerald-300 uppercase leading-none mb-1">¡Sin Errores!</h3>
+                        <p className="text-xs text-emerald-600/80 dark:text-emerald-400/80 font-medium">Un resultado impecable.</p>
+                    </div>
                 )}
 
-                {/* --- FOOTER ACTION --- */}
+                <div className="h-8"></div> {/* Spacer */}
+
                 <button 
                     onClick={startQuiz}
-                    className="w-full h-14 bg-brand-black dark:bg-white text-white dark:text-black rounded-xl font-black uppercase tracking-[0.2em] text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 mb-4 hover:opacity-90"
+                    className="w-full h-14 bg-brand-black dark:bg-white text-white dark:text-black rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 mb-4"
                 >
                     <RefreshCw size={16} />
-                    <span>Intentar de Nuevo</span>
+                    <span>Volver a Intentar</span>
                 </button>
             </div>
         </div>
       );
   }
 
-  // --- RENDER: QUESTION SCREEN ---
+  // --- RENDER: QUESTION SCREEN (IMPROVED INTERACTION) ---
   const currentQ = questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#FAFAFA] dark:bg-black transition-colors duration-300">
+    <div className="flex flex-col h-full w-full bg-[#F8F9FA] dark:bg-black transition-colors duration-300">
         
-        {/* Simplified Header with Progress */}
-        <div className="pt-safe bg-white/80 dark:bg-black/80 backdrop-blur-md sticky top-0 z-20 border-b border-gray-100 dark:border-white/5">
-            <div className="px-4 h-14 flex items-center justify-between">
-                <button onClick={() => navigate('/welcome')} className="w-8 h-8 flex items-center justify-center -ml-2 text-gray-400">
-                    <X size={20} />
+        {/* Progress Header */}
+        <div className="pt-safe bg-white/90 dark:bg-black/90 backdrop-blur-xl sticky top-0 z-30">
+            <div className="px-6 h-16 flex items-center justify-between border-b border-gray-100 dark:border-white/5">
+                <button onClick={() => navigate('/welcome')} className="w-10 h-10 flex items-center justify-center -ml-2 text-gray-400 hover:text-brand-black dark:hover:text-white transition-colors">
+                    <X size={22} />
                 </button>
                 <div className="flex flex-col items-center">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Pregunta</span>
+                    <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">Pregunta</span>
                     <span className="text-sm font-black text-brand-black dark:text-white leading-none">
-                        {currentQuestionIndex + 1} <span className="text-gray-300">/</span> {questions.length}
+                        <span className="text-brand-purple">{currentQuestionIndex + 1}</span>
+                        <span className="text-gray-300 mx-1">/</span>
+                        {questions.length}
                     </span>
                 </div>
                 <div className="w-8"></div>
             </div>
-            {/* Progress Line */}
-            <div className="w-full h-1 bg-gray-100 dark:bg-white/10">
+            {/* Smooth Progress Bar */}
+            <div className="w-full h-1 bg-gray-100 dark:bg-white/10 overflow-hidden">
                 <div 
-                    className="h-full bg-gradient-to-r from-brand-purple to-pink-500 transition-all duration-500 ease-out" 
+                    className="h-full bg-gradient-to-r from-brand-purple to-pink-500 transition-all duration-500 ease-out rounded-r-full" 
                     style={{ width: `${progress}%` }}
                 ></div>
             </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto scrollbar-hide p-6 pb-24 flex flex-col justify-center min-h-0">
-            <div className={`transition-all duration-300 transform ${isAnimating ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
+        <div className="flex-1 overflow-y-auto scrollbar-hide p-6 pb-32 flex flex-col justify-center min-h-0 relative">
+            <div className={`transition-all duration-500 transform ${isAnimating ? 'opacity-0 translate-y-10 scale-95' : 'opacity-100 translate-y-0 scale-100'}`}>
                 
                 {/* HERO QUESTION */}
-                <div className="mb-10 text-center px-2">
-                    <h2 className="text-2xl font-black text-brand-black dark:text-white uppercase leading-tight tracking-tight drop-shadow-sm">
+                <div className="mb-10 px-2">
+                    <h2 className="text-2xl md:text-3xl font-black text-brand-black dark:text-white uppercase leading-tight tracking-tight drop-shadow-sm text-left">
                         {currentQ.question}
                     </h2>
                 </div>
                 
-                {/* OPTIONS LIST */}
+                {/* COLOR-FLOOD OPTIONS LIST */}
                 <div className="space-y-4">
                     {currentQ.options.map((opt: any, index: number) => {
-                        let stateClass = "bg-white dark:bg-[#1A1A1A] border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:border-brand-purple/50";
-                        let badgeClass = "bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400";
+                        const isSelected = selectedOption === opt.id;
+                        const showResult = !!selectedOption;
+                        const isCorrect = opt.correct;
+
+                        // Base Style
+                        let containerClass = "relative w-full p-5 rounded-2xl border-2 text-left transition-all duration-300 transform group overflow-hidden";
+                        let badgeClass = "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0 transition-colors duration-300 z-10";
+                        let textClass = "text-sm font-bold leading-snug z-10 relative transition-colors duration-300";
                         let icon = null;
 
-                        if (selectedOption) {
-                            if (opt.correct) {
-                                stateClass = "bg-green-50 dark:bg-green-900/20 border-green-500 text-green-700 dark:text-green-300 shadow-lg shadow-green-500/10";
-                                badgeClass = "bg-green-500 text-white";
-                                icon = <CheckCircle2 size={18} className="text-green-500 animate-bounce" />;
-                            } else if (selectedOption === opt.id) {
-                                stateClass = "bg-red-50 dark:bg-red-900/20 border-red-500 text-red-700 dark:text-red-300";
-                                badgeClass = "bg-red-500 text-white";
-                                icon = <XCircle size={18} className="text-red-500 animate-shake" />;
+                        if (showResult) {
+                            if (isCorrect) {
+                                // CORRECT STATE: GREEN FLOOD
+                                containerClass += " bg-emerald-500 border-emerald-500 shadow-xl shadow-emerald-500/40 scale-[1.02]";
+                                badgeClass += " bg-white text-emerald-600";
+                                textClass += " text-white";
+                                icon = <CheckCircle2 size={24} className="text-white animate-[bounce_0.5s_ease-in-out] z-10" strokeWidth={3} />;
+                            } else if (isSelected && !isCorrect) {
+                                // WRONG STATE: RED FLOOD
+                                containerClass += " bg-rose-500 border-rose-500 shadow-xl shadow-rose-500/40 shake-animation";
+                                badgeClass += " bg-white text-rose-600";
+                                textClass += " text-white";
+                                icon = <XCircle size={24} className="text-white animate-pulse z-10" strokeWidth={3} />;
                             } else {
-                                stateClass = "bg-gray-50 dark:bg-black/20 border-transparent text-gray-300 opacity-50";
+                                // UNSELECTED STATE: FADE
+                                containerClass += " bg-gray-50 dark:bg-white/5 border-transparent opacity-40 blur-[1px]";
+                                badgeClass += " bg-gray-200 dark:bg-white/10 text-gray-400";
+                                textClass += " text-gray-400";
                             }
+                        } else {
+                            // DEFAULT STATE
+                            containerClass += " bg-white dark:bg-[#1A1A1A] border-gray-100 dark:border-white/10 hover:border-brand-purple dark:hover:border-brand-purple active:scale-[0.98] shadow-sm hover:shadow-md";
+                            badgeClass += " bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 group-hover:bg-brand-purple group-hover:text-white";
+                            textClass += " text-gray-600 dark:text-gray-300 group-hover:text-brand-black dark:group-hover:text-white";
                         }
 
                         return (
@@ -510,15 +517,19 @@ const EvaluationQuiz: React.FC = () => {
                                 key={opt.id}
                                 disabled={!!selectedOption}
                                 onClick={() => handleAnswer(opt.id, opt.correct, currentQ.options.find((o:any) => o.correct)?.text)}
-                                style={{ animationDelay: `${index * 100}ms` }}
-                                className={`w-full p-4 rounded-2xl border-2 flex items-center justify-between text-left transition-all duration-200 active:scale-[0.98] group animate-slide-up ${stateClass}`}
+                                style={{ animationDelay: `${index * 75}ms` }}
+                                className={`${containerClass} animate-slide-up flex items-center justify-between gap-4`}
                             >
-                                <div className="flex items-center gap-4">
-                                    {/* Option Badge (A, B, C) */}
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0 transition-colors ${badgeClass} group-hover:scale-105 duration-200`}>
+                                {/* Fill Animation Background (Optional subtle gradient) */}
+                                {showResult && (isSelected || isCorrect) && (
+                                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent pointer-events-none"></div>
+                                )}
+
+                                <div className="flex items-center gap-4 flex-1">
+                                    <div className={badgeClass}>
                                         {opt.id}
                                     </div>
-                                    <span className="text-xs font-bold leading-snug">{opt.text}</span>
+                                    <span className={textClass}>{opt.text}</span>
                                 </div>
                                 {icon}
                             </button>
@@ -530,10 +541,24 @@ const EvaluationQuiz: React.FC = () => {
         </div>
         
         {/* Footer Hint */}
-        <div className="p-6 bg-[#FAFAFA] dark:bg-black flex items-center justify-center text-gray-400 gap-2 pb-safe">
-            <HelpCircle size={14} />
-            <span className="text-[9px] font-black uppercase tracking-widest">Selecciona la mejor opción</span>
+        <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#F8F9FA] dark:from-black to-transparent pointer-events-none flex justify-center pb-safe">
+            <div className="bg-white/80 dark:bg-black/80 backdrop-blur-md px-4 py-2 rounded-full border border-gray-100 dark:border-white/10 shadow-sm flex items-center gap-2">
+                <HelpCircle size={12} className="text-gray-400" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Selecciona la mejor opción</span>
+            </div>
         </div>
+
+        <style>{`
+            .shake-animation {
+                animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+            }
+            @keyframes shake {
+                10%, 90% { transform: translate3d(-1px, 0, 0); }
+                20%, 80% { transform: translate3d(2px, 0, 0); }
+                30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+                40%, 60% { transform: translate3d(4px, 0, 0); }
+            }
+        `}</style>
     </div>
   );
 };
