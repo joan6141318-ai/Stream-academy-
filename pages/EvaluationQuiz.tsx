@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { CheckCircle2, XCircle, Trophy, RefreshCw, ArrowRight, BrainCircuit, AlertCircle, Check, X, HelpCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, Trophy, RefreshCw, ArrowRight, BrainCircuit, AlertCircle, Check, X, HelpCircle, ChevronRight } from 'lucide-react';
 
 // --- DATA: QUESTIONS BASED ON PROVIDED TEXT ---
 const RAW_QUESTIONS = [
@@ -10,135 +10,135 @@ const RAW_QUESTIONS = [
         id: 1,
         question: "¿Qué es Bigo Live principalmente?",
         options: [
-            { id: 'a', text: "Una red social para interactuar en tiempo real mediante transmisiones en vivo.", correct: true },
-            { id: 'b', text: "Una aplicación exclusiva para editar videos cortos pregrabados.", correct: false },
-            { id: 'c', text: "Una billetera virtual para criptomonedas y acciones.", correct: false }
+            { id: 'A', text: "Una red social para interactuar en tiempo real mediante transmisiones en vivo.", correct: true },
+            { id: 'B', text: "Una aplicación exclusiva para editar videos cortos pregrabados.", correct: false },
+            { id: 'C', text: "Una billetera virtual para criptomonedas y acciones.", correct: false }
         ]
     },
     {
         id: 2,
         question: "¿En qué dos factores se basa la monetización mensual?",
         options: [
-            { id: 'a', text: "Cantidad de seguidores y likes en el perfil.", correct: false },
-            { id: 'b', text: "Horas de transmisión y recaudación de semillas.", correct: true },
-            { id: 'c', text: "Número de comentarios y veces compartido.", correct: false }
+            { id: 'A', text: "Cantidad de seguidores y likes en el perfil.", correct: false },
+            { id: 'B', text: "Horas de transmisión y recaudación de semillas.", correct: true },
+            { id: 'C', text: "Número de comentarios y veces compartido.", correct: false }
         ]
     },
     {
         id: 3,
         question: "¿Cuál es el valor de conversión oficial de las semillas?",
         options: [
-            { id: 'a', text: "100 semillas = 1 USD", correct: false },
-            { id: 'b', text: "210 semillas = 1 USD", correct: true },
-            { id: 'c', text: "500 semillas = 1 USD", correct: false }
+            { id: 'A', text: "100 semillas = 1 USD", correct: false },
+            { id: 'B', text: "210 semillas = 1 USD", correct: true },
+            { id: 'C', text: "500 semillas = 1 USD", correct: false }
         ]
     },
     {
         id: 4,
         question: "¿Cuándo se deposita la remuneración mensual?",
         options: [
-            { id: 'a', text: "Durante la primera semana de cada mes.", correct: true },
-            { id: 'b', text: "El último día de cada mes.", correct: false },
-            { id: 'c', text: "Inmediatamente después de cada transmisión.", correct: false }
+            { id: 'A', text: "Durante la primera semana de cada mes.", correct: true },
+            { id: 'B', text: "El último día de cada mes.", correct: false },
+            { id: 'C', text: "Inmediatamente después de cada transmisión.", correct: false }
         ]
     },
     {
         id: 5,
         question: "¿Cuál es el mínimo de horas mensuales para cumplir la meta?",
         options: [
-            { id: 'a', text: "30 horas.", correct: false },
-            { id: 'b', text: "60 horas.", correct: false },
-            { id: 'c', text: "44 horas.", correct: true }
+            { id: 'A', text: "30 horas.", correct: false },
+            { id: 'B', text: "60 horas.", correct: false },
+            { id: 'C', text: "44 horas.", correct: true }
         ]
     },
     {
         id: 6,
         question: "¿Cuántas horas máximas se contabilizan por día para la meta?",
         options: [
-            { id: 'a', text: "No hay límite diario.", correct: false },
-            { id: 'b', text: "Máximo 2 horas por día.", correct: true },
-            { id: 'c', text: "Máximo 4 horas por día.", correct: false }
+            { id: 'A', text: "No hay límite diario.", correct: false },
+            { id: 'B', text: "Máximo 2 horas por día.", correct: true },
+            { id: 'C', text: "Máximo 4 horas por día.", correct: false }
         ]
     },
     {
         id: 7,
         question: "¿Cuánto debe durar una transmisión para ser válida?",
         options: [
-            { id: 'a', text: "Al menos 30 minutos.", correct: true },
-            { id: 'b', text: "Mínimo 1 hora completa.", correct: false },
-            { id: 'c', text: "Cualquier duración cuenta.", correct: false }
+            { id: 'A', text: "Al menos 30 minutos.", correct: true },
+            { id: 'B', text: "Mínimo 1 hora completa.", correct: false },
+            { id: 'C', text: "Cualquier duración cuenta.", correct: false }
         ]
     },
     {
         id: 8,
         question: "¿Qué métodos de retiro están disponibles?",
         options: [
-            { id: 'a', text: "Solo transferencia bancaria local.", correct: false },
-            { id: 'b', text: "Western Union y Cheque.", correct: false },
-            { id: 'c', text: "Payoneer, PayPal y D-Local.", correct: true }
+            { id: 'A', text: "Solo transferencia bancaria local.", correct: false },
+            { id: 'B', text: "Western Union y Cheque.", correct: false },
+            { id: 'C', text: "Payoneer, PayPal y D-Local.", correct: true }
         ]
     },
     {
         id: 9,
         question: "¿Está permitido mostrar menores de edad en cámara?",
         options: [
-            { id: 'a', text: "Sí, si están acompañados de un adulto.", correct: false },
-            { id: 'b', text: "No, está estrictamente prohibido.", correct: true },
-            { id: 'c', text: "Solo si es por poco tiempo.", correct: false }
+            { id: 'A', text: "Sí, si están acompañados de un adulto.", correct: false },
+            { id: 'B', text: "No, está estrictamente prohibido.", correct: true },
+            { id: 'C', text: "Solo si es por poco tiempo.", correct: false }
         ]
     },
     {
         id: 10,
         question: "¿Qué sanción se aplica por faltas graves (como drogas o armas)?",
         options: [
-            { id: 'a', text: "Una advertencia de 10 minutos.", correct: false },
-            { id: 'b', text: "Inhabilitación de la cuenta por más de 1 año.", correct: true },
-            { id: 'c', text: "Reducción de semillas.", correct: false }
+            { id: 'A', text: "Una advertencia de 10 minutos.", correct: false },
+            { id: 'B', text: "Inhabilitación de la cuenta por más de 1 año.", correct: true },
+            { id: 'C', text: "Reducción de semillas.", correct: false }
         ]
     },
     {
         id: 11,
         question: "¿Para qué sirven los Puntos VIP en el sistema de bloqueos?",
         options: [
-            { id: 'a', text: "Para comprar regalos más baratos.", correct: false },
-            { id: 'b', text: "Para levantar algunos tipos de bloqueo.", correct: true },
-            { id: 'c', text: "Para destacar en la página de inicio.", correct: false }
+            { id: 'A', text: "Para comprar regalos más baratos.", correct: false },
+            { id: 'B', text: "Para levantar algunos tipos de bloqueo.", correct: true },
+            { id: 'C', text: "Para destacar en la página de inicio.", correct: false }
         ]
     },
     {
         id: 12,
         question: "¿Bigo solicita códigos de verificación por mensaje interno?",
         options: [
-            { id: 'a', text: "Sí, para confirmar la identidad.", correct: false },
-            { id: 'b', text: "A veces, en eventos especiales.", correct: false },
-            { id: 'c', text: "Nunca.", correct: true }
+            { id: 'A', text: "Sí, para confirmar la identidad.", correct: false },
+            { id: 'B', text: "A veces, en eventos especiales.", correct: false },
+            { id: 'C', text: "Nunca.", correct: true }
         ]
     },
     {
         id: 13,
         question: "¿Quién es el único responsable de la seguridad de la cuenta?",
         options: [
-            { id: 'a', text: "La agencia.", correct: false },
-            { id: 'b', text: "El soporte técnico.", correct: false },
-            { id: 'c', text: "El emisor.", correct: true }
+            { id: 'A', text: "La agencia.", correct: false },
+            { id: 'B', text: "El soporte técnico.", correct: false },
+            { id: 'C', text: "El emisor.", correct: true }
         ]
     },
     {
         id: 14,
         question: "¿Se permite solicitar dinero por apps externas (PayPal/Nequi)?",
         options: [
-            { id: 'a', text: "Sí, es decisión del emisor.", correct: false },
-            { id: 'b', text: "No, está prohibido.", correct: true },
-            { id: 'c', text: "Solo si se pone en el título del live.", correct: false }
+            { id: 'A', text: "Sí, es decisión del emisor.", correct: false },
+            { id: 'B', text: "No, está prohibido.", correct: true },
+            { id: 'C', text: "Solo si se pone en el título del live.", correct: false }
         ]
     },
     {
         id: 15,
         question: "¿Qué sucede si el sistema determina que no hubo riesgo en una apelación?",
         options: [
-            { id: 'a', text: "Puede desbloquear la cuenta.", correct: true },
-            { id: 'b', text: "Otorga semillas de compensación.", correct: false },
-            { id: 'c', text: "Reduce las horas de meta.", correct: false }
+            { id: 'A', text: "Puede desbloquear la cuenta.", correct: true },
+            { id: 'B', text: "Otorga semillas de compensación.", correct: false },
+            { id: 'C', text: "Reduce las horas de meta.", correct: false }
         ]
     }
 ];
@@ -161,11 +161,16 @@ const EvaluationQuiz: React.FC = () => {
       // Shuffle Questions
       const shuffledQ = [...RAW_QUESTIONS].sort(() => Math.random() - 0.5);
       
-      // Shuffle Options inside each question
-      const finalQuestions = shuffledQ.map(q => ({
-          ...q,
-          options: [...q.options].sort(() => Math.random() - 0.5)
-      }));
+      // Shuffle Options inside each question & Assign A/B/C labels dynamically based on new order
+      const finalQuestions = shuffledQ.map(q => {
+          const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+          // Re-assign IDs to A, B, C for display purposes after shuffle
+          const labeledOptions = shuffledOptions.map((opt, idx) => ({
+              ...opt,
+              id: String.fromCharCode(65 + idx) // 65 is 'A'
+          }));
+          return { ...q, options: labeledOptions };
+      });
 
       setQuestions(finalQuestions);
       setCurrentQuestionIndex(0);
@@ -325,62 +330,87 @@ const EvaluationQuiz: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full w-full bg-[#FAFAFA] dark:bg-black transition-colors duration-300">
-        <Header title={`Pregunta ${currentQuestionIndex + 1}/${questions.length}`} showBack onBack={() => navigate('/welcome')} />
         
-        {/* Progress Bar */}
-        <div className="w-full h-1.5 bg-gray-200 dark:bg-white/10 mt-[calc(3.5rem+env(safe-area-inset-top))]">
-            <div 
-                className="h-full bg-brand-purple transition-all duration-500 ease-out" 
-                style={{ width: `${progress}%` }}
-            ></div>
+        {/* Simplified Header with Progress */}
+        <div className="pt-safe bg-white/80 dark:bg-black/80 backdrop-blur-md sticky top-0 z-20 border-b border-gray-100 dark:border-white/5">
+            <div className="px-4 h-14 flex items-center justify-between">
+                <button onClick={() => navigate('/welcome')} className="w-8 h-8 flex items-center justify-center -ml-2 text-gray-400">
+                    <X size={20} />
+                </button>
+                <div className="flex flex-col items-center">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Pregunta</span>
+                    <span className="text-sm font-black text-brand-black dark:text-white leading-none">
+                        {currentQuestionIndex + 1} <span className="text-gray-300">/</span> {questions.length}
+                    </span>
+                </div>
+                <div className="w-8"></div>
+            </div>
+            {/* Progress Line */}
+            <div className="w-full h-1 bg-gray-100 dark:bg-white/10">
+                <div 
+                    className="h-full bg-gradient-to-r from-brand-purple to-pink-500 transition-all duration-500 ease-out" 
+                    style={{ width: `${progress}%` }}
+                ></div>
+            </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto scrollbar-hide p-6 pb-24">
-            <div className={`transition-all duration-300 transform ${isAnimating ? 'opacity-0 translate-x-10' : 'opacity-100 translate-x-0'}`}>
+        <div className="flex-1 overflow-y-auto scrollbar-hide p-6 pb-24 flex flex-col justify-center min-h-0">
+            <div className={`transition-all duration-300 transform ${isAnimating ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
                 
-                {/* Question Card */}
-                <div className="mt-4 mb-8">
-                    <h2 className="text-xl font-black text-brand-black dark:text-white uppercase leading-tight tracking-tight mb-6">
+                {/* HERO QUESTION */}
+                <div className="mb-10 text-center px-2">
+                    <h2 className="text-2xl font-black text-brand-black dark:text-white uppercase leading-tight tracking-tight drop-shadow-sm">
                         {currentQ.question}
                     </h2>
-                    
-                    <div className="space-y-3">
-                        {currentQ.options.map((opt: any) => {
-                            let stateClass = "bg-white dark:bg-[#1A1A1A] border-gray-200 dark:border-white/10 text-brand-black dark:text-white hover:border-gray-300";
-                            let icon = null;
+                </div>
+                
+                {/* OPTIONS LIST */}
+                <div className="space-y-4">
+                    {currentQ.options.map((opt: any, index: number) => {
+                        let stateClass = "bg-white dark:bg-[#1A1A1A] border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:border-brand-purple/50";
+                        let badgeClass = "bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400";
+                        let icon = null;
 
-                            if (selectedOption) {
-                                if (opt.correct) {
-                                    stateClass = "bg-green-500 border-green-500 text-white shadow-lg shadow-green-500/30";
-                                    icon = <CheckCircle2 size={20} className="text-white animate-bounce" />;
-                                } else if (selectedOption === opt.id) {
-                                    stateClass = "bg-red-500 border-red-500 text-white shadow-lg shadow-red-500/30";
-                                    icon = <XCircle size={20} className="text-white animate-shake" />;
-                                } else {
-                                    stateClass = "bg-gray-100 dark:bg-white/5 border-transparent text-gray-400 opacity-50";
-                                }
+                        if (selectedOption) {
+                            if (opt.correct) {
+                                stateClass = "bg-green-50 dark:bg-green-900/20 border-green-500 text-green-700 dark:text-green-300 shadow-lg shadow-green-500/10";
+                                badgeClass = "bg-green-500 text-white";
+                                icon = <CheckCircle2 size={18} className="text-green-500 animate-bounce" />;
+                            } else if (selectedOption === opt.id) {
+                                stateClass = "bg-red-50 dark:bg-red-900/20 border-red-500 text-red-700 dark:text-red-300";
+                                badgeClass = "bg-red-500 text-white";
+                                icon = <XCircle size={18} className="text-red-500 animate-shake" />;
+                            } else {
+                                stateClass = "bg-gray-50 dark:bg-black/20 border-transparent text-gray-300 opacity-50";
                             }
+                        }
 
-                            return (
-                                <button
-                                    key={opt.id}
-                                    disabled={!!selectedOption}
-                                    onClick={() => handleAnswer(opt.id, opt.correct, currentQ.options.find((o:any) => o.correct)?.text)}
-                                    className={`w-full p-5 rounded-2xl border-2 flex items-center justify-between text-left transition-all duration-200 active:scale-[0.98] ${stateClass}`}
-                                >
-                                    <span className="text-xs font-bold leading-snug pr-4">{opt.text}</span>
-                                    {icon}
-                                </button>
-                            );
-                        })}
-                    </div>
+                        return (
+                            <button
+                                key={opt.id}
+                                disabled={!!selectedOption}
+                                onClick={() => handleAnswer(opt.id, opt.correct, currentQ.options.find((o:any) => o.correct)?.text)}
+                                style={{ animationDelay: `${index * 100}ms` }}
+                                className={`w-full p-4 rounded-2xl border-2 flex items-center justify-between text-left transition-all duration-200 active:scale-[0.98] group animate-slide-up ${stateClass}`}
+                            >
+                                <div className="flex items-center gap-4">
+                                    {/* Option Badge (A, B, C) */}
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0 transition-colors ${badgeClass} group-hover:scale-105 duration-200`}>
+                                        {opt.id}
+                                    </div>
+                                    <span className="text-xs font-bold leading-snug">{opt.text}</span>
+                                </div>
+                                {icon}
+                            </button>
+                        );
+                    })}
                 </div>
 
             </div>
         </div>
         
         {/* Footer Hint */}
-        <div className="p-4 bg-white dark:bg-black border-t border-gray-100 dark:border-white/5 flex items-center justify-center text-gray-400 gap-2">
+        <div className="p-6 bg-[#FAFAFA] dark:bg-black flex items-center justify-center text-gray-400 gap-2 pb-safe">
             <HelpCircle size={14} />
             <span className="text-[9px] font-black uppercase tracking-widest">Selecciona la mejor opción</span>
         </div>
