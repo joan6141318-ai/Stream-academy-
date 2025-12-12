@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { CheckCircle2, XCircle, Trophy, RefreshCw, ArrowRight, BrainCircuit, AlertCircle, Check, X, HelpCircle, ChevronRight } from 'lucide-react';
+import { CheckCircle2, XCircle, Trophy, RefreshCw, ArrowRight, BrainCircuit, AlertCircle, Check, X, HelpCircle, ChevronRight, PartyPopper, Star, Zap } from 'lucide-react';
 
 // --- DATA: QUESTIONS BASED ON PROVIDED TEXT ---
 const RAW_QUESTIONS = [
@@ -143,6 +143,48 @@ const RAW_QUESTIONS = [
     }
 ];
 
+// Componente de Anillo de Progreso (Donut Chart)
+const CircularProgress = ({ percentage, colorClass }: { percentage: number, colorClass: string }) => {
+    const radius = 60;
+    const stroke = 12;
+    const normalizedRadius = radius - stroke * 2;
+    const circumference = normalizedRadius * 2 * Math.PI;
+    const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+    return (
+        <div className="relative flex items-center justify-center">
+            <svg height={radius * 2} width={radius * 2} className="rotate-[-90deg]">
+                <circle
+                    stroke="currentColor"
+                    strokeWidth={stroke}
+                    fill="transparent"
+                    r={normalizedRadius}
+                    cx={radius}
+                    cy={radius}
+                    className="text-gray-100 dark:text-white/10"
+                />
+                <circle
+                    stroke="currentColor"
+                    strokeWidth={stroke}
+                    strokeDasharray={circumference + ' ' + circumference}
+                    style={{ strokeDashoffset, transition: 'stroke-dashoffset 1.5s ease-out' }}
+                    strokeLinecap="round"
+                    fill="transparent"
+                    r={normalizedRadius}
+                    cx={radius}
+                    cy={radius}
+                    className={colorClass}
+                />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center flex-col">
+                <span className="text-3xl font-black text-brand-black dark:text-white leading-none tracking-tighter">
+                    {percentage}%
+                </span>
+            </div>
+        </div>
+    );
+};
+
 const EvaluationQuiz: React.FC = () => {
   const navigate = useNavigate();
   
@@ -155,6 +197,9 @@ const EvaluationQuiz: React.FC = () => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [wrongAnswers, setWrongAnswers] = useState<any[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
+  
+  // Results Animation State
+  const [displayedScore, setDisplayedScore] = useState(0);
 
   // --- LOGIC: SHUFFLE ---
   const startQuiz = () => {
@@ -179,6 +224,7 @@ const EvaluationQuiz: React.FC = () => {
       setSelectedOption(null);
       setIsFinished(false);
       setIsPlaying(true);
+      setDisplayedScore(0);
   };
 
   const handleAnswer = (optionId: string, isCorrect: boolean, correctText: string) => {
@@ -212,6 +258,29 @@ const EvaluationQuiz: React.FC = () => {
           }, 300);
       }, 1500);
   };
+
+  // Effect for counting up score
+  useEffect(() => {
+      if (isFinished) {
+          const targetScore = Math.round((score / questions.length) * 100);
+          let start = 0;
+          const duration = 1500; // ms
+          const stepTime = 20;
+          const steps = duration / stepTime;
+          const increment = targetScore / steps;
+
+          const timer = setInterval(() => {
+              start += increment;
+              if (start >= targetScore) {
+                  setDisplayedScore(targetScore);
+                  clearInterval(timer);
+              } else {
+                  setDisplayedScore(Math.floor(start));
+              }
+          }, stepTime);
+          return () => clearInterval(timer);
+      }
+  }, [isFinished, score, questions.length]);
 
   // --- RENDER: INTRO SCREEN ---
   if (!isPlaying && !isFinished) {
@@ -252,58 +321,82 @@ const EvaluationQuiz: React.FC = () => {
   // --- RENDER: RESULTS SCREEN ---
   if (isFinished) {
       const percentage = Math.round((score / questions.length) * 100);
-      let status = { text: "Necesitas Estudiar", color: "text-red-500", bg: "bg-red-500" };
-      if (percentage >= 90) status = { text: "¡Experto Total!", color: "text-green-500", bg: "bg-green-500" };
-      else if (percentage >= 70) status = { text: "Conocimiento Sólido", color: "text-brand-purple", bg: "bg-brand-purple" };
-      else if (percentage >= 50) status = { text: "Puedes Mejorar", color: "text-orange-500", bg: "bg-orange-500" };
+      let status = { text: "Necesitas Estudiar", color: "text-red-500", ringColor: "text-red-500", bg: "bg-red-500" };
+      let isHigh = false;
+
+      if (percentage >= 90) {
+          status = { text: "¡Experto Total!", color: "text-green-500", ringColor: "text-green-500", bg: "bg-green-500" };
+          isHigh = true;
+      } else if (percentage >= 70) {
+          status = { text: "Conocimiento Sólido", color: "text-brand-purple", ringColor: "text-brand-purple", bg: "bg-brand-purple" };
+          isHigh = true;
+      } else if (percentage >= 50) {
+          status = { text: "Puedes Mejorar", color: "text-orange-500", ringColor: "text-orange-500", bg: "bg-orange-500" };
+      }
 
       return (
         <div className="flex flex-col h-full w-full bg-[#FAFAFA] dark:bg-black transition-colors duration-300">
             <Header title="Resultados" showBack onBack={() => navigate('/welcome')} />
             <div className="flex-1 overflow-y-auto scrollbar-hide p-6 pt-[calc(3.5rem+env(safe-area-inset-top))]">
                 
-                {/* Score Card */}
-                <div className="bg-white dark:bg-[#1A1A1A] rounded-[2.5rem] p-8 shadow-xl border border-gray-100 dark:border-white/5 text-center mb-8 relative overflow-hidden">
-                    <div className={`absolute top-0 left-0 w-full h-2 ${status.bg}`}></div>
+                {/* Score Card Premium */}
+                <div className="bg-white dark:bg-[#1A1A1A] rounded-[3rem] p-8 shadow-2xl border-[5px] border-white dark:border-white/5 text-center mb-8 relative overflow-hidden">
                     
-                    <div className="mb-4 inline-flex items-center justify-center p-4 rounded-full bg-gray-50 dark:bg-black border border-gray-100 dark:border-white/10 shadow-inner">
-                        <Trophy size={40} className={status.color} />
+                    {/* Confetti / Decor Background */}
+                    {isHigh && (
+                        <div className="absolute inset-0 opacity-10 pointer-events-none overflow-hidden">
+                            <PartyPopper size={100} className="absolute -top-10 -left-10 text-brand-purple rotate-45" />
+                            <Star size={80} className="absolute top-20 -right-10 text-yellow-500 animate-pulse" />
+                            <Zap size={60} className="absolute bottom-0 left-10 text-brand-purple rotate-12" />
+                        </div>
+                    )}
+
+                    {/* Circular Progress */}
+                    <div className="mb-6 scale-110">
+                        <CircularProgress percentage={displayedScore} colorClass={status.ringColor} />
                     </div>
                     
-                    <h2 className="text-5xl font-black text-brand-black dark:text-white mb-1 tracking-tighter">{percentage}%</h2>
-                    <p className={`text-xs font-black uppercase tracking-[0.2em] mb-6 ${status.color}`}>
+                    <p className={`text-sm font-black uppercase tracking-[0.2em] mb-8 ${status.color} bg-gray-50 dark:bg-white/5 inline-block px-4 py-2 rounded-full border border-gray-100 dark:border-white/5`}>
                         {status.text}
                     </p>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-green-50 dark:bg-green-900/10 p-3 rounded-xl">
-                            <span className="block text-xl font-black text-green-600">{score}</span>
-                            <span className="text-[9px] font-bold text-green-800/60 uppercase">Aciertos</span>
+                        <div className="bg-green-50 dark:bg-green-900/10 p-4 rounded-2xl flex flex-col items-center border border-green-100 dark:border-green-900/20">
+                            <span className="text-[10px] font-bold text-green-800/60 dark:text-green-400 uppercase tracking-widest mb-1">Aciertos</span>
+                            <span className="block text-2xl font-black text-green-600 dark:text-green-400 leading-none">{score}</span>
                         </div>
-                        <div className="bg-red-50 dark:bg-red-900/10 p-3 rounded-xl">
-                            <span className="block text-xl font-black text-red-500">{questions.length - score}</span>
-                            <span className="text-[9px] font-bold text-red-800/60 uppercase">Errores</span>
+                        <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-2xl flex flex-col items-center border border-red-100 dark:border-red-900/20">
+                            <span className="text-[10px] font-bold text-red-800/60 dark:text-red-400 uppercase tracking-widest mb-1">Errores</span>
+                            <span className="block text-2xl font-black text-red-500 leading-none">{questions.length - score}</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Wrong Answers List */}
+                {/* Wrong Answers List - Refined */}
                 {wrongAnswers.length > 0 && (
                     <div className="mb-8 animate-slide-up">
                         <div className="flex items-center gap-2 mb-4 px-2">
-                            <AlertCircle size={16} className="text-red-500" />
+                            <div className="bg-red-100 dark:bg-red-900/20 p-1.5 rounded-full">
+                                <AlertCircle size={14} className="text-red-500" />
+                            </div>
                             <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest">Correcciones</h3>
                         </div>
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             {wrongAnswers.map((item, idx) => (
-                                <div key={idx} className="bg-white dark:bg-[#111] p-4 rounded-xl border-l-4 border-red-500 shadow-sm">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Pregunta</p>
-                                    <p className="text-xs font-black text-brand-black dark:text-white mb-3 leading-tight">{item.q}</p>
-                                    <div className="flex items-start gap-2 bg-green-50 dark:bg-green-900/10 p-2 rounded-lg">
-                                        <Check size={14} className="text-green-600 mt-0.5 flex-shrink-0" />
-                                        <div>
-                                            <span className="text-[9px] font-bold text-green-700 dark:text-green-400 uppercase block">Respuesta Correcta</span>
-                                            <span className="text-xs font-medium text-green-800 dark:text-green-200">{item.a}</span>
+                                <div key={idx} className="bg-white dark:bg-[#111] p-5 rounded-[1.5rem] border border-gray-100 dark:border-white/5 shadow-sm relative overflow-hidden">
+                                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-red-500"></div>
+                                    <div className="pl-3">
+                                        <p className="text-[9px] font-bold text-gray-400 uppercase mb-2 tracking-wide">Pregunta</p>
+                                        <p className="text-xs font-black text-brand-black dark:text-white mb-4 leading-snug">{item.q}</p>
+                                        
+                                        <div className="flex items-start gap-3 bg-green-50 dark:bg-green-900/10 p-3 rounded-xl border border-green-100 dark:border-green-900/20">
+                                            <div className="bg-green-100 dark:bg-green-900/30 p-1 rounded-full mt-0.5">
+                                                <Check size={10} className="text-green-600 dark:text-green-400" strokeWidth={3} />
+                                            </div>
+                                            <div>
+                                                <span className="text-[8px] font-bold text-green-700 dark:text-green-400 uppercase block mb-0.5 tracking-widest">Solución Correcta</span>
+                                                <span className="text-xs font-bold text-green-800 dark:text-green-200 leading-tight">{item.a}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -314,7 +407,7 @@ const EvaluationQuiz: React.FC = () => {
 
                 <button 
                     onClick={startQuiz}
-                    className="w-full h-14 bg-brand-black dark:bg-white text-white dark:text-black rounded-xl font-black uppercase tracking-[0.2em] text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 mb-4"
+                    className="w-full h-14 bg-brand-black dark:bg-white text-white dark:text-black rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-brand-black/10 active:scale-95 transition-all flex items-center justify-center gap-2 mb-4 hover:opacity-90"
                 >
                     <RefreshCw size={16} />
                     <span>Intentar de Nuevo</span>
