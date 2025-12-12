@@ -273,47 +273,43 @@ const EvaluationQuiz: React.FC = () => {
       }
   }, [isFinished, score, questions.length]);
 
-  // --- RENDER: INTRO SCREEN ---
+  // --- RENDER: INTRO SCREEN (REVERTED TO PREVIOUS AESTHETIC) ---
   if (!isPlaying && !isFinished) {
       return (
         <div className="flex flex-col h-full w-full bg-[#FAFAFA] dark:bg-black transition-colors duration-300">
             <Header title="Evaluación" showBack onBack={() => navigate('/welcome')} />
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-fade-in relative overflow-hidden">
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-fade-in">
                 
-                {/* Background Decor */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-purple/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl -ml-20 -mb-20"></div>
-
-                <div className="relative mb-10 z-10">
-                    <div className="w-24 h-24 bg-white dark:bg-[#1A1A1A] rounded-[2rem] flex items-center justify-center shadow-2xl border-[3px] border-gray-100 dark:border-white/5 rotate-3 hover:rotate-0 transition-transform duration-500">
-                        <BrainCircuit size={48} className="text-brand-purple" strokeWidth={1.5} />
-                    </div>
-                    <div className="absolute -top-2 -right-2 bg-brand-black text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg animate-bounce">
-                        Examen
+                <div className="relative mb-8">
+                    <div className="absolute inset-0 bg-brand-purple/20 rounded-full blur-2xl"></div>
+                    <div className="relative bg-white dark:bg-[#1A1A1A] p-6 rounded-[2.5rem] shadow-2xl border-[5px] border-white dark:border-white/10">
+                        <BrainCircuit size={64} className="text-brand-purple" strokeWidth={1.5} />
                     </div>
                 </div>
 
-                <h1 className="text-4xl font-black uppercase tracking-tighter leading-[0.9] mb-4 text-transparent bg-clip-text bg-gradient-to-br from-brand-purple to-pink-600 relative z-10">
-                    Certificación<br/>Mensual
+                <h1 className="text-3xl font-black uppercase tracking-tighter leading-none mb-4 text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">
+                    Evaluación<br/>Mensual
                 </h1>
 
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 leading-relaxed max-w-[280px] mb-10 relative z-10">
-                    Demuestra tu dominio sobre las normas, monetización y seguridad de la plataforma.
-                </p>
+                <div className="bg-white dark:bg-brand-dark-card p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 mb-8 w-full max-w-xs">
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 leading-relaxed">
+                        Demuestra tu conocimiento sobre las normas, monetización y seguridad de la plataforma. Tienes <strong>15 preguntas</strong> para probar que eres un experto.
+                    </p>
+                </div>
 
                 <button 
                     onClick={startQuiz}
-                    className="w-full max-w-xs h-16 bg-brand-black dark:bg-white text-white dark:text-black rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-brand-black/20 dark:shadow-white/10 active:scale-95 transition-all flex items-center justify-center gap-3 group relative z-10"
+                    className="w-full max-w-xs h-14 bg-brand-black dark:bg-white text-white dark:text-black rounded-xl font-black uppercase tracking-[0.2em] text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 group"
                 >
-                    <span>Iniciar Test</span>
-                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                    <span>Comenzar Test</span>
+                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </button>
             </div>
         </div>
       );
   }
 
-  // --- RENDER: RESULTS SCREEN (PREMIUM DASHBOARD) ---
+  // --- RENDER: RESULTS SCREEN (PREMIUM DASHBOARD - KEPT NEW) ---
   if (isFinished) {
       const percentage = Math.round((score / questions.length) * 100);
       let config = { 
@@ -431,7 +427,7 @@ const EvaluationQuiz: React.FC = () => {
       );
   }
 
-  // --- RENDER: QUESTION SCREEN (IMPROVED INTERACTION) ---
+  // --- RENDER: QUESTION SCREEN (IMPROVED INTERACTION - KEPT NEW) ---
   const currentQ = questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
